@@ -1,4 +1,4 @@
-﻿using Celeste64.Source;
+using Celeste64.Source;
 using Foster.Framework;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -64,9 +64,9 @@ public static class Assets
 		Fonts.Clear();
 		Audio.Unload();
 
-		var maps = new ConcurrentBag<Map>();
-		var images = new ConcurrentBag<(string, Image)>();
-		var models = new ConcurrentBag<(string, SkinnedTemplate)>();
+		var maps = new ConcurrentBag<(Map, bool)>();
+		var images = new ConcurrentBag<(string, Image, bool)>();
+		var models = new ConcurrentBag<(string, SkinnedTemplate, bool)>();
 		var tasks = new List<Task>();
 
 		// load map files
@@ -81,7 +81,7 @@ public static class Assets
 				tasks.Add(Task.Run(() =>
 				{
 					var map = new Map(name, file);
-					maps.Add(map);
+					maps.Add((map, false));
 				}));
 			}
 
@@ -91,7 +91,7 @@ public static class Assets
 				tasks.Add(Task.Run(() =>
 				{
 					var map = new Map(mapfile.Key, mapfile.Value);
-					maps.Add(map);
+					maps.Add((map, true));
 				}));
 			}
 		}
@@ -105,7 +105,7 @@ public static class Assets
 			{
 				var img = new Image(file);
 				img.Premultiply();
-				images.Add((name, img));
+				images.Add((name, img, false));
 			}));
 		}
 
@@ -116,7 +116,7 @@ public static class Assets
 			{
 				var img = new Image(textureFile.Value);
 				img.Premultiply();
-				images.Add((textureFile.Key, img));
+				images.Add((textureFile.Key, img, true));
 			}));
 		}
 
@@ -129,7 +129,7 @@ public static class Assets
 			{
 				var img = new Image(file);
 				img.Premultiply();
-				images.Add((name, img));
+				images.Add((name, img, false));
 			}));
 		}
 
@@ -140,7 +140,7 @@ public static class Assets
 			{
 				var img = new Image(faceFile.Value);
 				img.Premultiply();
-				images.Add((faceFile.Key, img));
+				images.Add((faceFile.Key, img, true));
 			}));
 		}
 
@@ -154,7 +154,7 @@ public static class Assets
 			{
 				var input = SharpGLTF.Schema2.ModelRoot.Load(file);
 				var model = new SkinnedTemplate(input);
-				models.Add((name, model));
+				models.Add((name, model, false));
 			}));
 		}
 
@@ -165,7 +165,7 @@ public static class Assets
 			{
 				var input = SharpGLTF.Schema2.ModelRoot.Load(modelFile.Value);
 				var model = new SkinnedTemplate(input);
-				models.Add((modelFile.Key, model));
+				models.Add((modelFile.Key, model, true));
 			}));
 		}
 
@@ -207,7 +207,7 @@ public static class Assets
 			}
 		}
 		// ModloaderCustom
-		foreach(var shaderFile in ModLoader.LoadShaders())
+		foreach (var shaderFile in ModLoader.LoadShaders())
 		{
 			Shaders[shaderFile.Key] = shaderFile.Value;
 		}
@@ -221,7 +221,7 @@ public static class Assets
 		// ModloaderCustom
 		foreach (var fontFile in ModLoader.LoadFonts())
 		{
-			Fonts.Add(fontFile.Key, fontFile.Value);
+			Fonts[fontFile.Key] = fontFile.Value;
 		}
 
 		// pack sprites into single texture
@@ -258,14 +258,23 @@ public static class Assets
 		{
 			foreach (var task in tasks)
 				task.Wait();
-			foreach (var (name, img) in images)
-				Textures.Add(name, new Texture(img) { Name = name });
-			foreach (var map in maps)
-				Maps[map.Name] = map;
-			foreach (var (name, model) in models)
+			foreach (var (name, img, custom) in images)
+				if (!Textures.ContainsKey(name) || custom)
+				{
+					Textures.Add(name, new Texture(img) { Name = name });
+				}
+			foreach (var (map, custom) in maps)
+				if (!Maps.ContainsKey(map.Name) || custom)
+				{
+					Maps[map.Name] = map;
+				}
+			foreach (var (name, model, custom) in models)
 			{
-				model.ConstructResources();
-				Models[name] = model;
+				if (!Models.ContainsKey(name) || custom)
+				{
+					model.ConstructResources();
+					Models[name] = model;
+				}
 			}
 		}
 
