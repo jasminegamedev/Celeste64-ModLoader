@@ -80,6 +80,11 @@ public class World : Scene
 		{
 			Menu optionsMenu = new Menu();
 			optionsMenu.Title = "Options";
+   			if (Assets.Skins.Count > 0)
+			{
+				List<string> labels = Assets.Skins.Select(x => x.Name).ToList();
+				optionsMenu.Add(new Menu.OptionList("Skin", labels, 0, Assets.Skins.Count, () => Save.Instance.SkinName, Save.Instance.SetSkinName));
+			}
 			optionsMenu.Add(new Menu.Toggle("Fullscreen", Save.Instance.ToggleFullscreen, () => Save.Instance.Fullscreen));
 			optionsMenu.Add(new Menu.Toggle("Z-Guide", Save.Instance.ToggleZGuide, () => Save.Instance.ZGuide));
 			optionsMenu.Add(new Menu.Toggle("Timer", Save.Instance.ToggleTimer, () => Save.Instance.SpeedrunTimer));
@@ -95,11 +100,6 @@ public class World : Scene
 				Audio.StopBus(Sfx.bus_dialog, false);
 				Get<Player>()?.Kill();
 			}));
-			if (Assets.Skins.Count > 0)
-			{
-				List<string> labels = Assets.Skins.Select(x => x.Name).ToList();
-				pauseMenu.Add(new Menu.OptionList("Skin", labels, 0, Assets.Skins.Count, () => Save.Instance.SkinName, Save.Instance.SetSkinName));
-			}
 			pauseMenu.Add(new Menu.Submenu("Options", pauseMenu, optionsMenu));
 			pauseMenu.Add(new Menu.Option("Save & Quit", () => Game.Instance.Goto(new Transition()
 			{
