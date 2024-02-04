@@ -21,6 +21,8 @@
 		<PackageReference Include="FosterFramework" Version="0.1.16-alpha" />
 		<PackageReference Include="SharpGLTF.Runtime" Version="1.0.0-alpha0031" />
     <PackageReference Include="Sledge.Formats.Map" Version="1.1.5" />
+
+		<PackageReference Include="EmbeddedBuildProperty" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
