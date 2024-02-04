@@ -28,18 +28,19 @@ jobs:
     - name: Fetch all tags
       run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - name: Get current tag
-      run: echo "CURRENT_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_ENV
+      run: echo "CURRENT_RELEASE=$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_ENV
+      run: echo "CURRENT_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
 
     - name: Build Windows x86-64
-      run: dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r win-x64 "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_TAG}}"
+      run: dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r win-x64 "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_COMMIT}}"
     - name: Build Linux x86-64
-      run: dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r linux-x64 "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_TAG}}"
+      run: dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r linux-x64 "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_COMMIT}}"
     - name: Build macOS x86-64
-      run: dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r osx-x64 "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_TAG}}"
+      run: dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r osx-x64 "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_COMMIT}}"
     - name: Copy Content
       run: |
         cp -r Content Mods Celeste64Launcher/bin/Release/net8.0/win-x64/publish
@@ -48,19 +49,19 @@ jobs:
     - name: Create ZIP archives
       run: |
         pushd Celeste64Launcher/bin/Release/net8.0/win-x64/publish
-        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_TAG}}-win-x64.zip ./*
+        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}-${{env.CURRENT_COMMIT}}-win-x64.zip ./*
         popd
         pushd Celeste64Launcher/bin/Release/net8.0/linux-x64/publish
-        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_TAG}}-linux-x64.zip ./*
+        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}-${{env.CURRENT_COMMIT}}-linux-x64.zip ./*
         popd
         pushd Celeste64Launcher/bin/Release/net8.0/osx-x64/publish
-        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_TAG}}-osx-x64.zip ./*
+        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}-${{env.CURRENT_COMMIT}}-osx-x64.zip ./*
         popd
     - name: Publish Github Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{env.CURRENT_TAG}}
-        name: Celeste 64 Fuji ${{env.CURRENT_TAG}}
+        tag_name: ${{env.CURRENT_RELEASE}}-${{env.CURRENT_COMMIT}}
+        name: Celeste 64 Fuji ${{env.CURRENT_RELEASE}}-${{env.CURRENT_COMMIT}}
         body: |
           # Instructions:
 
