@@ -60,7 +60,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{env.CURRENT_TAG}}
-        name: Celeste 64 Fuji v${{env.CURRENT_TAG}}
+        name: Celeste 64 Fuji ${{env.CURRENT_TAG}}
         body: |
           # Instructions:
 
