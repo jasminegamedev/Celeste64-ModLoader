@@ -27,8 +27,9 @@ jobs:
     - uses: actions/checkout@v3
     - name: Fetch all tags
       run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-    - name: Get current tag
+    - name: Get current release
       run: echo "CURRENT_RELEASE=$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_ENV
+    - name: Get current commit
       run: echo "CURRENT_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
