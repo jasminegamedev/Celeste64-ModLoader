@@ -22,6 +22,8 @@ permissions:
 
 jobs:
   maketag:
+    name: Make Tag
+    runs-on: ubuntu-latest
     steps:
     - name: Create tag
       uses: actions/github-script@v5
