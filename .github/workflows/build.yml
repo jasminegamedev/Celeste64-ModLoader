@@ -36,27 +36,24 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    - name: Build Windows x86-64
-      run: dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r win-x64 "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_COMMIT}}"
-    - name: Build Linux x86-64
-      run: dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r linux-x64 "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_COMMIT}}"
-    - name: Build macOS x86-64
-      run: dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r osx-x64 "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_COMMIT}}"
+    - name: Build
+      env:
+        os: ${{ runner.os == 'Windows' && 'win' || runner.os == 'macOS' && 'osx' || 'linux' }}
+      run: |
+        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r ${{ env.os }}-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_COMMIT}}"
     - name: Copy Content
       run: |
-        cp -r Content Mods Celeste64Launcher/bin/Release/net8.0/win-x64/publish
-        cp -r Content Mods Celeste64Launcher/bin/Release/net8.0/linux-x64/publish
-        cp -r Content Mods Celeste64Launcher/bin/Release/net8.0/osx-x64/publish
+        cp -r Content Mods Celeste64Launcher/bin/Release/net8.0/${{ env.os }}/publish
     - name: Create ZIP archives
       run: |
         pushd Celeste64Launcher/bin/Release/net8.0/win-x64/publish
-        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}-${{env.CURRENT_COMMIT}}-win-x64.zip ./*
+        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}-win-x64.zip ./*
         popd
         pushd Celeste64Launcher/bin/Release/net8.0/linux-x64/publish
-        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}-${{env.CURRENT_COMMIT}}-linux-x64.zip ./*
+        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}-linux-x64.zip ./*
         popd
         pushd Celeste64Launcher/bin/Release/net8.0/osx-x64/publish
-        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}-${{env.CURRENT_COMMIT}}-osx-x64.zip ./*
+        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}-osx-x64.zip ./*
         popd
     - name: Create tag
       uses: actions/github-script@v5
@@ -65,14 +62,14 @@ jobs:
           github.rest.git.createRef({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            ref: 'refs/tags/${{env.CURRENT_RELEASE}}-${{env.CURRENT_COMMIT}}',
+            ref: 'refs/tags/${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}',
             sha: context.sha
           })
     - name: Publish Github Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{env.CURRENT_RELEASE}}-${{env.CURRENT_COMMIT}}
-        name: Celeste 64 Fuji ${{env.CURRENT_RELEASE}}-${{env.CURRENT_COMMIT}}
+        tag_name: ${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}
+        name: Celeste 64 Fuji ${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}
         body: |
           # Instructions:
 
