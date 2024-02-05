@@ -36,10 +36,10 @@ jobs:
       run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> "$env:GITHUB_OUTPUT"
       if: runner.os == 'Windows'
     - name : Get Short Hash Linux
-      run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+      run: echo "SHORT_SHA=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
       if: runner.os != 'Windows'
     - name: echo short hash
-      run: echo "Short SHA is ${{steps.vars.outputs.SHORT_SHA}}"
+      run: echo "Short SHA is ${{ env.SHORT_SHA }}"
       if: runner.os == 'Windows'
     - name: echo short hash
       run: echo "Short SHA is $SHORT_SHA"
@@ -97,7 +97,7 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         artifacts: Celeste64-Fuji-${{ runner.os }}-x64.zip
-        tag: $SHORT_SHA
+        tag: "${{ env.SHORT_SHA }}"
         body: |
           # Instructions:
 
