@@ -53,7 +53,7 @@ jobs:
       env:
         os: ${{ runner.os == 'Windows' && 'win' || runner.os == 'macOS' && 'osx' || 'linux' }}
       run: |
-        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r ${{env.os}}-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{github.sha}" -o build && cp -r Content Mods build
+        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r ${{env.os}}-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{github.sha}}" -o build && cp -r Content Mods build
       if: runner.os != 'Windows'
     - name: Build (windows)
       env:
