@@ -63,8 +63,7 @@ jobs:
       if: runner.os != 'Windows'
       
     - name: Publish Github Release
-    - uses: actions/checkout@v3
-    - uses: ncipollo/release-action@v1
+      uses: ncipollo/release-action@v1
       with:
         artifacts: Celeste64-Fuji-${{ github.ref_name }}-${{ runner.os }}-x64.zip
         body: |
