@@ -14,7 +14,7 @@ class Program
 		Game.LoaderVersion = $"Fuji: v.{loaderVersion.Major}.{loaderVersion.Minor}.{loaderVersion.Build}";
 		if (!string.IsNullOrEmpty(BuildProperties.ModVersion()))
 		{
-			Game.LoaderVersion += "-" + string.IsNullOrEmpty(BuildProperties.ModVersion());
+			Game.LoaderVersion += "-" + BuildProperties.ModVersion();
 		}
 		Log.Info($"Celeste 64 v.{Game.GameVersion.Major}.{Game.GameVersion.Minor}.{Game.GameVersion.Build}");
 		Log.Info(Game.LoaderVersion);

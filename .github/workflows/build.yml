@@ -55,13 +55,13 @@ jobs:
       env:
         os: ${{ runner.os == 'Windows' && 'win' || runner.os == 'macOS' && 'osx' || 'linux' }}
       run: |
-        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r ${{env.os}}-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{github.sha}}" -o build && cp -r Content Mods build
+        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r ${{env.os}}-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{ env.SHORT_SHA }}" -o build && cp -r Content Mods build
       if: runner.os != 'Windows'
     - name: Build (windows)
       env:
         os: ${{ runner.os == 'Windows' && 'win' || runner.os == 'macOS' && 'osx' || 'linux' }}
       run: |
-        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r win-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{github.sha}}" -o build && xcopy Mods build\Mods /s /e /h /i /y && xcopy Content build\Content /s /e /h /i /y
+        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r win-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{steps.vars.outputs.SHORT_SHA}}" -o build && xcopy Mods build\Mods /s /e /h /i /y && xcopy Content build\Content /s /e /h /i /y
       if: runner.os == 'Windows'
     - name: Compress (Windows)
       run: |
@@ -90,7 +90,8 @@ jobs:
           - **Linux:** [Distro support list](https://github.com/dotnet/core/blob/main/release-notes/8.0/supported-os.md), x64
           - **macOS:** Monterey or later, x64 Intel-based or Apple Silicon with Rosetta
         allowUpdates: true
-        name: "Celeste 64 Fuji ${{github.sha}}"
+        name: "Celeste 64 Fuji Prerelease V.${{steps.vars.outputs.SHORT_SHA}}"
+        prerelease: true
         makeLatest: false
         commit: "${{ github.sha }}"
       if: runner.os == 'Windows'
@@ -112,7 +113,8 @@ jobs:
           - **Linux:** [Distro support list](https://github.com/dotnet/core/blob/main/release-notes/8.0/supported-os.md), x64
           - **macOS:** Monterey or later, x64 Intel-based or Apple Silicon with Rosetta
         allowUpdates: true
-        name: "Celeste 64 Fuji ${{github.sha}}"
+        name: "Celeste 64 Fuji Prerelease V.${{ env.SHORT_SHA }}"
+        prerelease: true
         makeLatest: false
         commit: "${{ github.sha }}"
       if: runner.os != 'Windows'
