@@ -31,6 +31,19 @@ jobs:
     - uses: actions/checkout@v3
     - name: Fetch all tags
       run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+    - name: Get current short hash
+      id: vars
+      run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> "$env:GITHUB_OUTPUT"
+      if: runner.os == 'Windows'
+    - name : Get Short Hash Linux
+      run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+      if: runner.os != 'Windows'
+    - name: echo short hash
+      run: echo "Short SHA is ${{steps.vars.outputs.SHORT_SHA}}"
+      if: runner.os == 'Windows'
+    - name: echo short hash
+      run: echo "Short SHA is ${{env.SHORT_SHA}}"
+      if: runner.os != 'Windows'
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
@@ -40,13 +53,13 @@ jobs:
       env:
         os: ${{ runner.os == 'Windows' && 'win' || runner.os == 'macOS' && 'osx' || 'linux' }}
       run: |
-        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r ${{env.os}}-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=$(echo ${{ github.sha }} | cut -c1-7)" -o build && cp -r Content Mods build
+        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r ${{env.os}}-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{github.sha}" -o build && cp -r Content Mods build
       if: runner.os != 'Windows'
     - name: Build (windows)
       env:
         os: ${{ runner.os == 'Windows' && 'win' || runner.os == 'macOS' && 'osx' || 'linux' }}
       run: |
-        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r win-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=$(echo ${{ github.sha }} | cut -c1-7)" -o build && xcopy Mods build\Mods /s /e /h /i /y && xcopy Content build\Content /s /e /h /i /y
+        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r win-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{github.sha}}" -o build && xcopy Mods build\Mods /s /e /h /i /y && xcopy Content build\Content /s /e /h /i /y
       if: runner.os == 'Windows'
     - name: Compress (Windows)
       run: |
@@ -58,11 +71,11 @@ jobs:
         cd build && zip -r ../Celeste64-Fuji-${{ runner.os }}-x64.zip *
       if: runner.os != 'Windows'
       
-    - name: Publish Github Release
+    - name: Publish Github Release Windows
       uses: ncipollo/release-action@v1
       with:
         artifacts: Celeste64-Fuji-${{ runner.os }}-x64.zip
-        tag: "$(echo ${{ github.sha }} | cut -c1-7)"
+        tag: "${{steps.vars.outputs.SHORT_SHA}}"
         body: |
           # Instructions:
 
@@ -75,6 +88,29 @@ jobs:
           - **Linux:** [Distro support list](https://github.com/dotnet/core/blob/main/release-notes/8.0/supported-os.md), x64
           - **macOS:** Monterey or later, x64 Intel-based or Apple Silicon with Rosetta
         allowUpdates: true
-        name: "Celeste 64 Fuji $(echo ${{ github.sha }} | cut -c1-7)"
+        name: "Celeste 64 Fuji ${{github.sha}}"
         makeLatest: false
         commit: "${{ github.sha }}"
+      if: runner.os == 'Windows'
+
+    - name: Publish Github Release Linux and Mac
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: Celeste64-Fuji-${{ runner.os }}-x64.zip
+        tag: "${{env.SHORT_SHA}}"
+        body: |
+          # Instructions:
+
+          - Download and extract the zip file below according to your computer
+          - Run the Celeste64 application from the extracted files
+
+          # Requirements:
+
+          - **Windows:** 10 or later, x64
+          - **Linux:** [Distro support list](https://github.com/dotnet/core/blob/main/release-notes/8.0/supported-os.md), x64
+          - **macOS:** Monterey or later, x64 Intel-based or Apple Silicon with Rosetta
+        allowUpdates: true
+        name: "Celeste 64 Fuji ${{github.sha}}"
+        makeLatest: false
+        commit: "${{ github.sha }}"
+      if: runner.os != 'Windows'
