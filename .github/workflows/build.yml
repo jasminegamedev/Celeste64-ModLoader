@@ -51,7 +51,7 @@ jobs:
         os: ${{ runner.os == 'Windows' && 'win' || runner.os == 'macOS' && 'osx' || 'linux' }}
       run: |
         dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r win-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_COMMIT}}" -o build && cp -r Content Mods build && xcopy Mods build/Mods /s /e /h /i /y && xcopy Content build/Content /s /e /h /i /y
-      if: runner.os = 'Windows'
+      if: runner.os == 'Windows'
     - name: Compress (Windows)
       run: |
         Compress-Archive build/* Celeste64-Fuji-${{ github.ref_name }}-${{ runner.os }}-x64.zip
