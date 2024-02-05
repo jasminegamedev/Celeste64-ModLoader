@@ -36,7 +36,7 @@ jobs:
       run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> "$env:GITHUB_OUTPUT"
       if: runner.os == 'Windows'
     - name : Get Short Hash Linux
-      run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+      run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
       if: runner.os != 'Windows'
     - name: echo short hash
       run: echo "Short SHA is ${{steps.vars.outputs.SHORT_SHA}}"
