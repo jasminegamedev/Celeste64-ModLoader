@@ -67,7 +67,7 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         artifacts: Celeste64-Fuji-${{ runner.os }}-x64.zip
-        tag: "$${{steps.vars.outputs.SHORT_SHA}}"
+        tag: "${{steps.vars.outputs.SHORT_SHA}}"
         body: |
           # Instructions:
 
