@@ -51,7 +51,7 @@ jobs:
     - name: Create ZIP archives
       run: |
         pushd Celeste64Launcher/bin/Release/net8.0/${{runner.os}}-x64/publish
-        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}-${{runner.os,,}}-x64.zip ./*
+        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}-${{runner.os}}-x64.zip ./*
         popd
     - name: Create tag
       uses: actions/github-script@v5
