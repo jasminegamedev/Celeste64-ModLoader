@@ -21,10 +21,6 @@ permissions:
   contents: write
 
 jobs:
-  maketag:
-    name: Make Tag
-    runs-on: ubuntu-latest
-    steps:
   build:    
     strategy:
       matrix:
