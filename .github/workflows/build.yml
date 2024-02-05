@@ -58,6 +58,16 @@ jobs:
         pushd Celeste64Launcher/bin/Release/net8.0/osx-x64/publish
         zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}-${{env.CURRENT_COMMIT}}-osx-x64.zip ./*
         popd
+    - name: Create tag
+      uses: actions/github-script@v5
+      with:
+        script: |
+          github.rest.git.createRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: 'refs/tags/${{env.CURRENT_RELEASE}}-${{env.CURRENT_COMMIT}}',
+            sha: context.sha
+          })
     - name: Publish Github Release
       uses: softprops/action-gh-release@v1
       with:
