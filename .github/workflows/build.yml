@@ -44,20 +44,14 @@ jobs:
       env:
         os: ${{ runner.os == 'Windows' && 'win' || runner.os == 'macOS' && 'osx' || 'linux' }}
       run: |
-        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r ${{ env.os }}-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_COMMIT}}"
+        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r ${{env.os}}-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_COMMIT}}"
     - name: Copy Content
       run: |
-        cp -r Content Mods Celeste64Launcher/bin/Release/net8.0/${{ env.os }}/publish
+        cp -r Content Mods Celeste64Launcher/bin/Release/net8.0/${{env.os}}-x64/publish
     - name: Create ZIP archives
       run: |
-        pushd Celeste64Launcher/bin/Release/net8.0/win-x64/publish
-        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}-win-x64.zip ./*
-        popd
-        pushd Celeste64Launcher/bin/Release/net8.0/linux-x64/publish
-        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}-linux-x64.zip ./*
-        popd
-        pushd Celeste64Launcher/bin/Release/net8.0/osx-x64/publish
-        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}-osx-x64.zip ./*
+        pushd Celeste64Launcher/bin/Release/net8.0/${{env.os}}-x64/publish
+        zip -r ../../../../../../Celeste64-Fuji-${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}-${{env.os}}-x64.zip ./*
         popd
     - name: Create tag
       uses: actions/github-script@v5
