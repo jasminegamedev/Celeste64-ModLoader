@@ -33,8 +33,6 @@ jobs:
       run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - name: Get current release
       run: echo "CURRENT_RELEASE=$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_ENV
-    - name: Get current commit
-      run: echo "CURRENT_COMMIT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
@@ -44,28 +42,29 @@ jobs:
       env:
         os: ${{ runner.os == 'Windows' && 'win' || runner.os == 'macOS' && 'osx' || 'linux' }}
       run: |
-        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r ${{env.os}}-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_COMMIT}}" -o build && cp -r Content Mods build
+        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r ${{env.os}}-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{github.sha}}" -o build && cp -r Content Mods build
       if: runner.os != 'Windows'
     - name: Build (windows)
       env:
         os: ${{ runner.os == 'Windows' && 'win' || runner.os == 'macOS' && 'osx' || 'linux' }}
       run: |
-        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r win-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{env.CURRENT_COMMIT}}" -o build && xcopy Mods build\Mods /s /e /h /i /y && xcopy Content build\Content /s /e /h /i /y
+        dotnet publish Celeste64Launcher/Celeste64Launcher.csproj -c Release -r win-x64 -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{github.sha}}" -o build && xcopy Mods build\Mods /s /e /h /i /y && xcopy Content build\Content /s /e /h /i /y
       if: runner.os == 'Windows'
     - name: Compress (Windows)
       run: |
-        Compress-Archive build/* Celeste64-Fuji-${{ github.ref_name }}-${{ runner.os }}-x64.zip
+        Compress-Archive build/* Celeste64-Fuji-${{ runner.os }}-x64.zip
       if: runner.os == 'Windows'
     
     - name: Compress (macOS and Linux)
       run: |
-        cd build && zip -r ../Celeste64-Fuji-${{ github.ref_name }}-${{ runner.os }}-x64.zip *
+        cd build && zip -r ../Celeste64-Fuji-${{ runner.os }}-x64.zip *
       if: runner.os != 'Windows'
       
     - name: Publish Github Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: Celeste64-Fuji-${{ github.ref_name }}-${{ runner.os }}-x64.zip
+        artifacts: Celeste64-Fuji-${{ runner.os }}-x64.zip
+        tag: ${{github.sha}}
         body: |
           # Instructions:
 
@@ -78,7 +77,6 @@ jobs:
           - **Linux:** [Distro support list](https://github.com/dotnet/core/blob/main/release-notes/8.0/supported-os.md), x64
           - **macOS:** Monterey or later, x64 Intel-based or Apple Silicon with Rosetta
         allowUpdates: true
-        name: Celeste 64 Fuji ${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}
+        name: Celeste 64 Fuji ${{env.CURRENT_RELEASE}}${{github.sha}}
         makeLatest: false
-        tag: ${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}
         commit: ${{ github.sha }}
