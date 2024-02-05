@@ -61,22 +61,12 @@ jobs:
       run: |
         cd build && zip -r ../Celeste64-Fuji-${{ github.ref_name }}-${{ runner.os }}-x64.zip *
       if: runner.os != 'Windows'
-    - name: Create tag
-      uses: actions/github-script@v5
-      with:
-        script: |
-          github.rest.git.createRef({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            ref: 'refs/tags/${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}',
-            sha: context.sha
-          })
-        if: runner.os == 'linux'
+      
     - name: Publish Github Release
-      uses: softprops/action-gh-release@v1
+      uses: actions/checkout@v3
+      uses: ncipollo/release-action@v1
       with:
-        tag_name: ${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}
-        name: Celeste 64 Fuji ${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}
+        artifacts: Celeste64-Fuji-${{ github.ref_name }}-${{ runner.os }}-x64.zip
         body: |
           # Instructions:
 
@@ -88,4 +78,8 @@ jobs:
           - **Windows:** 10 or later, x64
           - **Linux:** [Distro support list](https://github.com/dotnet/core/blob/main/release-notes/8.0/supported-os.md), x64
           - **macOS:** Monterey or later, x64 Intel-based or Apple Silicon with Rosetta
-        files: Celeste64-Fuji-${{ github.ref_name }}-${{ runner.os }}-x64.zip
+        allowUpdates: true
+        name: Celeste 64 Fuji ${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}
+        makeLatest: false
+        tag: ${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}
+        commit: ${{ github.sha }}
