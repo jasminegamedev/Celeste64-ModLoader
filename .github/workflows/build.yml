@@ -21,6 +21,18 @@ permissions:
   contents: write
 
 jobs:
+  maketag:
+    steps:
+    - name: Create tag
+      uses: actions/github-script@v5
+      with:
+        script: |
+          github.rest.git.createRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: 'refs/tags/${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}',
+            sha: context.sha
+          })
   build:    
     strategy:
       matrix:
@@ -54,16 +66,6 @@ jobs:
       run: |
         cd build && zip -r ../Celeste64-${{ github.ref_name }}-${{ runner.os }}-x64.zip *
       if: runner.os != 'Windows'
-    - name: Create tag
-      uses: actions/github-script@v5
-      with:
-        script: |
-          github.rest.git.createRef({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            ref: 'refs/tags/${{env.CURRENT_RELEASE}}${{env.CURRENT_COMMIT}}',
-            sha: context.sha
-          })
     - name: Publish Github Release
       uses: softprops/action-gh-release@v1
       with:
