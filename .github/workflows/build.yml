@@ -32,10 +32,8 @@ jobs:
     - name: Fetch all tags
       run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - name: Get current short hash
-      id: vars
       run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
     - name: echo short hash
-      id: vars
       run: echo "Short SHA is ${{ env.SHORT_SHA }}"
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
