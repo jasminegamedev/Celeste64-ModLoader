@@ -65,7 +65,7 @@ public class Actor
 		}
 	}
 
-	public Vec2 Facing
+	public virtual Vec2 Facing
 	{
 		get => facing;
 		set
@@ -78,7 +78,7 @@ public class Actor
 		}
 	}
 	
-	public Vec2 Tilt
+	public virtual Vec2 Tilt
 	{
 		get => tilt;
 		set
