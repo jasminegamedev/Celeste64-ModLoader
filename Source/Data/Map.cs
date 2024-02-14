@@ -339,10 +339,7 @@ public class Map
 			it.GroupName = groupName;
 
 		if (entity.Properties.ContainsKey("angle"))
-			it.Facing = new(Calc.AngleToVector(entity.GetIntProperty("angle", 0) * Calc.DegToRad - MathF.PI / 2), it.Facing.Z);
-
-		if (entity.Properties.ContainsKey("tilt"))
-			it.Facing = new(it.Facing.XY(), entity.GetIntProperty("tilt", 0) * Calc.DegToRad);
+			it.Facing = Calc.AngleToVector(entity.GetIntProperty("angle", 0) * Calc.DegToRad - MathF.PI / 2);
 
 		if (factory?.UseSolidsAsBounds ?? false)
 		{
