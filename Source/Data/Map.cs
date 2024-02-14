@@ -6,6 +6,7 @@ using SledgeEntity = Sledge.Formats.Map.Objects.Entity;
 using SledgeFace = Sledge.Formats.Map.Objects.Face;
 using SledgeMap = Sledge.Formats.Map.Objects.MapFile;
 using System.Runtime.CompilerServices;
+using System.Globalization;
 
 namespace Celeste64;
 
@@ -340,6 +341,17 @@ public class Map
 
 		if (entity.Properties.ContainsKey("angle"))
 			it.Facing = Calc.AngleToVector(entity.GetIntProperty("angle", 0) * Calc.DegToRad - MathF.PI / 2);
+		
+		if (entity.Properties.ContainsKey("tilt")) {
+			var tilt = Vec2.Zero;
+            var value = entity.Properties["tilt"];
+            var spl = value.Split(' ');
+            if (string.IsNullOrWhiteSpace(value) || spl.Length == 2) {
+	            if (float.TryParse(spl[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var x)) tilt.X = x * Calc.DegToRad;
+	            if (float.TryParse(spl[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var y)) tilt.Y = y * Calc.DegToRad;
+			}
+			it.Tilt = tilt;
+		}
 
 		if (factory?.UseSolidsAsBounds ?? false)
 		{
