@@ -1,9 +1,14 @@
+using ImGuiNET;
+using Sledge.Formats;
+
 namespace Celeste64.Mod.Editor;
 
 public class TestEditorDefinition : EditorDefinition
 {
 	private readonly Mesh mesh = new();
 	private readonly EditorMaterial material = new();
+	
+	public Color Color { get; set; } = Color.White;
 	
 	public TestEditorDefinition()
 	{
@@ -67,6 +72,7 @@ public class TestEditorDefinition : EditorDefinition
 	public override void Render(ref EditorRenderState state)
 	{
 		state.ApplyToMaterial(material, Matrix.Identity);
+		material.Color = Color;
 		
 		new DrawCommand(state.Camera.Target, mesh, material)
 		{
@@ -76,5 +82,15 @@ public class TestEditorDefinition : EditorDefinition
 		}.Submit();
 		state.Calls++;
 		state.Triangles += mesh.IndexCount / 3;
+	}
+
+	public override void RenderGUI(EditorScene editor)
+	{
+		base.RenderGUI(editor);
+		
+		var col = Color.ToVector3();
+		// ImGui.ColorPicker3("Color", ref col, ImGuiColorEditFlags.DefaultOptions);
+		ImGui.ColorEdit3("Color", ref col);
+		Color = new Color(col);
 	}
 }
