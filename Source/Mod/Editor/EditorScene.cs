@@ -8,11 +8,15 @@ public class EditorScene : Scene
 		new TestWindow(),
 	];
 	
+	public readonly List<EditorDefinition> Definitions = [];
+	public EditorDefinition? Selected { internal set; get; } = null;
+	
 	private readonly WorldRenderer worldRenderer = new();
 	
 	internal EditorScene(World.EntryInfo entry)
 	{
 		Entry = entry;
+		Definitions.Add(new TestEditorDefinition());
 	}
 	
 	public override void Update()
@@ -25,13 +29,13 @@ public class EditorScene : Scene
 			return;
 		}
 		
-		worldRenderer.Update();
+		worldRenderer.Update(this);
 	}
 
 	public override void Render(Target target)
 	{
 		target.Clear(Color.Black, 1.0f, 0, ClearMask.All);
-		worldRenderer.Render(target);
+		worldRenderer.Render(this, target);
 	}
 }
 

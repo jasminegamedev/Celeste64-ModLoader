@@ -1,11 +1,11 @@
 namespace Celeste64.Mod.Editor;
 
-public class TestDefinition : Definition
+public class TestEditorDefinition : EditorDefinition
 {
 	private readonly Mesh mesh = new();
 	private readonly EditorMaterial material = new();
 	
-	public TestDefinition()
+	public TestEditorDefinition()
 	{
 		Vec3 size = Vec3.One * 3.0f;
 		Vec3 color = Vec3.One;

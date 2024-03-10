@@ -10,12 +10,15 @@ public class EditorMaterial : Material
 	private Color color;
     private float near;
     private float far;
- //    private bool cutout;
- //    private bool silhouette;
+	//    private bool cutout;
+	//    private bool silhouette;
 	// private Color silhouetteColor;
- //    private float time;
+	//    private float time;
 	private Vec3 sun;
- //    private Color verticalFogColor;
+	// private Color verticalFogColor;
+	
+	private int objectID = -1;
+ 
 
     public EditorMaterial(Texture? texture = null)
 		: base(Assets.Shaders["Editor"])
@@ -204,6 +207,20 @@ public class EditorMaterial : Material
   //           }
   //       }
   //   }
+  
+	  public int ObjectID
+	  {
+		  get => objectID;
+		  set
+		  {
+			  if (objectID != value)
+			  {
+				  objectID = value;
+				  if (Shader?.Has("u_objectID") ?? false)
+					  Set("u_objectID", (float)value);
+			  }
+		  }
+	  }
 
     public virtual EditorMaterial Clone()
 	{

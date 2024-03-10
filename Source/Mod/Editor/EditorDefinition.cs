@@ -1,7 +1,6 @@
 namespace Celeste64.Mod.Editor;
 
-// TODO: Find a more descriptive name
-public class Definition
+public class EditorDefinition
 {
 	public virtual void Render(ref EditorRenderState state) { }
 }

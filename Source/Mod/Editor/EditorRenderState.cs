@@ -13,6 +13,8 @@ public class EditorRenderState
 	public bool DepthMask;
 	public bool CutoutMode;
 	
+	public int ObjectID;
+	
 	// Stats
 	public int Calls;
 	public int Triangles;
@@ -32,5 +34,6 @@ public class EditorRenderState
 		mat.SunDirection = SunDirection;
 		// mat.VerticalFogColor = VerticalFogColor;
 		// mat.Cutout = CutoutMode;
+		mat.ObjectID = ObjectID;
 	}
 }

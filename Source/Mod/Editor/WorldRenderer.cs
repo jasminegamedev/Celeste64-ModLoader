@@ -8,7 +8,8 @@ public class WorldRenderer
 	private Vec3 cameraPos = new(0, -10, 0);
 	private Vec2 cameraRot = new(0, 0);
 	
-	private readonly List<Definition> definitions = [];
+	private Target? worldTarget = null;
+	private readonly Batcher batch = new();
 	
 	public WorldRenderer()
 	{
@@ -16,11 +17,9 @@ public class WorldRenderer
 		camera.FarPlane = 800;
 		camera.Position = new Vec3(0, -10, 0);
 		camera.FOVMultiplier = 1;
-		
-		definitions.Add(new TestDefinition());
 	}
 	
-	public void Update()
+	public void Update(EditorScene editor)
 	{
 		// Camera movement
 		var cameraForward = new Vec3(
@@ -66,9 +65,17 @@ public class WorldRenderer
 		camera.LookAt = cameraPos + forward;
 	}	
 	
-	public void Render(Target target)
+	public void Render(EditorScene editor, Target target)
 	{
-		camera.Target = target;
+		// TODO: Maybe render at a higher resolution in the editor?
+		if (worldTarget == null || worldTarget.Width != target.Width || worldTarget.Height != target.Height)
+		{
+			worldTarget?.Dispose();
+			worldTarget = new Target(target.Width, target.Height, [TextureFormat.Color, TextureFormat.R8, TextureFormat.Depth24Stencil8]);
+		}
+		worldTarget.Clear(Color.Black, 1.0f, 0, ClearMask.All);
+		
+		camera.Target = worldTarget;
 		EditorRenderState state = new();
 		{
 			state.Camera = camera;
@@ -80,11 +87,39 @@ public class WorldRenderer
 			// state.VerticalFogColor = 0xdceaf0;
 		}
 		
-		foreach (var definition in definitions)
+		for (int i = 0; i < editor.Definitions.Count; i++)
 		{
-			definition.Render(ref state);
+			state.ObjectID = i + 1; // Use 0 as "nothing selected"
+			editor.Definitions[i].Render(ref state);	
 		}
 		
-		Log.Info($"Editor: {state.Calls} draw calls with {state.Triangles} triangles");
+		// Try to select the object under the cursor
+		if (Input.Mouse.LeftPressed)
+		{
+			// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
+			var scale = Math.Min(App.WidthInPixels / (float)target.Width, App.HeightInPixels / (float)target.Height);
+			var imageRelativePos = Input.Mouse.Position - (App.SizeInPixels / 2 - target.Bounds.Size / 2 * scale);
+			// Convert it into a pixel position inside the target
+			var pixelPos = imageRelativePos / scale;
+			// Round to integer values
+			pixelPos = new Vec2(MathF.Round(pixelPos.X), MathF.Round(pixelPos.Y));
+			
+			if (pixelPos.X >= 0 && pixelPos.Y >= 0 && pixelPos.X < worldTarget.Width && pixelPos.Y < worldTarget.Height)
+			{
+				var data = new byte[worldTarget.Width * worldTarget.Height];
+				worldTarget.Attachments[1].GetData<byte>(data);
+				
+				// NOTE: OpenGL flips the image vertically
+				byte objectID = data[worldTarget.Width * (target.Height - (int)pixelPos.Y - 1) + (int)pixelPos.X];
+				editor.Selected = objectID == 0 
+					? null // Nothing selected 
+					: editor.Definitions[objectID - 1];
+			}
+		}
+		
+		// Render to the main target
+		batch.Image(worldTarget.Attachments[0], Color.White);
+		batch.Render(target);
+		batch.Clear();
 	}
 }

@@ -35,6 +35,7 @@ uniform float     u_near;
 uniform float     u_far;
 uniform vec3      u_sun;
 //uniform float     u_cutout;
+uniform float u_objectID;
 
 in vec2 v_tex;
 in vec3 v_normal;
@@ -42,6 +43,7 @@ in vec3 v_color;
 in vec3 v_world;
 
 layout(location = 0) out vec4 o_color;
+layout(location = 1) out float o_objectID;
 
 void main(void)
 {
@@ -69,4 +71,6 @@ void main(void)
     col = mix(col, vec3(4/255.0, 27/255.0, 44/255.0), darken * 0.80);
 
     o_color = vec4(col, src.a) * fade;
+    // TODO: Support object IDs above 255, since its just 8bits
+    o_objectID = u_objectID / 255.0;
 }
