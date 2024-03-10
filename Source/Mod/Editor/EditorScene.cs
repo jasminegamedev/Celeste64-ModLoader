@@ -21,8 +21,11 @@ public class EditorScene : Scene
 		if (Input.Keyboard.Pressed(Keys.F3))
 		{
 			Game.Instance.scenes.Pop();
-			Game.Instance.scenes.Push(new World(Entry));       
+			Game.Instance.scenes.Push(new World(Entry));
+			return;
 		}
+		
+		worldRenderer.Update();
 	}
 
 	public override void Render(Target target)

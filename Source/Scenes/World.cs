@@ -397,7 +397,8 @@ public class World : Scene
 		if (Input.Keyboard.Pressed(Keys.F3))
 		{
 			Game.Instance.scenes.Pop();
-			Game.Instance.scenes.Push(new EditorScene(Entry));       
+			Game.Instance.scenes.Push(new EditorScene(Entry));
+			return;
 		}
 		
 		try {
