@@ -72,7 +72,7 @@ public class TestEditorDefinition : EditorDefinition
 		{
 			DepthCompare = state.DepthCompare,
 			DepthMask = state.DepthMask,
-			CullMode = CullMode.None,
+			CullMode = CullMode.Back,
 		}.Submit();
 		state.Calls++;
 		state.Triangles += mesh.IndexCount / 3;

@@ -89,12 +89,21 @@ public class WorldRenderer
 		
 		for (int i = 0; i < editor.Definitions.Count; i++)
 		{
+			var def = editor.Definitions[i];
+			
 			state.ObjectID = i + 1; // Use 0 as "nothing selected"
-			editor.Definitions[i].Render(ref state);	
+			state.ModelMatrix = 
+				Matrix.CreateScale(def.Scale) *
+				Matrix.CreateRotationX(def.Rotation.X * Calc.DegToRad) *
+				Matrix.CreateRotationY(def.Rotation.Y * Calc.DegToRad) *
+				Matrix.CreateRotationZ(def.Rotation.Z * Calc.DegToRad) *
+				Matrix.CreateTranslation(def.Position);
+			
+			def.Render(ref state);	
 		}
 		
 		// Try to select the object under the cursor
-		if (Input.Mouse.LeftPressed)
+		if (!ImGuiManager.WantCaptureMouse && Input.Mouse.LeftPressed)
 		{
 			// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
 			var scale = Math.Min(App.WidthInPixels / (float)target.Width, App.HeightInPixels / (float)target.Height);
@@ -108,10 +117,10 @@ public class WorldRenderer
 			{
 				var data = new byte[worldTarget.Width * worldTarget.Height];
 				worldTarget.Attachments[1].GetData<byte>(data);
-				
+			
 				// NOTE: OpenGL flips the image vertically
 				byte objectID = data[worldTarget.Width * (target.Height - (int)pixelPos.Y - 1) + (int)pixelPos.X];
-				editor.Selected = objectID == 0 
+				editor.Selected = objectID == 0 || (objectID - 1) >= editor.Definitions.Count
 					? null // Nothing selected 
 					: editor.Definitions[objectID - 1];
 			}
