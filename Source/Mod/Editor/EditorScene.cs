@@ -4,7 +4,9 @@ public class EditorScene : Scene
 {
 	private World.EntryInfo Entry;
 	
-	internal readonly EditorHandler Handler = new();
+	internal readonly ImGuiHandler[] Handlers = [
+		new TestWindow(),
+	];
 	
 	internal EditorScene(World.EntryInfo entry)
 	{
