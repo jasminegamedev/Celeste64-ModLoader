@@ -30,8 +30,8 @@ internal class ImGuiRenderer
         io.ConfigDockingAlwaysTabBar = true;
         io.ConfigDockingTransparentPayload = true;
 
-		io.Fonts.AddFontDefault();
-		io.FontGlobalScale = 1.5f;
+		io.Fonts.AddFontFromFileTTF($"{Assets.ContentPath}/{Assets.FontsFolder}/Renogare.otf", 14);
+		io.FontGlobalScale = 1.0f;
 
 		Input.OnTextEvent += chr => io.AddInputCharacter(chr);
     }
