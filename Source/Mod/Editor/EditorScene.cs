@@ -8,6 +8,8 @@ public class EditorScene : Scene
 		new TestWindow(),
 	];
 	
+	private readonly WorldRenderer worldRenderer = new();
+	
 	internal EditorScene(World.EntryInfo entry)
 	{
 		Entry = entry;
@@ -25,7 +27,8 @@ public class EditorScene : Scene
 
 	public override void Render(Target target)
 	{
-		target.Clear(Color.Black);	
+		target.Clear(Color.Black, 1.0f, 0, ClearMask.All);
+		worldRenderer.Render(target);
 	}
 }
 
