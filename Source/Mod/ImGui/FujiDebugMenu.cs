@@ -21,7 +21,7 @@ internal class FujiDebugMenu : ImGuiHandler
 		ImGui.SetNextWindowSizeConstraints(new Vec2(300, 300), new Vec2(float.PositiveInfinity, float.PositiveInfinity));
 		ImGui.Begin("Celeste 64 - Debug Menu");
 
-		if (Game.Instance.Scene is World && ModManager.Instance.CurrentLevelMod != null)
+		if (Game.Scene is World && ModManager.Instance.CurrentLevelMod != null)
 		{
 			if (ImGui.BeginMenu("Open Map"))
 			{
@@ -44,7 +44,7 @@ internal class FujiDebugMenu : ImGuiHandler
 			}
 		}
 
-		if (Game.Instance.Scene is World world && world.Get<Player>() is Player player)
+		if (Game.Scene is World world && world.Get<Player>() is { } player)
 		{
 			if (world.All<Checkpoint>().Any() && ImGui.BeginMenu("Go to Checkpoint"))
 			{

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using ModelEntry = (Celeste64.Actor Actor, Celeste64.Model Model);
 using Celeste64.Mod;
+using Celeste64.Mod.Editor;
 
 namespace Celeste64;
 
@@ -391,6 +392,13 @@ public class World : Scene
 		if(Panicked) {
 			return;
 		} // don't pour salt in wounds
+		
+		// Toggle to editor
+		if (Input.Keyboard.Pressed(Keys.F3))
+		{
+			Game.Instance.scenes.Pop();
+			Game.Instance.scenes.Push(new EditorScene(Entry));       
+		}
 		
 		try {
 		debugUpdTimer.Restart();

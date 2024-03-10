@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using Celeste64.Mod;
+using Celeste64.Mod.Editor;
 using Celeste64.Mod.Patches;
 
 namespace Celeste64;
@@ -74,7 +75,7 @@ public class Game : Module
 	private static Game? instance;
 	public static Game Instance => instance ?? throw new Exception("Game isn't running");
 
-	private readonly Stack<Scene> scenes = new();
+	internal readonly Stack<Scene> scenes = new();
 	private Target target = new(Width, Height, [TextureFormat.Color, TextureFormat.Depth24Stencil8]);
 	private readonly Batcher batcher = new();
 	private Transition transition;
@@ -91,8 +92,8 @@ public class Game : Module
 	public SoundHandle? AmbienceWav;
 	public SoundHandle? MusicWav;
 
-	public Scene? Scene { get { return scenes.TryPeek(out Scene? scene) ? scene : null; } }
-	public World? World { get { return Scene is World world ? world : null; } }
+	public static Scene? Scene => Instance.scenes.TryPeek(out var scene) ? scene : null;
+	public World? World => Scene is World world ? world : null;
 
 	internal bool NeedsReload = false;
 

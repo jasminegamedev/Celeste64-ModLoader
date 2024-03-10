@@ -56,6 +56,11 @@ public abstract class GameMod
 	public World? World { get { return Game != null ? Game.World : null; } }
 	public Map? Map { get { return World != null ? World.Map : null; } }
 	public Player? Player { get { return World != null ? World.Get<Player>() : null; } }
+	
+	// public Game? Game => Game.Instance;
+	// public World? World => Game.Scene as World;
+	// public Map? Map => World?.Map;
+	// public Player? Player => World?.Get<Player>();
 
 	// Common Metadata about this mod.
 	public bool Enabled { get { return this is VanillaGameMod || ModSaveData.Enabled; } }

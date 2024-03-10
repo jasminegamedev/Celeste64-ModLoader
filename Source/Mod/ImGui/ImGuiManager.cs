@@ -1,3 +1,4 @@
+using Celeste64.Mod.Editor;
 using ImGuiNET;
 
 namespace Celeste64.Mod;
@@ -28,8 +29,11 @@ public class ImGuiManager
     {
         renderer.Update();
 
-        if(debugMenu.Active)
+        if (debugMenu.Active)
     		debugMenu.Update();
+        
+        if (Game.Scene is EditorScene editor)
+	        editor.Handler.Update();
 
 		foreach (var handler in Handlers)
         {
@@ -40,8 +44,13 @@ public class ImGuiManager
     internal void RenderHandlers()
     {
         renderer.BeforeRender();
+        
 		if (debugMenu.Visible)
 			debugMenu.Render();
+		
+		if (Game.Scene is EditorScene editor)
+			editor.Handler.Render();
+		
 		foreach (var handler in Handlers)
         {
             if (handler.Visible) handler.Render();
