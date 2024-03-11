@@ -93,11 +93,11 @@ public class WorldRenderer
 			
 			state.ObjectID = i + 1; // Use 0 as "nothing selected"
 			state.ModelMatrix = 
-				Matrix.CreateScale(def.Scale) *
-				Matrix.CreateRotationX(def.Rotation.X * Calc.DegToRad) *
-				Matrix.CreateRotationY(def.Rotation.Y * Calc.DegToRad) *
-				Matrix.CreateRotationZ(def.Rotation.Z * Calc.DegToRad) *
-				Matrix.CreateTranslation(def.Position);
+				Matrix.CreateScale(def._Data.Scale) *
+				Matrix.CreateRotationX(def._Data.Rotation.X * Calc.DegToRad) *
+				Matrix.CreateRotationY(def._Data.Rotation.Y * Calc.DegToRad) *
+				Matrix.CreateRotationZ(def._Data.Rotation.Z * Calc.DegToRad) *
+				Matrix.CreateTranslation(def._Data.Position);
 			
 			def.Render(ref state);	
 		}

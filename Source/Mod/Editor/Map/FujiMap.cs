@@ -39,13 +39,14 @@ public class FujiMap : Map
 			var defCount = reader.ReadInt32();
 			for (int i = 0; i < defCount; i++)
 			{
+				// Get the definition data type, by the full name
 				var fullName = reader.ReadString();
-				var defType = Assembly.GetExecutingAssembly().GetType(fullName)!;
-				var def = Activator.CreateInstance(defType);
+				var defDataType = Assembly.GetExecutingAssembly().GetType(fullName)!;
+				var defData = Activator.CreateInstance(defDataType);
 				
-				Log.Info($"Def: {def}");
+				Log.Info($"Def: {defData}");
                 			
-                var props = defType
+                var props = defDataType
                 	.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 	.Where(prop => !prop.HasAttr<SerializeIgnoreAttribute>());
                 
@@ -53,46 +54,46 @@ public class FujiMap : Map
                 {
                 	if (prop.GetCustomAttribute<SerializeCustomAttribute>() is { } custom)
                 	{
-                		prop.SetValue(def, custom.Deserialize(reader));
+                		prop.SetValue(defData, custom.Deserialize(reader));
                 		continue;
                 	}
                 	
 	                // Primitives
 	                if (prop.PropertyType == typeof(bool)) 
-		                prop.SetValue(def, reader.ReadBoolean());
+		                prop.SetValue(defData, reader.ReadBoolean());
 					else if (prop.PropertyType == typeof(byte)) 
-						prop.SetValue(def, reader.ReadByte());
+						prop.SetValue(defData, reader.ReadByte());
 					else if (prop.PropertyType == typeof(byte[]))
-						prop.SetValue(def, reader.ReadBytes(reader.Read7BitEncodedInt()));
+						prop.SetValue(defData, reader.ReadBytes(reader.Read7BitEncodedInt()));
 					else if (prop.PropertyType == typeof(char)) 
-						prop.SetValue(def, reader.ReadChar());
+						prop.SetValue(defData, reader.ReadChar());
 					else if (prop.PropertyType == typeof(char[])) 
-						prop.SetValue(def, reader.ReadChars(reader.Read7BitEncodedInt()));
+						prop.SetValue(defData, reader.ReadChars(reader.Read7BitEncodedInt()));
 					else if (prop.PropertyType == typeof(decimal))
-						prop.SetValue(def, reader.ReadDecimal());
+						prop.SetValue(defData, reader.ReadDecimal());
 					else if (prop.PropertyType == typeof(double))
-		                prop.SetValue(def, reader.ReadDouble());
+		                prop.SetValue(defData, reader.ReadDouble());
 					else if (prop.PropertyType == typeof(float)) 
-		                prop.SetValue(def, reader.ReadSingle());
+		                prop.SetValue(defData, reader.ReadSingle());
 					else if (prop.PropertyType == typeof(int))
-		                prop.SetValue(def, reader.ReadInt32());
+		                prop.SetValue(defData, reader.ReadInt32());
 					else if (prop.PropertyType == typeof(long)) 
-		                prop.SetValue(def, reader.ReadInt64());
+		                prop.SetValue(defData, reader.ReadInt64());
 					else if (prop.PropertyType == typeof(sbyte)) 
-		                prop.SetValue(def, reader.ReadSByte());
+		                prop.SetValue(defData, reader.ReadSByte());
 					else if (prop.PropertyType == typeof(short))
-		                prop.SetValue(def, reader.ReadInt16());
+		                prop.SetValue(defData, reader.ReadInt16());
 					else if (prop.PropertyType == typeof(Half))
-		                prop.SetValue(def, reader.ReadHalf());
+		                prop.SetValue(defData, reader.ReadHalf());
 	                // Special support
 	                else if (prop.PropertyType == typeof(Vec2))
-		                prop.SetValue(def, reader.ReadVec2());
+		                prop.SetValue(defData, reader.ReadVec2());
 	                else if (prop.PropertyType == typeof(Vec3))
-		                prop.SetValue(def, reader.ReadVec3());
+		                prop.SetValue(defData, reader.ReadVec3());
 	                else if (prop.PropertyType == typeof(Color))
-		                prop.SetValue(def, reader.ReadColor());
+		                prop.SetValue(defData, reader.ReadColor());
                 	
-                	Log.Info($" - {prop.Name}: {prop.GetValue(def)}");
+                	Log.Info($" - {prop.Name}: {prop.GetValue(defData)}");
                 }
 			}
 		}

@@ -43,9 +43,9 @@ public static class FujiMapWriter
 		foreach (var def in editor.Definitions)
 		{
 			Log.Info($"Def: {def}");
-			writer.Write(def.GetType().FullName!);
+			writer.Write(def.DataType.FullName!);
 			
-			var props = def.GetType()
+			var props = def.DataType
 				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
 				.Where(prop => !prop.HasAttr<SerializeIgnoreAttribute>());
 			
@@ -53,11 +53,11 @@ public static class FujiMapWriter
 			{
 				if (prop.GetCustomAttribute<SerializeCustomAttribute>() is { } custom)
 				{
-					custom.Serialize(prop.GetValue(def)!, writer);
+					custom.Serialize(prop.GetValue(def._Data)!, writer);
 					continue;
 				}
 				
-				switch (prop.GetValue(def))
+				switch (prop.GetValue(def._Data))
 				{
 					// Primitives
 					case bool v:
@@ -114,10 +114,10 @@ public static class FujiMapWriter
 						break;
 					
 					default:
-						throw new Exception($"Property '{prop.Name}' of type {prop.PropertyType} from definition '{def}' cannot be serialized");
+						throw new Exception($"Property '{prop.Name}' of type {prop.PropertyType} from definition '{def._Data}' cannot be serialized");
 				}
 				
-				Log.Info($" - {prop.Name}: {prop.GetValue(def)}");
+				Log.Info($" - {prop.Name}: {prop.GetValue(def._Data)}");
 			}
 		}
 	}
