@@ -44,7 +44,7 @@ in vec3 v_color;
 in vec3 v_world;
 
 layout(location = 0) out vec4 o_color;
-layout(location = 1) out float o_objectID;
+layout(location = 1) out vec4 o_objectID;
 
 void main(void)
 {
@@ -55,19 +55,16 @@ void main(void)
 //    if (src.a < u_cutout)
 //        discard;
 
-    float depth = LinearizeDepth(gl_FragCoord.z, u_near, u_far);
-    float fall = Map(v_world.z, 50, 0, 0, 1);
-    float fade = Map(depth, 0.9, 1, 1, 0);
-    vec3  col = src.rgb;
-
     // Apply depth values
+    float depth = LinearizeDepth(gl_FragCoord.z, u_near, u_far);
     gl_FragDepth = depth;
 
     // Apply shading based on normal relative to the camera
     float shade = clamp(dot(v_normal, vec3(0, 0, 1)), 0.2, 1.0);
-    col *= vec3(shade);
+    src.rgb *= vec3(shade);
     
-    o_color = vec4(col, src.a) * fade;
+    o_color = vec4(src.rgb, 1);
     // TODO: Support object IDs above 255, since its just 8bits
-    o_objectID = u_objectID / 255.0;
+    // NOTE: This is still only a float output, however we need to set alpha to avoid weird blending.
+    o_objectID = vec4(u_objectID / 255.0, 0, 0, 1);
 }

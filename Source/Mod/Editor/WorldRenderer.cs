@@ -1,9 +1,25 @@
+using System.Runtime.InteropServices;
 using Celeste64.Mod.Helpers;
 
 namespace Celeste64.Mod.Editor;
 
 public class WorldRenderer
 {
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	private readonly struct ScreenVertex(Vec2 position, Vec2 texcoord) : IVertex
+	{
+		public readonly Vec2 Pos = position;
+		public readonly Vec2 Tex = texcoord;
+		public VertexFormat Format => VertexFormat;
+
+		private static readonly VertexFormat VertexFormat = VertexFormat.Create<ScreenVertex>(
+		[
+			new VertexFormat.Element(0, VertexType.Float2, normalized: false),
+			new VertexFormat.Element(1, VertexType.Float2, normalized: false),
+		]);
+	}
+
+	
 	private Camera camera = new();
 	private Vec3 cameraPos = new(0, -10, 0);
 	private Vec2 cameraRot = new(0, 0);
@@ -11,12 +27,26 @@ public class WorldRenderer
 	private Target? worldTarget = null;
 	private readonly Batcher batch = new();
 	
+	private readonly Mesh screenMesh = new();
+	private readonly Material selectionHighlightMaterial = new(Assets.Shaders["EditorEdge"]);
+	
 	public WorldRenderer()
 	{
 		camera.NearPlane = 5;
 		camera.FarPlane = 800;
 		camera.Position = new Vec3(0, -100, 0);
 		camera.FOVMultiplier = 1;
+		
+		screenMesh.SetVertices([
+			new ScreenVertex(new Vec2(-1.0f, -1.0f), Vec2.Zero),
+			new ScreenVertex(new Vec2(-1.0f,  1.0f), Vec2.UnitY),
+			new ScreenVertex(new Vec2( 1.0f, -1.0f), Vec2.UnitX),
+			new ScreenVertex(new Vec2( 1.0f,  1.0f), Vec2.One),
+		]);  
+		screenMesh.SetIndices([
+			0, 1, 2,
+			3, 1, 2,
+		]);
 	}
 	
 	public void Update(EditorScene editor)
@@ -125,6 +155,26 @@ public class WorldRenderer
 					: editor.Definitions[objectID - 1];
 			}
 		}
+		
+		// Perform edge detection pass
+		if (selectionHighlightMaterial.Shader?.Has("u_objectID") ?? false)
+			selectionHighlightMaterial.Set("u_objectID", worldTarget.Attachments[1]);
+		if (selectionHighlightMaterial.Shader?.Has("u_selectedID") ?? false)
+			selectionHighlightMaterial.Set("u_selectedID", editor.Selected == null ? 0.0f : (editor.Definitions.IndexOf(editor.Selected) + 1) / 255.0f);
+		
+		const float EdgeSize = 2.0f;
+		if (selectionHighlightMaterial.Shader?.Has("u_pixel") ?? false)
+			selectionHighlightMaterial.Set("u_pixel", new Vec2(1.0f / worldTarget.Width * Game.RelativeScale * EdgeSize, 1.0f / worldTarget.Height * Game.RelativeScale * EdgeSize));
+		if (selectionHighlightMaterial.Shader?.Has("u_edge") ?? false)
+			selectionHighlightMaterial.Set("u_edge", new Color(0x9999ee)); // TODO: Pick a good color
+		
+		new DrawCommand(worldTarget, screenMesh, selectionHighlightMaterial)
+		{
+			DepthMask = false,
+			MeshIndexCount = 2 * 3,
+		}.Submit();
+		state.Calls++;
+		state.Triangles += 2;
 		
 		// Render to the main target
 		batch.Image(worldTarget.Attachments[0], Color.White);

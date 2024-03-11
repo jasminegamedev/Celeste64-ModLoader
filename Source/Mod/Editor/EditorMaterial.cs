@@ -24,7 +24,7 @@ public class EditorMaterial : Material
  
 
     public EditorMaterial(Texture? texture = null)
-		: base(Assets.Shaders["Editor"])
+		: base(Assets.Shaders["EditorWorld"])
 	{
         if (!(Shader?.Has(MatrixUniformName) ?? false))
         {
