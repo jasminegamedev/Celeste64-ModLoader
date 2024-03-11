@@ -8,6 +8,8 @@ namespace Celeste64.Mod.Editor;
 /// </summary>
 public class FujiMap : Map
 {
+	private readonly List<EditorDefinitionData> _definitionData = [];
+	
 	public FujiMap(string name, string virtPath, Stream stream)
 	{
 		Name = name;
@@ -95,6 +97,8 @@ public class FujiMap : Map
                 	
                 	Log.Info($" - {prop.Name}: {prop.GetValue(defData)}");
                 }
+                
+                _definitionData.Add((EditorDefinitionData)defData!);
 			}
 		}
 		catch (Exception ex)
@@ -109,6 +113,53 @@ public class FujiMap : Map
 	
 	public override void Load(World world)
 	{
-		world.Add(new Player { Position = new Vec3(0, 0, 1000) });
+		foreach (var def in _definitionData)
+		{
+			// TODO: Probably move this into the definition data itself?
+			if (def is TestEditorDefinition.DefinitionData test)
+			{
+				var matrix = Matrix.Identity;
+				Vec3[] verts = [
+					Vec3.Zero,
+					Vec3.UnitX * test.Scale.X,
+					Vec3.UnitX * test.Scale.X + Vec3.UnitY * test.Scale.Y,
+					Vec3.UnitY * test.Scale.Y,
+				];
+				
+				Log.Info(verts[0]);
+				
+				var solid = new Solid
+				{
+					LocalBounds = new BoundingBox(
+						verts.Aggregate(Vec3.Min),
+						verts.Aggregate(Vec3.Max)
+					),
+					LocalVertices = verts,
+					LocalFaces =
+					[
+						new Solid.Face
+						{
+							Plane = new Plane(Vec3.UnitZ, 0.01f),
+							VertexStart = 0,
+							VertexCount = 4,
+						},
+					],
+					Position = test.Position + test.Scale / 2.0f,
+				};
+				
+				solid.Model.Materials.Add(new DefaultMaterial(Assets.Textures["wall"]));
+				solid.Model.Parts.Add(new SimpleModel.Part(0, 0, 6));
+				solid.Model.Mesh.SetVertices<Vertex>([
+					new Vertex(verts[0], Vec2.Zero, test.Color.ToVector3(), Vec3.UnitZ),
+					new Vertex(verts[1], Vec2.UnitX, test.Color.ToVector3(), Vec3.UnitZ),
+					new Vertex(verts[2], Vec2.One, test.Color.ToVector3(), Vec3.UnitZ),
+					new Vertex(verts[3], Vec2.UnitY, test.Color.ToVector3(), Vec3.UnitZ),
+				]);
+				solid.Model.Mesh.SetIndices<int>([0, 1, 2, 0, 2, 3]);
+				
+				world.Add(solid);
+			}
+		}
+		world.Add(new Player { Position = new Vec3(0, 0, 100) });				
 	}
 }
