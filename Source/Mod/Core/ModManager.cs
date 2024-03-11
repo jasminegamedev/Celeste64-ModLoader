@@ -89,8 +89,6 @@ public sealed class ModManager
 			var extension = Path.GetExtension(filepath);
 			var dir = Path.GetDirectoryName(filepath) ?? "";
 			
-			Log.Info($"changed {filepath}");
-			
 			// Important assets taken from Assets.Load()
 			// TODO: Support non-toplevel mods?
 			if ((dir.StartsWith(Assets.MapsFolder) && extension is $".{Assets.MapsExtensionSledge}" or $".{Assets.MapsExtensionFuji}" && !dir.StartsWith($"{Assets.MapsFolder}/autosave")) || 
