@@ -2,7 +2,7 @@ namespace Celeste64.Mod.Editor;
 
 public class EditorScene : Scene
 {
-	private World.EntryInfo Entry;
+	public World.EntryInfo Entry;
 	
 	internal readonly ImGuiHandler[] Handlers = [
 		new TestWindow(),

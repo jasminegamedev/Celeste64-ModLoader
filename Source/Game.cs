@@ -371,6 +371,17 @@ public class Game : Module
 				PerformAssetReload = true
 			});
 		}
+		else if (scene is EditorScene editor)
+		{
+			Goto(new Transition()
+			{
+				Mode = Transition.Modes.Replace,
+				Scene = () => new EditorScene(editor.Entry),
+				ToPause = true,
+				ToBlack = new AngledWipe(),
+				PerformAssetReload = true
+			});
+		}
 		else
 		{
 			Goto(new Transition()
