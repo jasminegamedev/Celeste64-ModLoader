@@ -29,6 +29,16 @@ public class EditorScene : Scene
 			return;
 		}
 		
+		if (Input.Keyboard.Ctrl && Input.Keyboard.Pressed(Keys.S))
+		{
+			// TODO: Dont actually hardcode this lol
+			var path = "/media/Storage/Code/C#/Fuji/Content/Maps/test.bin";
+			Log.Info($"Saving map to '{path}'");
+
+			using var fs = File.Open(path, FileMode.Create);
+			FujiMapWriter.WriteTo(this, fs);
+		}
+		
 		worldRenderer.Update(this);
 	}
 

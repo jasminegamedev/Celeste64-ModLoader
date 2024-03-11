@@ -12,6 +12,7 @@ public abstract class Map
 	public string Name { get; init; }
 	public string Filename { get; init; }
 	public string Folder { get; init; }
+
 	public string? Skybox { get; init; }
 	public float SnowAmount { get; init; }
 	public Vec3 SnowWind { get; init; }
