@@ -388,10 +388,6 @@ public class World : Scene
 				pauseMenu.Update();
 			}
 		}
-	
-		if(Panicked) {
-			return;
-		} // don't pour salt in wounds
 		
 		// Toggle to editor
 		if (Input.Keyboard.Pressed(Keys.F3))
@@ -400,6 +396,10 @@ public class World : Scene
 			Game.Instance.scenes.Push(new EditorScene(Entry));
 			return;
 		}
+	
+		if(Panicked) {
+			return;
+		} // don't pour salt in wounds
 		
 		try {
 		debugUpdTimer.Restart();

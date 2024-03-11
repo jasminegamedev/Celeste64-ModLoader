@@ -9,6 +9,9 @@ public class EditorDefinition
 	public virtual Vec3 Rotation { get; set; } = Vector3.Zero;
 	public virtual Vec3 Scale { get; set; } = Vector3.One;
 	
+	public virtual void GameLoad() { }
+	public virtual void EditorLoad() { }
+	
 	public virtual void Render(ref EditorRenderState state) { }
 
 	public virtual void RenderGUI(EditorScene editor)

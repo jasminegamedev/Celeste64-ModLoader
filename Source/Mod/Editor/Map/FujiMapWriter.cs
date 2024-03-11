@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -21,17 +22,13 @@ public static class FujiMapWriter
 	{
 		using var writer = new BinaryWriter(stream);
 		
-		#region Header
-		
+		// Header
 		writer.Write(FormatMagic);
 		writer.Write(FormatVersion);
-		
-		#endregion
 
-		#region Metadata
-		
+		// Metadata		
 		// Skybox
-		writer.WriteNullTerminatedString("city");
+		writer.Write("city");
 		// Snow amount
 		writer.Write(1.0f);
 		// Snow direction
@@ -41,7 +38,88 @@ public static class FujiMapWriter
 		// Music
 		writer.Write("mus_lvl1");
 		
-		#endregion
+		// Definitions
+		writer.Write(editor.Definitions.Count);
+		foreach (var def in editor.Definitions)
+		{
+			Log.Info($"Def: {def}");
+			writer.Write(def.GetType().FullName!);
+			
+			var props = def.GetType()
+				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+				.Where(prop => !prop.HasAttr<SerializeIgnoreAttribute>());
+			
+			foreach (var prop in props)
+			{
+				if (prop.GetCustomAttribute<SerializeCustomAttribute>() is { } custom)
+				{
+					custom.Serialize(prop.GetValue(def)!, writer);
+					continue;
+				}
+				
+				switch (prop.GetValue(def))
+				{
+					// Primitives
+					case bool v:
+						writer.Write(v);
+						break;
+					case byte v:
+						writer.Write(v);
+						break;
+					case byte[] v:
+						writer.Write7BitEncodedInt(v.Length);
+						writer.Write(v);
+						break;
+					case char v:
+						writer.Write(v);
+						break;
+					case char[] v:
+						writer.Write7BitEncodedInt(v.Length);
+						writer.Write(v);
+						break;
+					case decimal v:
+						writer.Write(v);
+						break;
+					case double v:
+						writer.Write(v);
+						break;
+					case float v:
+						writer.Write(v);
+						break;
+					case int v:
+						writer.Write(v);
+						break;
+					case long v:
+						writer.Write(v);
+						break;
+					case sbyte v:
+						writer.Write(v);
+						break;
+					case short v:
+						writer.Write(v);
+						break;
+					case Half v:
+						writer.Write(v);
+						break;
+					 
+					// Special support
+					case Vec2 v:
+						writer.Write(v);
+						break;
+					case Vec3 v:
+						writer.Write(v);
+						break;
+					case Color v:
+						writer.Write(v);
+						break;
+					
+					default:
+						throw new Exception($"Property '{prop.Name}' of type {prop.PropertyType} from definition '{def}' cannot be serialized");
+				}
+				
+				Log.Info($" - {prop.Name}: {prop.GetValue(def)}");
+			}
+		}
 	}
 	
 	public static void Write(this BinaryWriter writer, Vec2 value)
@@ -55,7 +133,15 @@ public static class FujiMapWriter
 		writer.Write(value.Y);
 		writer.Write(value.Z);
 	}
+	public static void Write(this BinaryWriter writer, Color value)
+	{
+		writer.Write(value.R);
+		writer.Write(value.G);
+		writer.Write(value.B);
+		writer.Write(value.A);
+	}
 	
 	public static Vec2 ReadVec2(this BinaryReader reader) => new(reader.ReadSingle(), reader.ReadSingle());
 	public static Vec3 ReadVec3(this BinaryReader reader) => new(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+	public static Color ReadColor(this BinaryReader reader) => new(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte());
 }
