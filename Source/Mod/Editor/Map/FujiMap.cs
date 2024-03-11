@@ -8,7 +8,7 @@ namespace Celeste64.Mod.Editor;
 /// </summary>
 public class FujiMap : Map
 {
-	private readonly List<EditorDefinitionData> _definitionData = [];
+	internal readonly List<EditorDefinitionData> DefinitionData = [];
 	
 	public FujiMap(string name, string virtPath, Stream stream)
 	{
@@ -87,6 +87,8 @@ public class FujiMap : Map
 		                prop.SetValue(defData, reader.ReadInt16());
 					else if (prop.PropertyType == typeof(Half))
 		                prop.SetValue(defData, reader.ReadHalf());
+	                else if (prop.PropertyType == typeof(string))
+		                prop.SetValue(defData, reader.ReadString());
 	                // Special support
 	                else if (prop.PropertyType == typeof(Vec2))
 		                prop.SetValue(defData, reader.ReadVec2());
@@ -98,7 +100,7 @@ public class FujiMap : Map
                 	Log.Info($" - {prop.Name}: {prop.GetValue(defData)}");
                 }
                 
-                _definitionData.Add((EditorDefinitionData)defData!);
+                DefinitionData.Add((EditorDefinitionData)defData!);
 			}
 		}
 		catch (Exception ex)
@@ -113,7 +115,7 @@ public class FujiMap : Map
 	
 	public override void Load(World world)
 	{
-		foreach (var def in _definitionData)
+		foreach (var def in DefinitionData)
 		{
 			// TODO: Probably move this into the definition data itself?
 			if (def is TestEditorDefinition.DefinitionData test)
@@ -126,7 +128,7 @@ public class FujiMap : Map
 					Vec3.UnitY * test.Scale.Y,
 				];
 				
-				Log.Info(verts[0]);
+				Log.Info(test.Color);
 				
 				var solid = new Solid
 				{
@@ -139,7 +141,7 @@ public class FujiMap : Map
 					[
 						new Solid.Face
 						{
-							Plane = new Plane(Vec3.UnitZ, 0.01f),
+							Plane = new Plane(Vec3.UnitZ, 0.001f),
 							VertexStart = 0,
 							VertexCount = 4,
 						},

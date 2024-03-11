@@ -4,6 +4,10 @@ namespace Celeste64.Mod.Editor;
 
 public abstract class EditorDefinitionData
 {
+	// Used to link back to the EditorDefinition
+	// TODO: Maybe remove this??
+	public string DefinitionFullName { get; set; }
+	
 	// TODO: Figure out how to let definitions mark support for certain special properties like position / rotation / scale
 	public virtual Vec3 Position { get; set; } = Vector3.Zero;
 	public virtual Vec3 Rotation { get; set; } = Vector3.Zero;
@@ -21,12 +25,13 @@ public abstract class EditorDefinition
 	/// Instance of the data type associated with this definition.
 	/// Needs to be casted to the appropriate type inside the sub class.
 	/// </summary>
-	public readonly EditorDefinitionData _Data;
+	public EditorDefinitionData _Data { get; internal set; }
 
 	protected EditorDefinition(Type dataType)
 	{
 		DataType = dataType;
 		_Data = (EditorDefinitionData)Activator.CreateInstance(DataType)!;
+		_Data.DefinitionFullName = GetType().FullName!;
 	}
 	
 	public virtual void Render(ref EditorRenderState state) { }

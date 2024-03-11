@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace Celeste64.Mod.Editor;
 
 public class EditorScene : Scene
@@ -16,7 +18,24 @@ public class EditorScene : Scene
 	internal EditorScene(World.EntryInfo entry)
 	{
 		Entry = entry;
-		Definitions.Add(new TestEditorDefinition());
+		//Definitions.Add(new TestEditorDefinition());
+		
+		// Load the map
+		if (Assets.Maps[entry.Map] is not FujiMap map)
+		{
+			// Not a Fuji map, return to level
+			Game.Instance.scenes.Pop();
+			Game.Instance.scenes.Push(new World(Entry));
+			return;
+		}
+		
+		foreach (var defData in map.DefinitionData)
+		{
+			var defType = Assembly.GetExecutingAssembly().GetType(defData.DefinitionFullName)!;
+			var def = (EditorDefinition)Activator.CreateInstance(defType)!;
+			def._Data = defData;
+			Definitions.Add(def);
+		}
 	}
 	
 	public override void Update()
@@ -32,11 +51,13 @@ public class EditorScene : Scene
 		if (Input.Keyboard.Ctrl && Input.Keyboard.Pressed(Keys.S))
 		{
 			// TODO: Dont actually hardcode this lol
-			var path = "/media/Storage/Code/C#/Fuji/Content/Maps/test.bin";
+			var path = "/media/Storage/Code/C#/Fuji/Mods/Template-BasicCassetteLevel/Maps/test.bin";
 			Log.Info($"Saving map to '{path}'");
 
 			using var fs = File.Open(path, FileMode.Create);
 			FujiMapWriter.WriteTo(this, fs);
+			
+			return;
 		}
 		
 		worldRenderer.Update(this);

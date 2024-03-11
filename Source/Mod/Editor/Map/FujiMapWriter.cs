@@ -101,6 +101,9 @@ public static class FujiMapWriter
 					case Half v:
 						writer.Write(v);
 						break;
+					case string v:
+						writer.Write(v);
+						break;
 					 
 					// Special support
 					case Vec2 v:
