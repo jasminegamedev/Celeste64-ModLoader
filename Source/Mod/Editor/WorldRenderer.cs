@@ -157,6 +157,7 @@ public class WorldRenderer
 		}
 		
 		// Perform edge detection pass
+		// TODO: Maybe render the outline through other solids? Probably by re-rendering the selected object?
 		if (selectionHighlightMaterial.Shader?.Has("u_objectID") ?? false)
 			selectionHighlightMaterial.Set("u_objectID", worldTarget.Attachments[1]);
 		if (selectionHighlightMaterial.Shader?.Has("u_selectedID") ?? false)

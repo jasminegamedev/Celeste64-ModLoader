@@ -29,7 +29,8 @@ out vec4 o_color;
 
 float objectID(vec2 uv)
 {
-	return texture(u_objectID, uv).r;
+    const float Eps = 0.0001;
+	return texture(u_objectID, clamp(uv, vec2(Eps), vec2(1.0 - Eps))).r;
 }
 
 void main(void)
