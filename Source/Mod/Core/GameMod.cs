@@ -52,15 +52,10 @@ public abstract class GameMod
 
 	// This is here to give mods easier access to these objects, so they don't have to get them themselves
 	// Warning, these may be null if they haven't been initialized yet, so you should always do a null check before using them.
-	public Game? Game { get { return Game.Instance; } }
-	public World? World { get { return Game != null ? Game.World : null; } }
-	public Map? Map { get { return World != null ? World.Map : null; } }
-	public Player? Player { get { return World != null ? World.Get<Player>() : null; } }
-	
-	// public Game? Game => Game.Instance;
-	// public World? World => Game.Scene as World;
-	// public Map? Map => World?.Map;
-	// public Player? Player => World?.Get<Player>();
+	public Game? Game => Game.Instance;
+	public World? World => Game.Scene as World;
+	public Map? Map => World?.Map;
+	public Player? Player => World?.Get<Player>();
 
 	// Common Metadata about this mod.
 	public bool Enabled { get { return this is VanillaGameMod || ModSaveData.Enabled; } }
