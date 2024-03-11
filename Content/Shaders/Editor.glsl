@@ -4,6 +4,7 @@ VERTEX:
 
 uniform mat4 u_mvp;
 uniform mat4 u_model;
+uniform mat4 u_view;
 
 layout(location=0) in vec3 a_position;
 layout(location=1) in vec2 a_tex;
@@ -21,7 +22,7 @@ void main(void)
 
     v_tex = a_tex;
     v_color = a_color;
-    v_normal = TransformNormal(a_normal, u_model);
+    v_normal = TransformNormal(a_normal, u_view * u_model);
     v_world = vec3(u_model * vec4(a_position, 1.0));
 }
 
@@ -47,7 +48,7 @@ layout(location = 1) out float o_objectID;
 
 void main(void)
 {
-    // get texture color
+    // Get texture color
     vec4 src = texture(u_texture, v_tex) * u_color * vec4(v_color, 1);
 
     // TODO: only enable if you want ModelFlags.Cutout types to work, didn't end up using
@@ -59,17 +60,13 @@ void main(void)
     float fade = Map(depth, 0.9, 1, 1, 0);
     vec3  col = src.rgb;
 
-    // apply depth values
+    // Apply depth values
     gl_FragDepth = depth;
 
-    // lighten texture color based on normal
-    float lighten = max(0.0, -dot(v_normal, u_sun));
-    col = mix(col, vec3(1,1,1), lighten * 0.10);
-
-    // shadow
-    float darken = max(0.0, dot(v_normal, u_sun));
-    col = mix(col, vec3(4/255.0, 27/255.0, 44/255.0), darken * 0.80);
-
+    // Apply shading based on normal relative to the camera
+    float shade = clamp(dot(v_normal, vec3(0, 0, 1)), 0.2, 1.0);
+    col *= vec3(shade);
+    
     o_color = vec4(col, src.a) * fade;
     // TODO: Support object IDs above 255, since its just 8bits
     o_objectID = u_objectID / 255.0;

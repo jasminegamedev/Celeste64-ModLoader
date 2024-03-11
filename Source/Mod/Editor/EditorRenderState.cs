@@ -25,6 +25,7 @@ public class EditorRenderState
 			return;
 
 		mat.Model = localTransformation * ModelMatrix;
+		mat.View = Camera.View;
 		mat.MVP = mat.Model * Camera.ViewProjection;
 		
 		mat.NearPlane = Camera.NearPlane;

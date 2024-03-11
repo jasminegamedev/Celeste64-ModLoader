@@ -5,8 +5,11 @@ public class EditorMaterial : Material
 	public const string MatrixUniformName = "u_mvp";
 
     private Texture? texture = null;
+
 	private Matrix matrix;
 	private Matrix model;
+	private Matrix view;
+	
 	private Color color;
     private float near;
     private float far;
@@ -42,7 +45,6 @@ public class EditorMaterial : Material
                 Set(MatrixUniformName, value);
         }
     }
-
     public Matrix Model
     {
         get => model;
@@ -52,6 +54,16 @@ public class EditorMaterial : Material
             if (Shader?.Has("u_model") ?? false)
                 Set("u_model", value);
         }
+    }
+    public Matrix View
+    {
+	    get => view;
+	    set
+	    {
+		    view = value;
+		    if (Shader?.Has("u_view") ?? false)
+			    Set("u_view", value);
+	    }
     }
 
     public Texture? Texture
