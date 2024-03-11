@@ -67,7 +67,7 @@ public class World : Scene
 	private int debugUpdateCount;
 	public static bool DebugDraw { get; private set; } = false;
 
-	public Map? Map {  get; private set; }
+	public SledgeMap? Map {  get; private set; }
 
 	public World(EntryInfo entry)
 	{

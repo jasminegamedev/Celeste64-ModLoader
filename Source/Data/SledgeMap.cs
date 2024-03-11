@@ -4,20 +4,25 @@ using SledgeMapObject = Sledge.Formats.Map.Objects.MapObject;
 using SledgeSolid = Sledge.Formats.Map.Objects.Solid;
 using SledgeEntity = Sledge.Formats.Map.Objects.Entity;
 using SledgeFace = Sledge.Formats.Map.Objects.Face;
-using SledgeMap = Sledge.Formats.Map.Objects.MapFile;
 using System.Runtime.CompilerServices;
 using Celeste64.Mod;
 using System.Globalization;
+using Sledge.Formats.Map.Objects;
+using Path = System.IO.Path;
 
 namespace Celeste64;
 
-public class Map
+/// <summary>
+/// Vanilla Celeste 64 map parser using Sledge.
+/// Originally called Map.
+/// </summary>
+public class SledgeMap
 {
-	public class ActorFactory(Func<Map, SledgeEntity, Actor?> create)
+	public class ActorFactory(Func<SledgeMap, SledgeEntity, Actor?> create)
 	{
 		public bool UseSolidsAsBounds;
 		public bool IsSolidGeometry;
-		public Func<Map, SledgeEntity, Actor?> Create = create;
+		public Func<SledgeMap, SledgeEntity, Actor?> Create = create;
 	}
 
 	private const string StartCheckpoint = "Start";
@@ -25,7 +30,7 @@ public class Map
 	public readonly string Name;
 	public readonly string Filename;
 	public readonly string Folder;
-	public readonly SledgeMap? Data;
+	public readonly MapFile? Data;
 	public readonly string? Skybox;
 	public readonly float SnowAmount;
 	public readonly Vec3 SnowWind;
@@ -123,7 +128,7 @@ public class Map
 	public World? LoadWorld;
 	public int LoadStrawberryCounter = 0;
 
-	public Map(string name, string virtPath, Stream stream)
+	public SledgeMap(string name, string virtPath, Stream stream)
 	{
 		Name = name;
 		Filename = virtPath;
