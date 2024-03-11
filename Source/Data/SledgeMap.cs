@@ -16,7 +16,7 @@ namespace Celeste64;
 /// Vanilla Celeste 64 map parser using Sledge.
 /// Originally called Map.
 /// </summary>
-public class SledgeMap
+public class SledgeMap : Map
 {
 	public class ActorFactory(Func<SledgeMap, SledgeEntity, Actor?> create)
 	{
@@ -27,18 +27,7 @@ public class SledgeMap
 
 	private const string StartCheckpoint = "Start";
 
-	public readonly string Name;
-	public readonly string Filename;
-	public readonly string Folder;
 	public readonly MapFile? Data;
-	public readonly string? Skybox;
-	public readonly float SnowAmount;
-	public readonly Vec3 SnowWind;
-	public readonly string? Music;
-	public readonly string? Ambience;
-
-	public readonly bool isMalformed = false;
-	public readonly string? readExceptionMessage;
 
 	public static readonly Dictionary<string, ActorFactory> ActorFactories =  new()
 	{
@@ -230,7 +219,7 @@ public class SledgeMap
 		// ....
 	}
 
-	public void Load(World world)
+	public override void Load(World world)
 	{
 		LoadWorld = world;
 		LoadStrawberryCounter = 0;

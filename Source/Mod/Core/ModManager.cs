@@ -155,7 +155,7 @@ public sealed class ModManager
 		}
 	}
 
-	internal void OnPreMapLoaded(World world, SledgeMap map)
+	internal void OnPreMapLoaded(World world, Map map)
 	{
 		foreach (var mod in EnabledMods)
 		{
@@ -163,7 +163,7 @@ public sealed class ModManager
 		}
 	}
 
-	internal void OnMapLoaded(SledgeMap map)
+	internal void OnMapLoaded(Map map)
 	{
 		foreach (var mod in EnabledMods)
 		{

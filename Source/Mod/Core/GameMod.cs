@@ -13,7 +13,7 @@ public abstract class GameMod
 	internal ModInfo ModInfo { get; set; } = null!;
 
 	// Used for storing the assets loaded for this mod specifically.
-	internal readonly Dictionary<string, SledgeMap> Maps = new(StringComparer.OrdinalIgnoreCase);
+	internal readonly Dictionary<string, Map> Maps = new(StringComparer.OrdinalIgnoreCase);
 	internal readonly Dictionary<string, Shader> Shaders = new(StringComparer.OrdinalIgnoreCase);
 	internal readonly Dictionary<string, Texture> Textures = new(StringComparer.OrdinalIgnoreCase);
 	internal readonly Dictionary<string, Subtexture> Subtextures = new(StringComparer.OrdinalIgnoreCase);
@@ -38,7 +38,7 @@ public abstract class GameMod
 	// Modders should not be manually changing these at runtime, which is why they are readonly.
 	// This lets you bypass going through the assets system which might be more efficient, and will prioritize loading from this mod.
 	// It will also bypass any asset replacements.
-	public IReadOnlyDictionary<string, SledgeMap> ModMaps => Maps;
+	public IReadOnlyDictionary<string, Map> ModMaps => Maps;
 	public IReadOnlyDictionary<string, Shader> ModShaders => Shaders;
 	public IReadOnlyDictionary<string, Texture> ModTextures => Textures;
 	public IReadOnlyDictionary<string, Subtexture> ModSubTextures => Subtextures;
@@ -54,7 +54,7 @@ public abstract class GameMod
 	// Warning, these may be null if they haven't been initialized yet, so you should always do a null check before using them.
 	public Game? Game { get { return Game.Instance; } }
 	public World? World { get { return Game != null ? Game.World : null; } }
-	public SledgeMap? Map { get { return World != null ? World.Map : null; } }
+	public Map? Map { get { return World != null ? World.Map : null; } }
 	public Player? Player { get { return World != null ? World.Get<Player>() : null; } }
 	
 	// public Game? Game => Game.Instance;
@@ -557,13 +557,13 @@ public abstract class GameMod
 	/// </summary>
 	/// <param name="world">A reference to the world</param>
 	/// <param name="map">A reference to the map that was loaded</param>
-	public virtual void OnPreMapLoaded(World world, SledgeMap map){}
+	public virtual void OnPreMapLoaded(World world, Map map){}
 
 	/// <summary>
 	/// Called after a map is finished loading.
 	/// </summary>
 	/// <param name="map">A reference to the map that was loaded</param>
-	public virtual void OnMapLoaded(SledgeMap map){}
+	public virtual void OnMapLoaded(Map map){}
 
 	/// <summary>
 	/// Called after a scene transistion either when a scene is first loaded, or reloaded.

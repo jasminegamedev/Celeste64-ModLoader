@@ -77,7 +77,7 @@ public static class Assets
 		}
 	}
 
-	public static readonly ModAssetDictionary<SledgeMap> Maps = new(gameMod => gameMod.Maps);
+	public static readonly ModAssetDictionary<Map> Maps = new(gameMod => gameMod.Maps);
 	public static readonly ModAssetDictionary<Shader> Shaders = new(gameMod => gameMod.Shaders);
 	public static readonly ModAssetDictionary<Texture> Textures = new(gameMod => gameMod.Textures);
 	public static readonly ModAssetDictionary<SkinnedTemplate> Models = new(gameMod => gameMod.Models);
@@ -118,7 +118,7 @@ public static class Assets
 		SledgeMap.ModActorFactories.Clear();
 		ModLoader.RegisterAllMods();
 
-		var maps = new ConcurrentBag<(SledgeMap, GameMod)>();
+		var maps = new ConcurrentBag<(Map, GameMod)>();
 		var images = new ConcurrentBag<(string, Image, GameMod)>();
 		var models = new ConcurrentBag<(string, SkinnedTemplate, GameMod)>();
 		var sounds = new ConcurrentBag<(string, FMOD.Sound, GameMod)>();
