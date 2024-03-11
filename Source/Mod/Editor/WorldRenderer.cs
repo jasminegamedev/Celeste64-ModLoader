@@ -15,7 +15,7 @@ public class WorldRenderer
 	{
 		camera.NearPlane = 5;
 		camera.FarPlane = 800;
-		camera.Position = new Vec3(0, -10, 0);
+		camera.Position = new Vec3(0, -100, 0);
 		camera.FOVMultiplier = 1;
 	}
 	
@@ -31,7 +31,7 @@ public class WorldRenderer
 			MathF.Cos(cameraRot.X - Calc.HalfPI),
 			0.0f);
 		
-		float moveSpeed = 30.0f;
+		float moveSpeed = 250.0f;
 		
 		if (Input.Keyboard.Down(Keys.W))
 			cameraPos += cameraForward * moveSpeed * Time.Delta;
