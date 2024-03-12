@@ -249,36 +249,6 @@ public class EditorScene : World
 		// perform post processing effects
 		ApplyPostEffects();
 		
-		// Render selected actor bounding box on-top of everything else
-		if (Selected is { } selected)
-		{
-			var lineColor = Color.Green;
-			var innerColor = Color.Green * 0.4f;
-			var lineThickness = 0.1f;
-			
-			batch3D.Line(selected.WorldBounds.Min, selected.WorldBounds.Min with { X = selected.WorldBounds.Max.X }, lineColor, lineThickness);
-			batch3D.Line(selected.WorldBounds.Min, selected.WorldBounds.Min with { Y = selected.WorldBounds.Max.Y }, lineColor, lineThickness);
-			batch3D.Line(selected.WorldBounds.Min, selected.WorldBounds.Min with { Z = selected.WorldBounds.Max.Z }, lineColor, lineThickness);
-
-			batch3D.Line(selected.WorldBounds.Max, selected.WorldBounds.Max with { X = selected.WorldBounds.Min.X }, lineColor, lineThickness);
-			batch3D.Line(selected.WorldBounds.Max, selected.WorldBounds.Max with { Y = selected.WorldBounds.Min.Y }, lineColor, lineThickness);
-			batch3D.Line(selected.WorldBounds.Max, selected.WorldBounds.Max with { Z = selected.WorldBounds.Min.Z }, lineColor, lineThickness);
-
-			batch3D.Line(selected.WorldBounds.Min with { Y = selected.WorldBounds.Max.Y }, selected.WorldBounds.Max with { X = selected.WorldBounds.Min.X }, lineColor, lineThickness);
-			batch3D.Line(selected.WorldBounds.Min with { Y = selected.WorldBounds.Max.Y }, selected.WorldBounds.Max with { Z = selected.WorldBounds.Min.Z }, lineColor, lineThickness);
-
-			batch3D.Line(selected.WorldBounds.Max with { Y = selected.WorldBounds.Min.Y }, selected.WorldBounds.Min with { X = selected.WorldBounds.Max.X }, lineColor, lineThickness);
-			batch3D.Line(selected.WorldBounds.Max with { Y = selected.WorldBounds.Min.Y }, selected.WorldBounds.Min with { Z = selected.WorldBounds.Max.Z }, lineColor, lineThickness);
-
-			batch3D.Line(selected.WorldBounds.Min with { X = selected.WorldBounds.Max.X }, selected.WorldBounds.Max with { Z = selected.WorldBounds.Min.Z }, lineColor, lineThickness);
-			batch3D.Line(selected.WorldBounds.Min with { Z = selected.WorldBounds.Max.Z }, selected.WorldBounds.Max with { X = selected.WorldBounds.Min.X }, lineColor, lineThickness);
-			
-			batch3D.Box(selected.WorldBounds.Min, selected.WorldBounds.Max, innerColor);
-			
-			batch3D.Render(ref state);
-			batch3D.Clear();
-		}
-
 		// render alpha threshold transparent stuff
 		{
 			state.CutoutMode = true;
@@ -297,6 +267,53 @@ public class EditorScene : World
 			state.DepthMask = false;
 			RenderModels(ref state, models, ModelFlags.Transparent);
 			state.DepthMask = true;
+		}
+		
+		// Render selected actor bounding box on-top of everything else
+		if (Selected is { } selected)
+		{
+			var lineColor = Color.Green;
+			var innerColor = Color.Green * 0.4f;
+			var lineThickness = 0.1f;
+			var inflate = 0.25f;
+			var matrix = Matrix.CreateTranslation(selected.Position);
+			
+			var bounds = selected.LocalBounds.Inflate(inflate);
+			var v000 = bounds.Min;
+			var v100 = bounds.Min with { X = bounds.Max.X };
+			var v010 = bounds.Min with { Y = bounds.Max.Y };
+			var v001 = bounds.Min with { Z = bounds.Max.Z };
+			var v011 = bounds.Max with { X = bounds.Min.X };
+			var v101 = bounds.Max with { Y = bounds.Min.Y };
+			var v110 = bounds.Max with { Z = bounds.Min.Z };
+			var v111 = bounds.Max;
+			
+			batch3D.Box(v000, v111, innerColor, matrix);
+			batch3D.Render(ref state);
+			batch3D.Clear();
+			
+			// Ignore depth for outline
+			state.Camera.Target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
+			
+			batch3D.Line(v000, v100, lineColor, matrix, lineThickness);
+			batch3D.Line(v000, v010, lineColor, matrix, lineThickness);
+			batch3D.Line(v000, v001, lineColor, matrix, lineThickness);
+
+			batch3D.Line(v111, v011, lineColor, matrix, lineThickness);
+			batch3D.Line(v111, v101, lineColor, matrix, lineThickness);
+			batch3D.Line(v111, v110, lineColor, matrix, lineThickness);
+
+			batch3D.Line(v010, v011, lineColor, matrix, lineThickness);
+			batch3D.Line(v010, v110, lineColor, matrix, lineThickness);
+
+			batch3D.Line(v101, v100, lineColor, matrix, lineThickness);
+			batch3D.Line(v101, v001, lineColor, matrix, lineThickness);
+
+			batch3D.Line(v100, v110, lineColor, matrix, lineThickness);
+			batch3D.Line(v001, v011, lineColor, matrix, lineThickness);
+			
+			batch3D.Render(ref state);
+			batch3D.Clear();
 		}
 
 		// ui
