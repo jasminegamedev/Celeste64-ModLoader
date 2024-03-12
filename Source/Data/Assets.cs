@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using Celeste64.Mod;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -11,23 +12,23 @@ public static class Assets
 {
 	public static float FontSize => Game.RelativeScale * 16;
 	public const string AssetFolder = "Content";
-	
+
 	public const string MapsFolder = "Maps";
 	public const string MapsExtensionSledge = "map";
-	public const string MapsExtensionFuji = "bin";
+public const string MapsExtensionFuji = "bin";
 	
 	public const string TexturesFolder = "Textures";
 	public const string TexturesExtension = "png";
-	
+
 	public const string FacesFolder = "Faces";
 	public const string FacesExtension = "png";
-	
+
 	public const string ModelsFolder = "Models";
 	public const string ModelsExtension = "glb";
 
 	public const string TextFolder = "Text";
 	public const string TextExtension = "json";
-	
+
 	public const string AudioFolder = "Audio";
 	public const string AudioExtension = "bank";
 
@@ -39,21 +40,21 @@ public static class Assets
 
 	public const string ShadersFolder = "Shaders";
 	public const string ShadersExtension = "glsl";
-	
+
 	public const string FontsFolder = "Fonts";
 	public const string FontsExtensionTTF = "ttf";
 	public const string FontsExtensionOTF = "otf";
-	
+
 	public const string SpritesFolder = "Sprites";
 	public const string SpritesExtension = "png";
-	
+
 	public const string SkinsFolder = "Skins";
 	public const string SkinsExtension = "json";
-	
+
 	public const string LibrariesFolder = "Libraries";
 	public const string LibrariesExtensionAssembly = "dll";
 	public const string LibrariesExtensionSymbol = "pdb";
-	
+
 	public const string FujiJSON = "Fuji.json";
 	public const string LevelsJSON = "Levels.json";
 
@@ -89,8 +90,10 @@ public static class Assets
 	public static readonly ModAssetDictionary<FMOD.Sound> Music = new(gameMod => gameMod.Music);
 	public static readonly Dictionary<string, Language> Languages = new(StringComparer.OrdinalIgnoreCase);
 
-	public static List<SkinInfo> EnabledSkins { 
-		get { 
+	public static List<SkinInfo> EnabledSkins
+	{
+		get
+		{
 			return ModManager.Instance.EnabledMods
 				.Where(mod => mod.Loaded)
 				.SelectMany(mod => mod.Skins)
@@ -129,7 +132,7 @@ public static class Assets
 		var tasks = new List<Task>();
 
 		// NOTE: Make sure to update ModManager.OnModFileChanged() as well, for hot-reloading to work!
-		
+
 		var globalFs = ModManager.Instance.GlobalFilesystem;
 		foreach (var (file, mod) in globalFs.FindFilesInDirectoryRecursiveWithMod(MapsFolder, MapsExtensionSledge))
 		{
@@ -139,8 +142,8 @@ public static class Assets
 
 			tasks.Add(Task.Run(() =>
 			{
-				if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file, 
-					    stream => new SledgeMap(GetResourceNameFromVirt(file, MapsFolder), file, stream), out var map))
+				if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file,
+						stream => new SledgeMap(GetResourceNameFromVirt(file, MapsFolder), file, stream), out var map))
 				{
 					maps.Add((map, mod));
 				}
@@ -200,7 +203,7 @@ public static class Assets
 				}
 			}));
 		}
-		
+
 		// load languages
 		foreach (var (file, mod) in globalFs.FindFilesInDirectoryRecursiveWithMod(TextFolder, TextExtension))
 		{
@@ -210,7 +213,7 @@ public static class Assets
 				{
 					if (JsonSerializer.Deserialize(data, LanguageContext.Default.Language) is { } lang)
 						langs.Add((lang, mod));
-				}				
+				}
 			}));
 		}
 
@@ -236,7 +239,7 @@ public static class Assets
 				if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file, stream => Audio.LoadWavFromStream(stream),
 						out FMOD.Sound? sound))
 				{
-					if(sound != null)
+					if (sound != null)
 					{
 						sounds.Add((GetResourceNameFromVirt(file, SoundsFolder), sound.Value, mod));
 					}
@@ -263,14 +266,14 @@ public static class Assets
 		foreach (var mod in ModManager.Instance.Mods)
 		{
 			mod.Levels.Clear();
-			if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(LevelsJSON, 
-				    stream => JsonSerializer.Deserialize(stream, LevelInfoListContext.Default.ListLevelInfo) ?? [], 
-				    out var levels))
+			if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(LevelsJSON,
+					stream => JsonSerializer.Deserialize(stream, LevelInfoListContext.Default.ListLevelInfo) ?? [],
+					out var levels))
 			{
 				mod.Levels.AddRange(levels);
 				Levels.AddRange(levels);
 			}
-			
+
 			// if (mod.Filesystem != null && mod.Filesystem.TryOpenFile("Dialog.json", 
 			// 	    stream => JsonSerializer.Deserialize(stream, DialogLineDictContext.Default.DictionaryStringListDialogLine) ?? [], 
 			// 	    out var dialog))
@@ -330,7 +333,7 @@ public static class Assets
 			{
 				string[] nameSplit = it.Name.Split(':');
 				GameMod? mod = ModManager.Instance.Mods.FirstOrDefault(mod => mod.ModInfo.Id == nameSplit[0]) ?? ModManager.Instance.VanillaGameMod;
-				if(mod != null)
+				if (mod != null)
 				{
 					Subtextures.Add(nameSplit[1], new Subtexture(pages[it.Page], it.Source, it.Frame), mod);
 				}
@@ -391,7 +394,7 @@ public static class Assets
 		foreach (var (file, mod) in globalFs.FindFilesInDirectoryRecursiveWithMod(SkinsFolder, SkinsExtension))
 		{
 			if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file,
-				    stream => JsonSerializer.Deserialize(stream, SkinInfoContext.Default.SkinInfo), out var skin) && skin.IsValid())
+					stream => JsonSerializer.Deserialize(stream, SkinInfoContext.Default.SkinInfo), out var skin) && skin.IsValid())
 			{
 				mod.Skins.Add(skin);
 			}
@@ -413,7 +416,7 @@ public static class Assets
 	{
 		var ext = Path.GetExtension(virtPath);
 		// +1 to account for the forward slash
-		return virtPath.AsSpan((folder.Length+1)..^ext.Length).ToString();
+		return virtPath.AsSpan((folder.Length + 1)..^ext.Length).ToString();
 	}
 
 	internal static Shader? LoadShader(string virtPath, Stream file)
@@ -424,11 +427,11 @@ public static class Assets
 		StringBuilder vertex = new();
 		StringBuilder fragment = new();
 		StringBuilder? target = null;
-		
+
 		foreach (var l in code.Split('\n'))
 		{
 			var line = l.Trim('\r');
-			
+
 			if (line.StartsWith("VERTEX:"))
 				target = vertex;
 			else if (line.StartsWith("FRAGMENT:"))
