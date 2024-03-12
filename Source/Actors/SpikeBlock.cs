@@ -7,9 +7,9 @@ public class SpikeBlock() : Attacher(typeof(Definition)), IHaveModels
 {
 	private class Definition : ActorDefinition
 	{
-		public Vec3 Position { get; set; }
-		public Vec3 Rotation { get; set; }
-		public Vec3 Size { get; set; }
+		public Vec3 Position { get; set; } = Vec3.Zero;
+		public Vec3 Rotation { get; set; } = Vec3.Zero;
+		public Vec3 Size { get; set; } = Vec3.One;
 		
 		public override void Load(World world)
 		{

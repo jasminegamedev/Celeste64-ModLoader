@@ -20,7 +20,20 @@ public class TestWindow : EditorWindow
 			
 			foreach (var prop in props)
 			{
-				ImGui.Text($" - {prop.Name}: {prop.GetValue(data)}");
+				switch (prop.GetValue(data))
+				{
+					case Vec3 v:
+						if (ImGui.DragFloat3(prop.Name, ref v))
+						{
+							prop.SetValue(data, v);
+							data.Dirty = true;
+						}
+						break;
+					
+					default:
+						ImGui.Text($" - {prop.Name}: {prop.GetValue(data)}");
+						break;
+				}
 			}
 		}
 	}

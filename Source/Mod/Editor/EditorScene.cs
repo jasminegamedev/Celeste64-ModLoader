@@ -107,7 +107,7 @@ public class EditorScene : World
 	
 		// Camera rotation
 		float rotateSpeed = 16.5f * Calc.DegToRad;
-		if (Input.Mouse.Down(MouseButtons.Right))
+		if (Input.Mouse.Down(MouseButtons.Right) && !ImGuiManager.WantCaptureMouse)
 		{
 			cameraRot.X += InputHelper.MouseDelta.X * rotateSpeed * Time.Delta;
 			cameraRot.Y += InputHelper.MouseDelta.Y * rotateSpeed * Time.Delta;
@@ -124,7 +124,7 @@ public class EditorScene : World
 		Camera.LookAt = cameraPos + forward;
 		
 		// Shoot ray cast for selection
-		if (Input.Mouse.LeftPressed)
+		if (Input.Mouse.LeftPressed && !ImGuiManager.WantCaptureMouse)
 		{
 			if (Camera.Target != null &&
 				Matrix.Invert(Camera.Projection, out var inverseProj) && 
