@@ -1,4 +1,5 @@
 using System.Reflection;
+using Celeste64.Mod.Helpers;
 
 namespace Celeste64.Mod.Editor;
 
@@ -9,6 +10,9 @@ public class EditorScene : World
 	];
 	
 	public Actor? Selected { internal set; get; } = null;
+	
+	private Vec3 cameraPos = new(0, -10, 0);
+	private Vec2 cameraRot = new(0, 0);
 	
 	// private readonly WorldRenderer worldRenderer = new();
 	
@@ -56,9 +60,56 @@ public class EditorScene : World
 			return;
 		}
 		
+		// Camera movement
+		var cameraForward = new Vec3(
+			MathF.Sin(cameraRot.X),
+			MathF.Cos(cameraRot.X),
+			0.0f);
+		var cameraRight = new Vec3(
+			MathF.Sin(cameraRot.X - Calc.HalfPI),
+			MathF.Cos(cameraRot.X - Calc.HalfPI),
+			0.0f);
+		
+		float moveSpeed = 250.0f;
+		
+		if (Input.Keyboard.Down(Keys.W))
+			cameraPos += cameraForward * moveSpeed * Time.Delta;
+		if (Input.Keyboard.Down(Keys.S))
+			cameraPos -= cameraForward * moveSpeed * Time.Delta;
+		if (Input.Keyboard.Down(Keys.A))
+			cameraPos += cameraRight * moveSpeed * Time.Delta;
+		if (Input.Keyboard.Down(Keys.D))
+			cameraPos -= cameraRight * moveSpeed * Time.Delta;
+		if (Input.Keyboard.Down(Keys.Space))
+			cameraPos.Z += moveSpeed * Time.Delta;
+		if (Input.Keyboard.Down(Keys.LeftShift))
+			cameraPos.Z -= moveSpeed * Time.Delta;
+	
+		// Camera rotation
+		float rotateSpeed = 15.0f * Calc.DegToRad;
+		if (Input.Mouse.Down(MouseButtons.Right))
+		{
+			cameraRot.X += InputHelper.MouseDelta.X * rotateSpeed * Time.Delta;
+			cameraRot.Y += InputHelper.MouseDelta.Y * rotateSpeed * Time.Delta;
+			cameraRot.X %= 360.0f * Calc.DegToRad;
+			cameraRot.Y = Math.Clamp(cameraRot.Y, -89.9f * Calc.DegToRad, 89.9f * Calc.DegToRad);
+		}
+		
+		// Update camera
+		var forward = new Vec3(
+			MathF.Sin(cameraRot.X) * MathF.Cos(cameraRot.Y),
+			MathF.Cos(cameraRot.X) * MathF.Cos(cameraRot.Y),
+			MathF.Sin(-cameraRot.Y));
+		Camera.Position = cameraPos;
+		Camera.LookAt = cameraPos + forward;
+		
+		// Don't call base.Update, since we don't want the actors to update
+		// Instead we manually call only the things which we want for the editor
+		ResolveChanges();
+		
 		// worldRenderer.Update(this);
 	}
-
+	
 	public override void Render(Target target)
 	{
 		// target.Clear(Color.Black, 1.0f, 0, ClearMask.All);

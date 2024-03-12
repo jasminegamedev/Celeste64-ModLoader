@@ -308,7 +308,7 @@ public class World : Scene
 		return list;
 	}
 
-	private void ResolveChanges()
+	protected void ResolveChanges()
 	{
 		// resolve adding/removing actors
 		while (adding.Count > 0 || destroying.Count > 0)
