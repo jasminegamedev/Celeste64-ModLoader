@@ -49,7 +49,7 @@ public class FujiMap : Map
 				Log.Info($"Def: {defData}");
                 			
                 var props = defDataType
-                	.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                	.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
                 	.Where(prop => !prop.HasAttr<SerializeIgnoreAttribute>());
                 
                 foreach (var prop in props)
@@ -149,7 +149,7 @@ public class FujiMap : Map
 					Position = test.Position + test.Scale / 2.0f,
 				};
 				
-				solid.Model.Materials.Add(new DefaultMaterial(Assets.Textures["wall"]));
+				solid.Model.Materials.Add(new DefaultMaterial(Assets.Textures["white"]));
 				solid.Model.Parts.Add(new SimpleModel.Part(0, 0, 6));
 				solid.Model.Mesh.SetVertices<Vertex>([
 					new Vertex(verts[0], Vec2.Zero, test.Color.ToVector3(), Vec3.UnitZ),

@@ -2,40 +2,36 @@ using System.Reflection;
 
 namespace Celeste64.Mod.Editor;
 
-public class EditorScene : Scene
+public class EditorScene : World
 {
-	public World.EntryInfo Entry;
-	
 	internal readonly ImGuiHandler[] Handlers = [
 		new TestWindow(),
 	];
 	
-	public readonly List<EditorDefinition> Definitions = [];
-	public EditorDefinition? Selected { internal set; get; } = null;
+	public Actor? Selected { internal set; get; } = null;
 	
-	private readonly WorldRenderer worldRenderer = new();
+	// private readonly WorldRenderer worldRenderer = new();
 	
-	internal EditorScene(World.EntryInfo entry)
+	internal EditorScene(EntryInfo entry) : base(entry)
 	{
-		Entry = entry;
 		//Definitions.Add(new TestEditorDefinition());
 		
 		// Load the map
-		if (Assets.Maps[entry.Map] is not FujiMap map)
-		{
-			// Not a Fuji map, return to level
-			Game.Instance.scenes.Pop();
-			Game.Instance.scenes.Push(new World(Entry));
-			return;
-		}
-		
-		foreach (var defData in map.DefinitionData)
-		{
-			var defType = Assembly.GetExecutingAssembly().GetType(defData.DefinitionFullName)!;
-			var def = (EditorDefinition)Activator.CreateInstance(defType)!;
-			def._Data = defData;
-			Definitions.Add(def);
-		}
+		// if (Assets.Maps[entry.Map] is not FujiMap map)
+		// {
+		// 	// Not a Fuji map, return to level
+		// 	Game.Instance.scenes.Pop();
+		// 	Game.Instance.scenes.Push(new World(Entry));
+		// 	return;
+		// }
+		//
+		// foreach (var defData in map.DefinitionData)
+		// {
+		// 	var defType = Assembly.GetExecutingAssembly().GetType(defData.DefinitionFullName)!;
+		// 	var def = (EditorDefinition)Activator.CreateInstance(defType)!;
+		// 	def._Data = defData;
+		// 	Definitions.Add(def);
+		// }
 	}
 	
 	public override void Update()
@@ -60,13 +56,14 @@ public class EditorScene : Scene
 			return;
 		}
 		
-		worldRenderer.Update(this);
+		// worldRenderer.Update(this);
 	}
 
 	public override void Render(Target target)
 	{
-		target.Clear(Color.Black, 1.0f, 0, ClearMask.All);
-		worldRenderer.Render(this, target);
+		// target.Clear(Color.Black, 1.0f, 0, ClearMask.All);
+		// worldRenderer.Render(this, target);
+		base.Render(target);
 	}
 }
 

@@ -11,9 +11,9 @@ public class TestWindow : EditorWindow
 		ImGui.Text("Testing");
 		ImGui.Text($"Selected: {editor.Selected}");
 		
-		if (editor.Selected is { } selected)
-		{
-			selected.RenderGUI(editor);
-		}
+		// if (editor.Selected is { } selected)
+		// {
+		// 	selected.RenderGUI(editor);
+		// }
 	}
 }

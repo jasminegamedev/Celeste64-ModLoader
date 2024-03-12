@@ -6,7 +6,7 @@ public abstract class EditorDefinitionData
 {
 	// Used to link back to the EditorDefinition
 	// TODO: Maybe remove this??
-	public string DefinitionFullName { get; set; }
+	internal string DefinitionFullName { get; set; }
 	
 	// TODO: Figure out how to let definitions mark support for certain special properties like position / rotation / scale
 	public virtual Vec3 Position { get; set; } = Vector3.Zero;
