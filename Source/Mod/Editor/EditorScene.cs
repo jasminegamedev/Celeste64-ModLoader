@@ -125,27 +125,34 @@ public class EditorScene : World
 		// Shoot ray cast for selection
 		if (Input.Mouse.LeftPressed)
 		{
-			if (Matrix.Invert(Camera.ViewProjection, out var inverse) && Camera.Target != null)
+			if (Camera.Target != null &&
+				Matrix.Invert(Camera.Projection, out var inverseProj) && 
+			    Matrix.Invert(Camera.View, out var inverseView))
 			{
 				// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
 				var scale = Math.Min(App.WidthInPixels / (float)Camera.Target.Width, App.HeightInPixels / (float)Camera.Target.Height);
 				var imageRelativePos = Input.Mouse.Position - (App.SizeInPixels / 2 - Camera.Target.Bounds.Size / 2 * scale);
 				// Convert into normalized-device-coordinates
-				var ncdPos = imageRelativePos / (Camera.Target.Bounds.Size / 2 * scale) - Vec2.One;
-				// Turn it back into a world position (with distance 0 from the camera)
-				var worldPos = Vec4.Transform(new Vec4(ncdPos, 0.0f, 1.0f), inverse);
-				worldPos.X /= worldPos.W;
-				worldPos.Y /= worldPos.W;
-				worldPos.Z /= worldPos.W;
-				var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z) - Camera.Position;
-				// direction *= 10.0f;
-				direction = direction.Normalized();
+				var ndcPos = imageRelativePos / (Camera.Target.Bounds.Size / 2 * scale) - Vec2.One;
+				// Flip Y, since up is negative in NDC coords
+				ndcPos.Y *= -1.0f;
+				var clipPos = new Vec4(ndcPos, -1.0f, 1.0f);
+				var eyePos = Vec4.Transform(clipPos, inverseProj);
+				// We only care about XY, so we set ZW to "forward"
+				eyePos.Z = -1.0f;
+				eyePos.W = 0.0f;
+				var worldPos = Vec4.Transform(eyePos, inverseView);
+				var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
 				
 				Log.Info($"Casting at {Camera.Position} into {direction} (vs {Camera.Forward}");
 				if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
 				{
 					Log.Info($"hit Point: {hit.Point} Normal: {hit.Normal} Distance: {hit.Distance} Actor: {hit.Actor} Intersections: {hit.Intersections}");
 					Selected = hit.Actor;
+				} 
+				else
+				{
+					Selected = null;
 				}
 			}
 		}
