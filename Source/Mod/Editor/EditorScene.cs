@@ -17,6 +17,7 @@ public class EditorScene : World
 	private Vec2 cameraRot = new(0, 0);
 	
 	// private readonly WorldRenderer worldRenderer = new();
+	private readonly Batcher3D batch3D = new();
 	
 	internal EditorScene(EntryInfo entry) : base(entry)
 	{
@@ -144,31 +145,186 @@ public class EditorScene : World
 				var worldPos = Vec4.Transform(eyePos, inverseView);
 				var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
 				
-				Log.Info($"Casting at {Camera.Position} into {direction} (vs {Camera.Forward}");
 				if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
-				{
-					Log.Info($"hit Point: {hit.Point} Normal: {hit.Normal} Distance: {hit.Distance} Actor: {hit.Actor} Intersections: {hit.Intersections}");
 					Selected = hit.Actor;
-				} 
 				else
-				{
 					Selected = null;
-				}
 			}
 		}
 		
 		// Don't call base.Update, since we don't want the actors to update
 		// Instead we manually call only the things which we want for the editor
-		ResolveChanges();
+
+		// toggle debug draw
+		if (Input.Keyboard.Pressed(Keys.F1))
+			DebugDraw = !DebugDraw;
 		
-		// worldRenderer.Update(this);
+		// add / remove actors
+		ResolveChanges();
 	}
 	
 	public override void Render(Target target)
 	{
-		// target.Clear(Color.Black, 1.0f, 0, ClearMask.All);
-		// worldRenderer.Render(this, target);
-		base.Render(target);
+		// We copy and modify World.Render, since thats easier
+		
+		debugRndTimer.Restart();
+		Camera.Target = target;
+		target.Clear(0x444c83, 1, 0, ClearMask.All);
+
+		// create render state
+		RenderState state = new();
+		{
+			state.Camera = Camera;
+			state.ModelMatrix = Matrix.Identity;
+			state.SunDirection = new Vec3(0, -.7f, -1).Normalized();
+			state.Silhouette = false;
+			state.DepthCompare = DepthCompare.Less;
+			state.DepthMask = true;
+			state.VerticalFogColor = 0xdceaf0;
+		}
+
+		// collect renderable objects
+		{
+			sprites.Clear();
+			models.Clear();
+
+			// collect point shadows
+			foreach (var actor in All<ICastPointShadow>())
+			{
+				var alpha = (actor as ICastPointShadow)!.PointShadowAlpha;
+				if (alpha > 0 && 
+					Camera.Frustum.Contains(actor.WorldBounds.Conflate(actor.WorldBounds - Vec3.UnitZ * 1000)))
+					sprites.Add(Sprite.CreateShadowSprite(this, actor.Position + Vec3.UnitZ, alpha));
+			}
+
+			// collect models & sprites
+			foreach (var actor in Actors)
+			{
+				if (!Camera.Frustum.Contains(actor.WorldBounds.Inflate(1)))
+					continue;
+
+				(actor as IHaveSprites)?.CollectSprites(sprites);
+				(actor as IHaveModels)?.CollectModels(models);
+			}
+
+			// sort models by distance (for transparency)
+			models.Sort((a, b) =>
+				(int)((b.Actor.Position - Camera.Position).LengthSquared() -
+				 (a.Actor.Position - Camera.Position).LengthSquared()));
+
+			// perp all models
+			foreach (var it in models)
+				it.Model.Prepare();
+		}
+
+		// draw the skybox first
+		{
+			var shift = new Vec3(Camera.Position.X, Camera.Position.Y, Camera.Position.Z);
+			for (int i = 0; i < skyboxes.Count; i++)
+			{
+				skyboxes[i].Render(Camera, 
+				Matrix.CreateRotationZ(i * GeneralTimer * 0.01f) *
+				Matrix.CreateScale(1, 1, 0.5f) *
+				Matrix.CreateTranslation(shift), 300);
+			}
+		}
+
+		// render solids
+		RenderModels(ref state, models, ModelFlags.Terrain);
+
+		// render silhouettes
+		{
+			var it = state;
+			it.DepthCompare = DepthCompare.Greater;
+			it.DepthMask = false;
+			it.Silhouette = true;
+			RenderModels(ref it, models, ModelFlags.Silhouette);
+			state.Triangles = it.Triangles;
+			state.Calls = it.Calls;
+		}
+
+		// render main models
+		RenderModels(ref state, models, ModelFlags.Default);
+		
+		// perform post processing effects
+		ApplyPostEffects();
+		
+		// Render selected actor bounding box on-top of everything else
+		if (Selected is { } selected)
+		{
+			var lineColor = Color.Green;
+			var innerColor = Color.Green * 0.4f;
+			var lineThickness = 0.1f;
+			
+			batch3D.Line(selected.WorldBounds.Min, selected.WorldBounds.Min with { X = selected.WorldBounds.Max.X }, lineColor, lineThickness);
+			batch3D.Line(selected.WorldBounds.Min, selected.WorldBounds.Min with { Y = selected.WorldBounds.Max.Y }, lineColor, lineThickness);
+			batch3D.Line(selected.WorldBounds.Min, selected.WorldBounds.Min with { Z = selected.WorldBounds.Max.Z }, lineColor, lineThickness);
+
+			batch3D.Line(selected.WorldBounds.Max, selected.WorldBounds.Max with { X = selected.WorldBounds.Min.X }, lineColor, lineThickness);
+			batch3D.Line(selected.WorldBounds.Max, selected.WorldBounds.Max with { Y = selected.WorldBounds.Min.Y }, lineColor, lineThickness);
+			batch3D.Line(selected.WorldBounds.Max, selected.WorldBounds.Max with { Z = selected.WorldBounds.Min.Z }, lineColor, lineThickness);
+
+			batch3D.Line(selected.WorldBounds.Min with { Y = selected.WorldBounds.Max.Y }, selected.WorldBounds.Max with { X = selected.WorldBounds.Min.X }, lineColor, lineThickness);
+			batch3D.Line(selected.WorldBounds.Min with { Y = selected.WorldBounds.Max.Y }, selected.WorldBounds.Max with { Z = selected.WorldBounds.Min.Z }, lineColor, lineThickness);
+
+			batch3D.Line(selected.WorldBounds.Max with { Y = selected.WorldBounds.Min.Y }, selected.WorldBounds.Min with { X = selected.WorldBounds.Max.X }, lineColor, lineThickness);
+			batch3D.Line(selected.WorldBounds.Max with { Y = selected.WorldBounds.Min.Y }, selected.WorldBounds.Min with { Z = selected.WorldBounds.Max.Z }, lineColor, lineThickness);
+
+			batch3D.Line(selected.WorldBounds.Min with { X = selected.WorldBounds.Max.X }, selected.WorldBounds.Max with { Z = selected.WorldBounds.Min.Z }, lineColor, lineThickness);
+			batch3D.Line(selected.WorldBounds.Min with { Z = selected.WorldBounds.Max.Z }, selected.WorldBounds.Max with { X = selected.WorldBounds.Min.X }, lineColor, lineThickness);
+			
+			batch3D.Box(selected.WorldBounds.Min, selected.WorldBounds.Max, innerColor);
+			
+			batch3D.Render(ref state);
+			batch3D.Clear();
+		}
+
+		// render alpha threshold transparent stuff
+		{
+			state.CutoutMode = true;
+			RenderModels(ref state, models, ModelFlags.Cutout);
+			state.CutoutMode = false;
+		}
+
+		// render 2d sprites
+		{
+			spriteRenderer.Render(ref state, sprites, false);
+			spriteRenderer.Render(ref state, sprites, true);
+		}
+
+		// render partially transparent models... must be sorted etc
+		{
+			state.DepthMask = false;
+			RenderModels(ref state, models, ModelFlags.Transparent);
+			state.DepthMask = true;
+		}
+
+		// ui
+		{
+			batch.SetSampler(new TextureSampler(TextureFilter.Linear, TextureWrap.ClampToEdge, TextureWrap.ClampToEdge));
+			var bounds = new Rect(0, 0, target.Width, target.Height);
+			var font = Language.Current.SpriteFont;
+
+			// debug
+			if (DebugDraw)
+			{
+				var updateMs = debugUpdTimer.Elapsed.TotalMilliseconds;
+				var renderMs = lastDebugRndTime.TotalMilliseconds;
+				var frameMs = debugFpsTimer.Elapsed.TotalMilliseconds;
+				var fps = (int)(1000/frameMs);
+				debugFpsTimer.Restart();
+
+				batch.Text(font, $"Draws: {state.Calls}, Tris: {state.Triangles}, Upd: {debugUpdateCount}", bounds.BottomLeft, new Vec2(0, 1), Color.Red);
+				batch.Text(font, $"u:{updateMs:0.00}ms | r:{renderMs:0.00}ms | f:{frameMs:0.00}ms / {fps}fps", bounds.BottomLeft - new Vec2(0, font.LineHeight), new Vec2(0, 1), Color.Red);
+				batch.Text(font, $"m: {Entry.Map}, c: {Entry.CheckPoint}, s: {Entry.Submap}", bounds.BottomLeft - new Vec2(0, font.LineHeight * 2), new Vec2(0, 1), Color.Red);
+			}
+
+			batch.Render(Camera.Target);
+			batch.Clear();
+		}
+
+		lastDebugRndTime = debugRndTimer.Elapsed;
+		debugRndTimer.Stop();
 	}
 	
 	public bool ActorRayCast(in Vec3 point, in Vec3 direction, float distance, out RayHit hit, bool ignoreBackfaces = true, bool ignoreTransparent = false)
@@ -196,8 +352,6 @@ public class EditorScene : World
 					// too far away
 					if (distEnter > distance)
 						continue;
-					
-					Log.Info($"intersected non-solid {actor} @ {distEnter} / {distExit}");
 					
 					hit.Intersections++;
 
@@ -232,7 +386,7 @@ public class EditorScene : World
 					continue;
 
 				// ignore faces that are definitely too far away
-				if (Utils.DistanceToPlane(point, face.Plane) > distance)
+				if (point.DistanceToPlane(face.Plane) > distance)
 					continue;
 
 				// check against each triangle in the face
@@ -247,7 +401,6 @@ public class EditorScene : World
 						if (dist > distance)
 							continue;
 
-						Log.Info($"intersected solid {actor} @ {dist}");
 						hit.Intersections++;
 
 						// we have a closer value
