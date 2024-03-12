@@ -275,8 +275,8 @@ public class EditorScene : World
 			var lineColor = Color.Green;
 			var innerColor = Color.Green * 0.4f;
 			var inflate = 0.25f;
-			var matrix = Matrix.CreateTranslation(selected.Position);
 			
+			var matrix = selected.Matrix;
 			var bounds = selected.LocalBounds.Inflate(inflate);
 			var v000 = bounds.Min;
 			var v100 = bounds.Min with { X = bounds.Max.X };
@@ -360,29 +360,33 @@ public class EditorScene : World
 			if (!actor.WorldBounds.Intersects(box))
 				continue;
 			
+			// Don't re-select an actor
+			if (actor == Selected)
+				continue;
+			
 			// TODO: Allow selecting decorations, since they're currently one giant object
 			if (actor is Decoration or FloatingDecoration)
 				continue;
 			
 			if (actor is not Solid solid)
 			{
-				if (ModUtils.RayIntersectsBox(point, direction, actor.WorldBounds, out float distEnter, out float distExit))
+				if (ModUtils.RayIntersectOBB(point, direction, actor.LocalBounds, actor.Matrix, out float dist))
 				{
 					// too far away
-					if (distEnter > distance)
+					if (dist > distance)
 						continue;
 					
 					hit.Intersections++;
 
 					// we have a closer value
-					if (closest.HasValue && distEnter > closest.Value)
+					if (closest.HasValue && dist > closest.Value)
 						continue;
 					
 					// store as closest
-					hit.Point = point + direction * distEnter;
-					hit.Distance = distEnter;
+					hit.Point = point + direction * dist;
+					hit.Distance = dist;
 					hit.Actor = actor;
-					closest = distEnter;
+					closest = dist;
 				}
 				
 				continue;
