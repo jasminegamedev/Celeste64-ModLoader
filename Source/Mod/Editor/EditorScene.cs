@@ -274,7 +274,6 @@ public class EditorScene : World
 		{
 			var lineColor = Color.Green;
 			var innerColor = Color.Green * 0.4f;
-			var lineThickness = 0.1f;
 			var inflate = 0.25f;
 			var matrix = Matrix.CreateTranslation(selected.Position);
 			
@@ -288,12 +287,15 @@ public class EditorScene : World
 			var v110 = bounds.Max with { Z = bounds.Min.Z };
 			var v111 = bounds.Max;
 			
+			// Scale thickness based on distance
+			var lineThickness = Vec3.Distance(Camera.Position, bounds.Center) * 0.0003f;
+			
 			batch3D.Box(v000, v111, innerColor, matrix);
 			batch3D.Render(ref state);
 			batch3D.Clear();
 			
 			// Ignore depth for outline
-			state.Camera.Target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
+			target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
 			
 			batch3D.Line(v000, v100, lineColor, matrix, lineThickness);
 			batch3D.Line(v000, v010, lineColor, matrix, lineThickness);
