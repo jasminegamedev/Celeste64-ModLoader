@@ -125,10 +125,28 @@ public class EditorScene : World
 		// Shoot ray cast for selection
 		if (Input.Mouse.LeftPressed)
 		{
-			Log.Info($"Casting at {Camera.Position} into {Camera.Forward}");
-			if (ActorRayCast(Camera.Position, Camera.Forward, 100.0f, out var hit, ignoreBackfaces: false))
+			if (Matrix.Invert(Camera.ViewProjection, out var inverse) && Camera.Target != null)
 			{
-				Log.Info($"hit Point: {hit.Point} Normal: {hit.Normal} Distance: {hit.Distance} Actor: {hit.Actor} Intersections: {hit.Intersections}");
+				// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
+				var scale = Math.Min(App.WidthInPixels / (float)Camera.Target.Width, App.HeightInPixels / (float)Camera.Target.Height);
+				var imageRelativePos = Input.Mouse.Position - (App.SizeInPixels / 2 - Camera.Target.Bounds.Size / 2 * scale);
+				// Convert into normalized-device-coordinates
+				var ncdPos = imageRelativePos / (Camera.Target.Bounds.Size / 2 * scale) - Vec2.One;
+				// Turn it back into a world position (with distance 0 from the camera)
+				var worldPos = Vec4.Transform(new Vec4(ncdPos, 0.0f, 1.0f), inverse);
+				worldPos.X /= worldPos.W;
+				worldPos.Y /= worldPos.W;
+				worldPos.Z /= worldPos.W;
+				var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z) - Camera.Position;
+				// direction *= 10.0f;
+				direction = direction.Normalized();
+				
+				Log.Info($"Casting at {Camera.Position} into {direction} (vs {Camera.Forward}");
+				if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
+				{
+					Log.Info($"hit Point: {hit.Point} Normal: {hit.Normal} Distance: {hit.Distance} Actor: {hit.Actor} Intersections: {hit.Intersections}");
+					Selected = hit.Actor;
+				}
 			}
 		}
 		
@@ -160,25 +178,31 @@ public class EditorScene : World
 			if (!actor.WorldBounds.Intersects(box))
 				continue;
 			
+			// TODO: Allow selecting decorations, since they're currently one giant object
+			if (actor is Decoration or FloatingDecoration)
+				continue;
+			
 			if (actor is not Solid solid)
 			{
-				if (ModUtils.RayIntersectsBox(point, direction, actor.WorldBounds, out float dist))
+				if (ModUtils.RayIntersectsBox(point, direction, actor.WorldBounds, out float distEnter, out float distExit))
 				{
 					// too far away
-					if (dist > distance)
+					if (distEnter > distance)
 						continue;
-
+					
+					Log.Info($"intersected non-solid {actor} @ {distEnter} / {distExit}");
+					
 					hit.Intersections++;
 
 					// we have a closer value
-					if (closest.HasValue && dist > closest.Value)
+					if (closest.HasValue && distEnter > closest.Value)
 						continue;
 					
 					// store as closest
-					hit.Point = point + direction * dist;
-					hit.Distance = dist;
+					hit.Point = point + direction * distEnter;
+					hit.Distance = distEnter;
 					hit.Actor = actor;
-					closest = dist;
+					closest = distEnter;
 				}
 				
 				continue;
@@ -216,6 +240,7 @@ public class EditorScene : World
 						if (dist > distance)
 							continue;
 
+						Log.Info($"intersected solid {actor} @ {dist}");
 						hit.Intersections++;
 
 						// we have a closer value
