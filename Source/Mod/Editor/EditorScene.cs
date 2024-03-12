@@ -5,7 +5,7 @@ namespace Celeste64.Mod.Editor;
 
 public class EditorScene : World
 {
-	private const float EditorResolutionScale = 2.0f; 
+	private const float EditorResolutionScale = 3.0f; 
 	
 	internal readonly ImGuiHandler[] Handlers = [
 		new TestWindow(),
@@ -122,6 +122,16 @@ public class EditorScene : World
 		Camera.Position = cameraPos;
 		Camera.LookAt = cameraPos + forward;
 		
+		// Shoot ray cast for selection
+		if (Input.Mouse.LeftPressed)
+		{
+			Log.Info($"Casting at {Camera.Position} into {Camera.Forward}");
+			if (ActorRayCast(Camera.Position, Camera.Forward, 100.0f, out var hit, ignoreBackfaces: false))
+			{
+				Log.Info($"hit Point: {hit.Point} Normal: {hit.Normal} Distance: {hit.Distance} Actor: {hit.Actor} Intersections: {hit.Intersections}");
+			}
+		}
+		
 		// Don't call base.Update, since we don't want the actors to update
 		// Instead we manually call only the things which we want for the editor
 		ResolveChanges();
@@ -134,6 +144,97 @@ public class EditorScene : World
 		// target.Clear(Color.Black, 1.0f, 0, ClearMask.All);
 		// worldRenderer.Render(this, target);
 		base.Render(target);
+	}
+	
+	public bool ActorRayCast(in Vec3 point, in Vec3 direction, float distance, out RayHit hit, bool ignoreBackfaces = true, bool ignoreTransparent = false)
+	{
+		hit = default;
+		float? closest = null;
+
+		var p0 = point;
+		var p1 = point + direction * distance;
+		var box = new BoundingBox(Vec3.Min(p0, p1), Vec3.Max(p0, p1)).Inflate(1);
+
+		foreach (var actor in Actors)
+		{
+			if (!actor.WorldBounds.Intersects(box))
+				continue;
+			
+			if (actor is not Solid solid)
+			{
+				if (ModUtils.RayIntersectsBox(point, direction, actor.WorldBounds, out float dist))
+				{
+					// too far away
+					if (dist > distance)
+						continue;
+
+					hit.Intersections++;
+
+					// we have a closer value
+					if (closest.HasValue && dist > closest.Value)
+						continue;
+					
+					// store as closest
+					hit.Point = point + direction * dist;
+					hit.Distance = dist;
+					hit.Actor = actor;
+					closest = dist;
+				}
+				
+				continue;
+			}
+			
+			// Special handling for solid to properly check against mesh
+			if (!solid.Collidable || solid.Destroying)
+				continue;
+
+			if (solid.Transparent && ignoreTransparent)
+				continue;
+			
+			var verts = solid.WorldVertices;
+			var faces = solid.WorldFaces;
+
+			foreach (var face in faces)
+			{
+				// only do planes that are facing against us
+				if (ignoreBackfaces && Vec3.Dot(face.Plane.Normal, direction) >= 0)
+					continue;
+
+				// ignore faces that are definitely too far away
+				if (Utils.DistanceToPlane(point, face.Plane) > distance)
+					continue;
+
+				// check against each triangle in the face
+				for (int i = 0; i < face.VertexCount - 2; i ++)
+				{
+					if (Utils.RayIntersectsTriangle(point, direction, 
+						    verts[face.VertexStart + 0],
+						    verts[face.VertexStart + i + 1],
+						    verts[face.VertexStart + i + 2], out float dist))
+					{
+						// too far away
+						if (dist > distance)
+							continue;
+
+						hit.Intersections++;
+
+						// we have a closer value
+						if (closest.HasValue && dist > closest.Value)
+							continue;
+
+						// store as closest
+						hit.Point = point + direction * dist;
+						hit.Normal = face.Plane.Normal;
+						hit.Distance = dist;
+						hit.Actor = solid;
+						closest = dist;
+						break;
+					}
+				}
+			}
+		}
+
+		return closest.HasValue;
 	}
 }
 
