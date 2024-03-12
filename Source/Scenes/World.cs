@@ -9,6 +9,9 @@ public class World : Scene
 {
 	public enum EntryReasons { Entered, Returned, Respawned }
 	public readonly record struct EntryInfo(string Map, string CheckPoint, bool Submap, EntryReasons Reason);
+	
+	public enum WorldType { Game, Editor }
+	public readonly WorldType Type;
 
 	public Camera Camera = new();
 	public Rng Rng = new(0);
@@ -100,6 +103,7 @@ public class World : Scene
 		})));
 
 		Entry = entry;
+		Type = this is EditorScene ? WorldType.Editor : WorldType.Game;
 
 		var stopwatch = Stopwatch.StartNew();
 
@@ -130,6 +134,7 @@ public class World : Scene
 		strawbCounterWiggle = 0;
 
 		// setup pause menu
+		if (Type == WorldType.Game) // Don't create pause menu in the editor
 		{
 			Menu optionsMenu = new GameOptionsMenu(pauseMenu);
 
@@ -173,24 +178,10 @@ public class World : Scene
 		}
 
 		// environment
+		if (Type == WorldType.Game) // Don't create environment effects in the editor
 		{
 			if (map.SnowAmount > 0)
 				Add(new Snow(map.SnowAmount, map.SnowWind));
-
-			if (!string.IsNullOrEmpty(map.Skybox))
-			{
-				// single skybox
-				if (Assets.Textures.TryGetValue($"skyboxes/{map.Skybox}", out var skybox))
-				{
-					skyboxes.Add(new(skybox));
-				}
-				// group
-				else
-				{
-					while (Assets.Textures.TryGetValue($"skyboxes/{map.Skybox}_{skyboxes.Count}", out var nextSkybox))
-						skyboxes.Add(new(nextSkybox));
-				}
-			}
 
 			// Fuji Custom: Allows playing music and ambience from wav files if available.
 			// Otherwise, uses fmod events like normal.
@@ -214,6 +205,22 @@ public class World : Scene
 			{
 				AmbienceWav = "";
 				Ambience = $"event:/sfx/ambience/{map.Ambience}";
+			}
+		}
+		
+		// But still show the skybox
+		if (!string.IsNullOrEmpty(map.Skybox))
+		{
+			// single skybox
+			if (Assets.Textures.TryGetValue($"skyboxes/{map.Skybox}", out var skybox))
+			{
+				skyboxes.Add(new(skybox));
+			}
+			// group
+			else
+			{
+				while (Assets.Textures.TryGetValue($"skyboxes/{map.Skybox}_{skyboxes.Count}", out var nextSkybox))
+					skyboxes.Add(new(nextSkybox));
 			}
 		}
 
@@ -899,7 +906,9 @@ public class World : Scene
 		}
 
 		// ui
+		if (Type == WorldType.Game) // Don't render UI in editor
 		{
+			Log.Info(Type);
 			batch.SetSampler(new TextureSampler(TextureFilter.Linear, TextureWrap.ClampToEdge, TextureWrap.ClampToEdge));
 			var bounds = new Rect(0, 0, target.Width, target.Height);
 			var font = Language.Current.SpriteFont;

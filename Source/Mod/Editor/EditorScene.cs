@@ -5,6 +5,8 @@ namespace Celeste64.Mod.Editor;
 
 public class EditorScene : World
 {
+	private const float EditorResolutionScale = 3.0f; 
+	
 	internal readonly ImGuiHandler[] Handlers = [
 		new TestWindow(),
 	];
@@ -18,6 +20,10 @@ public class EditorScene : World
 	
 	internal EditorScene(EntryInfo entry) : base(entry)
 	{
+		Camera.NearPlane = 0.1f;
+		Camera.FarPlane = 4000; // Increase render distance
+		Camera.FOVMultiplier = 1.25f;
+		
 		//Definitions.Add(new TestEditorDefinition());
 		
 		// Load the map
@@ -37,7 +43,18 @@ public class EditorScene : World
 		// 	Definitions.Add(def);
 		// }
 	}
-	
+
+	private float previousScale = 1.0f;
+	public override void Entered()
+	{
+		previousScale = Game.ResolutionScale;
+		Game.ResolutionScale = EditorResolutionScale;
+	}
+	public override void Exited()
+	{
+		Game.ResolutionScale = previousScale;
+	}
+
 	public override void Update()
 	{
 		// Toggle to in-game
@@ -86,7 +103,7 @@ public class EditorScene : World
 			cameraPos.Z -= moveSpeed * Time.Delta;
 	
 		// Camera rotation
-		float rotateSpeed = 15.0f * Calc.DegToRad;
+		float rotateSpeed = 16.5f * Calc.DegToRad;
 		if (Input.Mouse.Down(MouseButtons.Right))
 		{
 			cameraRot.X += InputHelper.MouseDelta.X * rotateSpeed * Time.Delta;
