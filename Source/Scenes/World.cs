@@ -399,8 +399,10 @@ public class World : Scene
 		// Toggle to editor
 		if (Input.Keyboard.Pressed(Keys.F3))
 		{
+			Game.Scene!.Exited();
 			Game.Instance.scenes.Pop();
 			Game.Instance.scenes.Push(new EditorScene(Entry));
+			Game.Scene!.Entered();
 			return;
 		}
 	
@@ -908,7 +910,6 @@ public class World : Scene
 		// ui
 		if (Type == WorldType.Game) // Don't render UI in editor
 		{
-			Log.Info(Type);
 			batch.SetSampler(new TextureSampler(TextureFilter.Linear, TextureWrap.ClampToEdge, TextureWrap.ClampToEdge));
 			var bounds = new Rect(0, 0, target.Width, target.Height);
 			var font = Language.Current.SpriteFont;

@@ -5,7 +5,7 @@ namespace Celeste64.Mod.Editor;
 
 public class EditorScene : World
 {
-	private const float EditorResolutionScale = 3.0f; 
+	private const float EditorResolutionScale = 2.0f; 
 	
 	internal readonly ImGuiHandler[] Handlers = [
 		new TestWindow(),
@@ -60,8 +60,10 @@ public class EditorScene : World
 		// Toggle to in-game
 		if (Input.Keyboard.Pressed(Keys.F3))
 		{
+			Game.Scene!.Exited();
 			Game.Instance.scenes.Pop();
 			Game.Instance.scenes.Push(new World(Entry));
+			Game.Scene.Entered();
 			return;
 		}
 		
