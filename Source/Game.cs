@@ -47,7 +47,7 @@ public class Game : Module
 	public const int DefaultWidth = 640;
 	public const int DefaultHeight = 360;
 
-	public static event Action OnResolutionChanged;
+	public static event Action OnResolutionChanged = () => { };
 
 	private static float _resolutionScale = 1.0f;
 	public static float ResolutionScale
@@ -91,8 +91,8 @@ public class Game : Module
 	public SoundHandle? AmbienceWav;
 	public SoundHandle? MusicWav;
 
-	public Scene? Scene { get { return scenes.TryPeek(out Scene? scene) ? scene : null; } }
-	public World? World { get { return Scene is World world ? world : null; } }
+	public Scene? Scene => scenes.TryPeek(out var scene) ? scene : null;
+	public World? World => Scene as World;
 
 	internal bool NeedsReload = false;
 

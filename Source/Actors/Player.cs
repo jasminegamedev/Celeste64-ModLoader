@@ -11,59 +11,60 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	#region Default Movement Properties
 	// These default movement properties have been broken out from the actual movement properties
 	// So we can always know what they were set at for their default values, in case we need to reset them.
-	public virtual float DefaultAcceleration { get { return 500; } }
-	public virtual float DefaultPastMaxDeccel { get { return 60; } }
-	public virtual float DefaultAirAccelMultMin { get { return .5f; } }
-	public virtual float DefaultAirAccelMultMax { get { return 1f; } }
-	public virtual float DefaultMaxSpeed { get { return 64; } }
-	public virtual float DefaultRotateSpeed { get { return MathF.Tau * 1.5f; } }
-	public virtual float DefaultRotateSpeedAboveMax { get { return MathF.Tau * .6f; } }
-	public virtual float DefaultFriction { get { return 800; } }
-	public virtual float DefaultAirFrictionMult { get { return .1f; } }
-	public virtual float DefaultGravity { get { return 600; } }
-	public virtual float DefaultMaxFall { get { return -120; } }
-	public virtual float DefaultHalfGravThreshold { get { return 100; } }
-	public virtual float DefaultJumpHoldTime { get { return .1f; } }
-	public virtual float DefaultJumpSpeed { get { return 90; } }
-	public virtual float DefaultJumpXYBoost { get { return 10; } }
-	public virtual float DefaultCoyoteTime { get { return .12f; } }
+	public virtual float DefaultAcceleration => 500;
+	public virtual float DefaultPastMaxDeccel => 60;
+	public virtual float DefaultAirAccelMultMin => .5f;
+	public virtual float DefaultAirAccelMultMax => 1f;
+	public virtual float DefaultMaxSpeed => 64;
+	public virtual float DefaultRotateSpeed => MathF.Tau * 1.5f;
+	public virtual float DefaultRotateSpeedAboveMax => MathF.Tau * .6f;
+	public virtual float DefaultFriction => 800;
+	public virtual float DefaultAirFrictionMult => .1f;
+	public virtual float DefaultGravity => 600;
+	public virtual float DefaultMaxFall => -120;
+	public virtual float DefaultHalfGravThreshold => 100;
+	public virtual float DefaultJumpHoldTime => .1f;
+	public virtual float DefaultJumpSpeed => 90;
+	public virtual float DefaultJumpXYBoost => 10;
+	public virtual float DefaultCoyoteTime => .12f;
 
-	public virtual float DefaultDashSpeed { get { return 140; } }
-	public virtual float DefaultDashEndSpeedMult { get { return .75f; } }
-	public virtual float DefaultDashTime { get { return .2f; } }
-	public virtual float DefaultDashResetCooldown { get { return .2f; } }
-	public virtual float DefaultDashCooldown { get { return .1f; } }
-	public virtual float DefaultDashRotateSpeed { get { return MathF.Tau * .3f; } }
+	public virtual float DefaultDashSpeed => 140;
+	public virtual float DefaultDashEndSpeedMult => .75f;
+	public virtual float DefaultDashTime => .2f;
+	public virtual float DefaultDashResetCooldown => .2f;
+	public virtual float DefaultDashCooldown => .1f;
+	public virtual float DefaultDashRotateSpeed => MathF.Tau * .3f;
 
-	public virtual float DefaultDashJumpSpeed { get { return 40; } }
-	public virtual float DefaultDashJumpHoldSpeed { get { return 20; } }
-	public virtual float DefaultDashJumpHoldTime { get { return .3f; } }
-	public virtual float DefaultDashJumpXYBoost { get { return 16; } }
+	public virtual float DefaultDashJumpSpeed => 40;
+	public virtual float DefaultDashJumpHoldSpeed => 20;
+	public virtual float DefaultDashJumpHoldTime => .3f;
+	public virtual float DefaultDashJumpXYBoost => 16;
 
-	public virtual float DefaultSkidDotThreshold { get { return -.7f; } }
-	public virtual float DefaultSkiddingStartAccel { get { return 300; } }
-	public virtual float DefaultSkiddingAccel { get { return 500; } }
-	public virtual float DefaultSkidJumpSpeed { get { return 120; } }
-	public virtual float DefaultSkidJumpHoldTime { get { return .16f; } }
+	public virtual float DefaultSkidDotThreshold => -.7f;
+	public virtual float DefaultSkiddingStartAccel => 300;
+	public virtual float DefaultSkiddingAccel => 500;
+	public virtual float DefaultSkidJumpSpeed => 120;
+	public virtual float DefaultSkidJumpHoldTime => .16f;
 
-	public virtual float DefaultWallPushoutDist { get { return 3; } }
-	public virtual float DefaultClimbCheckDist { get { return 4; } }
-	public virtual float DefaultClimbSpeed { get { return 40; } }
-	public virtual float DefaultClimbHopUpSpeed { get { return 80; } }
-	public virtual float DefaultClimbHopForwardSpeed { get { return 40; } }
-	public virtual float DefaultClimbHopNoMoveTime { get { return .25f; } }
+	public virtual float DefaultWallPushoutDist => 3;
+	public virtual float DefaultClimbCheckDist => 4;
+	public virtual float DefaultClimbSpeed => 40;
+	public virtual float DefaultClimbHopUpSpeed => 80;
+	public virtual float DefaultClimbHopForwardSpeed => 40;
+	public virtual float DefaultClimbHopNoMoveTime => .25f;
 
-	public virtual float DefaultSpringJumpSpeed { get { return 160; } }
-	public virtual float DefaultSpringJumpHoldTime { get { return .3f; } }
+	public virtual float DefaultSpringJumpSpeed => 160;
+	public virtual float DefaultSpringJumpHoldTime => .3f;
 
-	public virtual float DefaultFeatherStartTime { get { return .4f; ; } }
-	public virtual float DefaultFeatherFlySpeed { get { return 100; } }
-	public virtual float DefaultFeatherStartSpeed { get { return 140; } }
-	public virtual float DefaultFeatherTurnSpeed { get { return MathF.Tau * .75f; } }
-	public virtual float DefaultFeatherAccel { get { return 60; } }
-	public virtual float DefaultFeatherDuration { get { return 2.2f; } }
-	public virtual float DefaultFeatherExitXYMult { get { return .5f; } }
-	public virtual float DefaultFeatherExitZSpeed { get { return 60; } }
+	public virtual float DefaultFeatherStartTime => .4f;
+	public virtual float DefaultFeatherFlySpeed => 100;
+	public virtual float DefaultFeatherStartSpeed => 140;
+	public virtual float DefaultFeatherTurnSpeed => MathF.Tau * .75f;
+	public virtual float DefaultFeatherAccel => 60;
+	public virtual float DefaultFeatherDuration => 2.2f;
+	public virtual float DefaultFeatherExitXYMult => .5f;
+	public virtual float DefaultFeatherExitZSpeed => 60;
+
 	#endregion
 
 	#region Movement Properties
@@ -73,7 +74,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	public virtual float AirAccelMultMin { get; set; }
 	public virtual float AirAccelMultMax { get; set; }
 	public virtual float MaxSpeed { get; set; }
-	public virtual float RotateThreshold { get { return MaxSpeed * .2f; } }
+	public virtual float RotateThreshold => MaxSpeed * .2f;
 	public virtual float RotateSpeed { get; set; }
 	public virtual float RotateSpeedAboveMax { get; set; }
 	public virtual float Friction { get; set; }
@@ -85,7 +86,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	public virtual float JumpSpeed { get; set; }
 	public virtual float JumpXYBoost { get; set; }
 	public virtual float CoyoteTime { get; set; }
-	public virtual float WallJumpXYSpeed { get { return MaxSpeed * 1.3f; } }
+	public virtual float WallJumpXYSpeed => MaxSpeed * 1.3f;
 
 	public virtual float DashSpeed { get; set; }
 	public virtual float DashEndSpeedMult { get; set; }
@@ -102,10 +103,10 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	public virtual float SkidDotThreshold { get; set; }
 	public virtual float SkiddingStartAccel { get; set; }
 	public virtual float SkiddingAccel { get; set; }
-	public virtual float EndSkidSpeed { get { return MaxSpeed * 0.8f; } }
+	public virtual float EndSkidSpeed => MaxSpeed * 0.8f;
 	public virtual float SkidJumpSpeed { get; set; }
 	public virtual float SkidJumpHoldTime { get; set; }
-	public virtual float SkidJumpXYSpeed { get { return MaxSpeed * 1.4f; } }
+	public virtual float SkidJumpXYSpeed => MaxSpeed * 1.4f;
 
 	public virtual float WallPushoutDist { get; set; }
 	public virtual float ClimbCheckDist { get; set; }

@@ -11,8 +11,8 @@ public class ModSelectionMenu : Menu
 	private const int rows = 2;
 	private const int columns = 4;
 
-	private int CurrentPageStart { get { return currentPage * columns * rows; } }
-	private int CurrentIndex { get { return currentRow * columns + currentColumn; } }
+	private int CurrentPageStart => currentPage * columns * rows;
+	private int CurrentIndex => currentRow * columns + currentColumn;
 
 	private Subtexture postcardImage;
 	private Subtexture strawberryImage;

@@ -17,23 +17,9 @@ public readonly struct SoundHandle
 		this.sound = sound;
 	}
 
-	public bool IsLooping
-	{
-		get
-		{
-			return channel.getLoopCount(out int loopcount) == FMOD.RESULT.OK && loopcount != 0;
-		}
-	}
-
+	public bool IsLooping => channel.getLoopCount(out int loopcount) == FMOD.RESULT.OK && loopcount != 0;
 	public bool IsOneshot => !IsLooping;
-
-	public bool IsPlaying
-	{
-		get
-		{
-			return channel.isPlaying(out bool playing) == RESULT.OK && playing;
-		}
-	}
+	public bool IsPlaying => channel.isPlaying(out bool playing) == RESULT.OK && playing;
 
 	public Vec3 Position
 	{
@@ -71,10 +57,7 @@ public readonly struct SoundHandle
 				return value;
 			return 0.0f;
 		}
-		set
-		{
-			Audio.Check(channel.setVolume(value));
-		}
+		set => Audio.Check(channel.setVolume(value));
 	}
 
 	public bool Paused
@@ -85,10 +68,7 @@ public readonly struct SoundHandle
 				return value;
 			return false;
 		}
-		set
-		{
-			Audio.Check(channel.setPaused(value));
-		}
+		set => Audio.Check(channel.setPaused(value));
 	}
 
 	public void SetCallback(CHANNELCONTROL_CALLBACK callback)

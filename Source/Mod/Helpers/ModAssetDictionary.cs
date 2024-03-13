@@ -31,13 +31,7 @@ public class ModAssetDictionary<V> : IEnumerable<KeyValuePair<string, V>>
 	/// </summary>
 	/// <param name="key">The key we're trying to match to.</param>
 	/// <returns></returns>
-	public V this[string key]
-	{
-		get
-		{
-			return Get(key);
-		}
-	}
+	public V this[string key] => Get(key);
 
 	/// <summary>
 	/// This function gets a given asset base on a given string key following some complicated matching logic.
@@ -303,7 +297,7 @@ public class ModAssetDictionary<V> : IEnumerable<KeyValuePair<string, V>>
 		return default;
 	}
 
-	public int Count { get { return ModManager.Instance.EnabledMods.SelectMany(mod => getDictionary(mod)).Count(); } }
+	public int Count => ModManager.Instance.EnabledMods.SelectMany(mod => getDictionary(mod)).Count();
 
 	/// <summary>
 	/// Used to iterate through all assets for this type in all mods.

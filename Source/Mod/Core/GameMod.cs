@@ -6,7 +6,7 @@ namespace Celeste64.Mod;
 public abstract class GameMod
 {
 	#region Internally Used Data
-	internal Save.ModRecord ModSaveData { get { return Save.Instance.GetOrMakeMod(ModInfo.Id); } }
+	internal Save.ModRecord ModSaveData => Save.Instance.GetOrMakeMod(ModInfo.Id);
 
 	// They get set as part of the Mod Loading step, not the constructor.
 	internal IModFilesystem Filesystem { get; set; } = null!;
@@ -52,13 +52,13 @@ public abstract class GameMod
 
 	// This is here to give mods easier access to these objects, so they don't have to get them themselves
 	// Warning, these may be null if they haven't been initialized yet, so you should always do a null check before using them.
-	public Game? Game { get { return Game.Instance; } }
-	public World? World { get { return Game != null ? Game.World : null; } }
-	public Map? Map { get { return World != null ? World.Map : null; } }
-	public Player? Player { get { return World != null ? World.Get<Player>() : null; } }
+	public Game? Game => Game.Instance;
+	public World? World => Game != null ? Game.World : null;
+	public Map? Map => World != null ? World.Map : null;
+	public Player? Player => World != null ? World.Get<Player>() : null;
 
 	// Common Metadata about this mod.
-	public bool Enabled { get { return this is VanillaGameMod || ModSaveData.Enabled; } }
+	public bool Enabled => this is VanillaGameMod || ModSaveData.Enabled;
 	public virtual Type? SettingsType { get; set; }
 	public virtual GameModSettings? Settings { get; set; }
 
