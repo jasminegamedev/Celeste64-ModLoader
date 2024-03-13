@@ -197,7 +197,7 @@ namespace FMOD.Studio
 		{
 			get
 			{
-				using (StringHelper.ThreadSafeEncoding encoding = StringHelper.GetFreeHelper())
+				using (var encoding = StringHelper.GetFreeHelper())
 				{
 					return ((mode & (MODE.OPENMEMORY | MODE.OPENMEMORY_POINT)) == 0) ? encoding.stringFromNative(name_or_data) : String.Empty;
 				}
@@ -374,7 +374,7 @@ namespace FMOD.Studio
 	{
 		public static RESULT parseID(string idString, out GUID id)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_ParseID(encoder.byteFromStringUTF8(idString), out id);
 			}
@@ -400,11 +400,11 @@ namespace FMOD.Studio
 		}
 		public RESULT setAdvancedSettings(ADVANCEDSETTINGS settings, string encryptionKey)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				IntPtr userKey = settings.encryptionkey;
 				settings.encryptionkey = encoder.intptrFromStringUTF8(encryptionKey);
-				FMOD.RESULT result = setAdvancedSettings(settings);
+				var result = setAdvancedSettings(settings);
 				settings.encryptionkey = userKey;
 				return result;
 			}
@@ -432,28 +432,28 @@ namespace FMOD.Studio
 		}
 		public RESULT getEvent(string path, out EventDescription _event)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_System_GetEvent(this.handle, encoder.byteFromStringUTF8(path), out _event.handle);
 			}
 		}
 		public RESULT getBus(string path, out Bus bus)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_System_GetBus(this.handle, encoder.byteFromStringUTF8(path), out bus.handle);
 			}
 		}
 		public RESULT getVCA(string path, out VCA vca)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_System_GetVCA(this.handle, encoder.byteFromStringUTF8(path), out vca.handle);
 			}
 		}
 		public RESULT getBank(string path, out Bank bank)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_System_GetBank(this.handle, encoder.byteFromStringUTF8(path), out bank.handle);
 			}
@@ -477,14 +477,14 @@ namespace FMOD.Studio
 		}
 		public RESULT getSoundInfo(string key, out SOUND_INFO info)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_System_GetSoundInfo(this.handle, encoder.byteFromStringUTF8(key), out info);
 			}
 		}
 		public RESULT getParameterDescriptionByName(string name, out PARAMETER_DESCRIPTION parameter)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_System_GetParameterDescriptionByName(this.handle, encoder.byteFromStringUTF8(name), out parameter);
 			}
@@ -497,12 +497,12 @@ namespace FMOD.Studio
 		{
 			label = null;
 
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				IntPtr stringMem = Marshal.AllocHGlobal(256);
 				int retrieved = 0;
 				byte[] nameBytes = encoder.byteFromStringUTF8(name);
-				RESULT result = FMOD_Studio_System_GetParameterLabelByName(this.handle, nameBytes, labelindex, stringMem, 256, out retrieved);
+				var result = FMOD_Studio_System_GetParameterLabelByName(this.handle, nameBytes, labelindex, stringMem, 256, out retrieved);
 
 				if (result == RESULT.ERR_TRUNCATED)
 				{
@@ -524,11 +524,11 @@ namespace FMOD.Studio
 		{
 			label = null;
 
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				IntPtr stringMem = Marshal.AllocHGlobal(256);
 				int retrieved = 0;
-				RESULT result = FMOD_Studio_System_GetParameterLabelByID(this.handle, id, labelindex, stringMem, 256, out retrieved);
+				var result = FMOD_Studio_System_GetParameterLabelByID(this.handle, id, labelindex, stringMem, 256, out retrieved);
 
 				if (result == RESULT.ERR_TRUNCATED)
 				{
@@ -561,7 +561,7 @@ namespace FMOD.Studio
 		}
 		public RESULT setParameterByIDWithLabel(PARAMETER_ID id, string label, bool ignoreseekspeed = false)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_System_SetParameterByIDWithLabel(this.handle, id, encoder.byteFromStringUTF8(label), ignoreseekspeed);
 			}
@@ -577,14 +577,14 @@ namespace FMOD.Studio
 		}
 		public RESULT getParameterByName(string name, out float value, out float finalvalue)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_System_GetParameterByName(this.handle, encoder.byteFromStringUTF8(name), out value, out finalvalue);
 			}
 		}
 		public RESULT setParameterByName(string name, float value, bool ignoreseekspeed = false)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_System_SetParameterByName(this.handle, encoder.byteFromStringUTF8(name), value, ignoreseekspeed);
 			}
@@ -599,7 +599,7 @@ namespace FMOD.Studio
 		}
 		public RESULT lookupID(string path, out GUID id)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_System_LookupID(this.handle, encoder.byteFromStringUTF8(path), out id);
 			}
@@ -608,11 +608,11 @@ namespace FMOD.Studio
 		{
 			path = null;
 
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				IntPtr stringMem = Marshal.AllocHGlobal(256);
 				int retrieved = 0;
-				RESULT result = FMOD_Studio_System_LookupPath(this.handle, ref id, stringMem, 256, out retrieved);
+				var result = FMOD_Studio_System_LookupPath(this.handle, ref id, stringMem, 256, out retrieved);
 
 				if (result == RESULT.ERR_TRUNCATED)
 				{
@@ -663,7 +663,7 @@ namespace FMOD.Studio
 		}
 		public RESULT loadBankFile(string filename, LOAD_BANK_FLAGS flags, out Bank bank)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_System_LoadBankFile(this.handle, encoder.byteFromStringUTF8(filename), flags, out bank.handle);
 			}
@@ -671,9 +671,9 @@ namespace FMOD.Studio
 		public RESULT loadBankMemory(byte[] buffer, LOAD_BANK_FLAGS flags, out Bank bank)
 		{
 			// Manually pin the byte array. It's what the marshaller should do anyway but don't leave it to chance.
-			GCHandle pinnedArray = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+			var pinnedArray = GCHandle.Alloc(buffer, GCHandleType.Pinned);
 			IntPtr pointer = pinnedArray.AddrOfPinnedObject();
-			RESULT result = FMOD_Studio_System_LoadBankMemory(this.handle, pointer, buffer.Length, LOAD_MEMORY_MODE.LOAD_MEMORY, flags, out bank.handle);
+			var result = FMOD_Studio_System_LoadBankMemory(this.handle, pointer, buffer.Length, LOAD_MEMORY_MODE.LOAD_MEMORY, flags, out bank.handle);
 			pinnedArray.Free();
 			return result;
 		}
@@ -696,7 +696,7 @@ namespace FMOD.Studio
 		}
 		public RESULT startCommandCapture(string filename, COMMANDCAPTURE_FLAGS flags)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_System_StartCommandCapture(this.handle, encoder.byteFromStringUTF8(filename), flags);
 			}
@@ -707,7 +707,7 @@ namespace FMOD.Studio
 		}
 		public RESULT loadCommandReplay(string filename, COMMANDREPLAY_FLAGS flags, out CommandReplay replay)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_System_LoadCommandReplay(this.handle, encoder.byteFromStringUTF8(filename), flags, out replay.handle);
 			}
@@ -760,7 +760,7 @@ namespace FMOD.Studio
 			array = null;
 
 			int capacity;
-			RESULT result = FMOD_Studio_System_GetParameterDescriptionCount(this.handle, out capacity);
+			var result = FMOD_Studio_System_GetParameterDescriptionCount(this.handle, out capacity);
 			if (result != RESULT.OK)
 			{
 				return result;
@@ -771,7 +771,7 @@ namespace FMOD.Studio
 				return RESULT.OK;
 			}
 
-			PARAMETER_DESCRIPTION[] tempArray = new PARAMETER_DESCRIPTION[capacity];
+			var tempArray = new PARAMETER_DESCRIPTION[capacity];
 			int actualCount;
 			result = FMOD_Studio_System_GetParameterDescriptionList(this.handle, tempArray, capacity, out actualCount);
 			if (result != RESULT.OK)
@@ -966,11 +966,11 @@ namespace FMOD.Studio
 		{
 			path = null;
 
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				IntPtr stringMem = Marshal.AllocHGlobal(256);
 				int retrieved = 0;
-				RESULT result = FMOD_Studio_EventDescription_GetPath(this.handle, stringMem, 256, out retrieved);
+				var result = FMOD_Studio_EventDescription_GetPath(this.handle, stringMem, 256, out retrieved);
 
 				if (result == RESULT.ERR_TRUNCATED)
 				{
@@ -997,7 +997,7 @@ namespace FMOD.Studio
 		}
 		public RESULT getParameterDescriptionByName(string name, out PARAMETER_DESCRIPTION parameter)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_EventDescription_GetParameterDescriptionByName(this.handle, encoder.byteFromStringUTF8(name), out parameter);
 			}
@@ -1010,11 +1010,11 @@ namespace FMOD.Studio
 		{
 			label = null;
 
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				IntPtr stringMem = Marshal.AllocHGlobal(256);
 				int retrieved = 0;
-				RESULT result = FMOD_Studio_EventDescription_GetParameterLabelByIndex(this.handle, index, labelindex, stringMem, 256, out retrieved);
+				var result = FMOD_Studio_EventDescription_GetParameterLabelByIndex(this.handle, index, labelindex, stringMem, 256, out retrieved);
 
 				if (result == RESULT.ERR_TRUNCATED)
 				{
@@ -1036,12 +1036,12 @@ namespace FMOD.Studio
 		{
 			label = null;
 
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				IntPtr stringMem = Marshal.AllocHGlobal(256);
 				int retrieved = 0;
 				byte[] nameBytes = encoder.byteFromStringUTF8(name);
-				RESULT result = FMOD_Studio_EventDescription_GetParameterLabelByName(this.handle, nameBytes, labelindex, stringMem, 256, out retrieved);
+				var result = FMOD_Studio_EventDescription_GetParameterLabelByName(this.handle, nameBytes, labelindex, stringMem, 256, out retrieved);
 
 				if (result == RESULT.ERR_TRUNCATED)
 				{
@@ -1063,11 +1063,11 @@ namespace FMOD.Studio
 		{
 			label = null;
 
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				IntPtr stringMem = Marshal.AllocHGlobal(256);
 				int retrieved = 0;
-				RESULT result = FMOD_Studio_EventDescription_GetParameterLabelByID(this.handle, id, labelindex, stringMem, 256, out retrieved);
+				var result = FMOD_Studio_EventDescription_GetParameterLabelByID(this.handle, id, labelindex, stringMem, 256, out retrieved);
 
 				if (result == RESULT.ERR_TRUNCATED)
 				{
@@ -1095,7 +1095,7 @@ namespace FMOD.Studio
 		}
 		public RESULT getUserProperty(string name, out USER_PROPERTY property)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_EventDescription_GetUserProperty(this.handle, encoder.byteFromStringUTF8(name), out property);
 			}
@@ -1427,7 +1427,7 @@ namespace FMOD.Studio
 		}
 		public RESULT setParameterByIDWithLabel(PARAMETER_ID id, string label, bool ignoreseekspeed = false)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_EventInstance_SetParameterByIDWithLabel(this.handle, id, encoder.byteFromStringUTF8(label), ignoreseekspeed);
 			}
@@ -1443,14 +1443,14 @@ namespace FMOD.Studio
 		}
 		public RESULT getParameterByName(string name, out float value, out float finalvalue)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_EventInstance_GetParameterByName(this.handle, encoder.byteFromStringUTF8(name), out value, out finalvalue);
 			}
 		}
 		public RESULT setParameterByName(string name, float value, bool ignoreseekspeed = false)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_EventInstance_SetParameterByName(this.handle, encoder.byteFromStringUTF8(name), value, ignoreseekspeed);
 			}
@@ -1596,11 +1596,11 @@ namespace FMOD.Studio
 		{
 			path = null;
 
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				IntPtr stringMem = Marshal.AllocHGlobal(256);
 				int retrieved = 0;
-				RESULT result = FMOD_Studio_Bus_GetPath(this.handle, stringMem, 256, out retrieved);
+				var result = FMOD_Studio_Bus_GetPath(this.handle, stringMem, 256, out retrieved);
 
 				if (result == RESULT.ERR_TRUNCATED)
 				{
@@ -1743,11 +1743,11 @@ namespace FMOD.Studio
 		{
 			path = null;
 
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				IntPtr stringMem = Marshal.AllocHGlobal(256);
 				int retrieved = 0;
-				RESULT result = FMOD_Studio_VCA_GetPath(this.handle, stringMem, 256, out retrieved);
+				var result = FMOD_Studio_VCA_GetPath(this.handle, stringMem, 256, out retrieved);
 
 				if (result == RESULT.ERR_TRUNCATED)
 				{
@@ -1819,11 +1819,11 @@ namespace FMOD.Studio
 		{
 			path = null;
 
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				IntPtr stringMem = Marshal.AllocHGlobal(256);
 				int retrieved = 0;
-				RESULT result = FMOD_Studio_Bank_GetPath(this.handle, stringMem, 256, out retrieved);
+				var result = FMOD_Studio_Bank_GetPath(this.handle, stringMem, 256, out retrieved);
 
 				if (result == RESULT.ERR_TRUNCATED)
 				{
@@ -1871,11 +1871,11 @@ namespace FMOD.Studio
 			path = null;
 			id = new GUID();
 
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				IntPtr stringMem = Marshal.AllocHGlobal(256);
 				int retrieved = 0;
-				RESULT result = FMOD_Studio_Bank_GetStringInfo(this.handle, index, out id, stringMem, 256, out retrieved);
+				var result = FMOD_Studio_Bank_GetStringInfo(this.handle, index, out id, stringMem, 256, out retrieved);
 
 				if (result == RESULT.ERR_TRUNCATED)
 				{
@@ -2100,11 +2100,11 @@ namespace FMOD.Studio
 		public RESULT getCommandString(int commandIndex, out string buffer)
 		{
 			buffer = null;
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				int stringLength = 256;
 				IntPtr stringMem = Marshal.AllocHGlobal(256);
-				RESULT result = FMOD_Studio_CommandReplay_GetCommandString(this.handle, commandIndex, stringMem, stringLength);
+				var result = FMOD_Studio_CommandReplay_GetCommandString(this.handle, commandIndex, stringMem, stringLength);
 
 				while (result == RESULT.ERR_TRUNCATED)
 				{
@@ -2129,7 +2129,7 @@ namespace FMOD.Studio
 		// Playback
 		public RESULT setBankPath(string bankPath)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD_Studio_CommandReplay_SetBankPath(this.handle, encoder.byteFromStringUTF8(bankPath));
 			}

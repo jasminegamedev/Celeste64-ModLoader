@@ -163,7 +163,7 @@ public class Overworld : Scene
 
 		foreach (var level in Assets.Levels)
 		{
-			GameMod? mod = ModManager.Instance.Mods.FirstOrDefault(mod => mod.Levels.Contains(level));
+			var mod = ModManager.Instance.Mods.FirstOrDefault(mod => mod.Levels.Contains(level));
 			if (mod is { Enabled: true })
 			{
 				entries.Add(new(level, mod));
@@ -277,7 +277,7 @@ public class Overworld : Scene
 					pauseMenu = new() { Title = Loc.Str("PauseOptions") };
 
 					Menu optionsMenu = new GameOptionsMenu(pauseMenu);
-					ModSelectionMenu modMenu = new ModSelectionMenu(pauseMenu)
+					var modMenu = new ModSelectionMenu(pauseMenu)
 					{
 						Title = "Mods Menu"
 					};

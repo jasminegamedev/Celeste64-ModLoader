@@ -25,7 +25,7 @@ public readonly struct SoundHandle
 	{
 		get
 		{
-			if (channel.get3DAttributes(out VECTOR pos, out VECTOR vel) == RESULT.OK)
+			if (channel.get3DAttributes(out var pos, out var vel) == RESULT.OK)
 				return new Vec3(pos.x, pos.y, pos.z);
 			return Vec3.Zero;
 		}

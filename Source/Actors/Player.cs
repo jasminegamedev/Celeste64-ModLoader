@@ -433,7 +433,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	[DisallowHooks]
 	public StatusEffect AddStatusEffect<T>(bool RemoveAfterDuration = false, float DurationOverride = 10) where T : StatusEffect, new()
 	{
-		StatusEffect? existingEffect = GetStatusEffect<T>();
+		var existingEffect = GetStatusEffect<T>();
 		if (existingEffect is { RemoveOnReapply: false })
 		{
 			return existingEffect;
@@ -457,7 +457,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	[DisallowHooks]
 	public void RemoveStatusEffect<T>() where T : StatusEffect
 	{
-		StatusEffect? existingEffect = GetStatusEffect<T>();
+		var existingEffect = GetStatusEffect<T>();
 		if (existingEffect != null)
 		{
 			existingEffect.OnStatusEffectRemoved();
@@ -905,7 +905,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 				forward = cameraForward.Normalized();
 			side = Vec2.Transform(forward, Matrix3x2.CreateRotation(MathF.PI / 2));
 
-			Vec2 input = -Controls.Move.Value.Normalized();
+			var input = -Controls.Move.Value.Normalized();
 			if (Vec2.Dot(input, Vec2.UnitY) >= .985f)
 				input = Vec2.UnitY;
 
@@ -1128,7 +1128,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	{
 		if (TPlatformVelocityStorage > 0)
 		{
-			Vec3 add = PlatformVelocity;
+			var add = PlatformVelocity;
 
 			add.Z = Calc.Clamp(add.Z, 0, 180);
 			if (add.XY().LengthSquared() > 300 * 300)
@@ -1163,7 +1163,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 		if (World.SolidWallCheckClosestToNormal(SolidWaistTestPos + offset, ClimbCheckDist, -new Vec3(TargetFacing, 0), out hit)
 		&& (RelativeMoveInput == Vec2.Zero || Vec2.Dot(hit.Normal.XY().Normalized(), RelativeMoveInput) <= -0.5f)
 		&& (hit.Actor is not Solid || hit.Actor is Solid { IsClimbable: true }) && ClimbNormalCheck(hit.Normal)
-		&& World.SolidRayCast(SolidWaistTestPos, -hit.Normal, ClimbCheckDist + 2, out RayHit rayHit) && ClimbNormalCheck(rayHit.Normal)
+		&& World.SolidRayCast(SolidWaistTestPos, -hit.Normal, ClimbCheckDist + 2, out var rayHit) && ClimbNormalCheck(rayHit.Normal)
 		&& (rayHit.Actor is not Solid || rayHit.Actor is Solid { IsClimbable: true }))
 			return true;
 		return false;
@@ -1786,7 +1786,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 		if (MathF.Abs(Controls.Move.Value.X) < .5f)
 			ClimbInputSign = (Vec2.Dot(TargetFacing, CameraTargetForward.XY().Normalized()) < -.4f) ? -1 : 1;
 
-		Vec2 inputTranslated = Controls.Move.Value;
+		var inputTranslated = Controls.Move.Value;
 		inputTranslated.X *= ClimbInputSign;
 
 		// move around
@@ -1867,7 +1867,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 		ClimbCornerCameraTo = null;
 
 		// move around inner corners
-		if (inputTranslated.X != 0 && World.SolidRayCast(SolidWaistTestPos, wallRight * inputTranslated.X, ClimbCheckDist, out RayHit hit))
+		if (inputTranslated.X != 0 && World.SolidRayCast(SolidWaistTestPos, wallRight * inputTranslated.X, ClimbCheckDist, out var hit))
 		{
 			Position = hit.Point + (Position - SolidWaistTestPos) + hit.Normal * WallPushoutDist;
 			TargetFacing = -hit.Normal.XY();
@@ -2338,8 +2338,8 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 
 	public virtual CoEnumerator StBubbleRoutine()
 	{
-		Vec3 bubbleFrom = Position;
-		Vec3 control = (bubbleTo + bubbleFrom) * .5f + Vec3.UnitZ * 40;
+		var bubbleFrom = Position;
+		var control = (bubbleTo + bubbleFrom) * .5f + Vec3.UnitZ * 40;
 		float duration = (bubbleTo - bubbleFrom).Length() / 220;
 		float ease = 0.0f;
 

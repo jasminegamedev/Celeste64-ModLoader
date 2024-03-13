@@ -41,8 +41,8 @@ public sealed class FloatyBlock : Solid
 			Velocity = Utils.Approach(Velocity, Velocity.Normalized() * FrictionThreshold, Friction * Time.Delta);
 
 		// spring!
-		Vec3 diff = Position - (Origin + Offset);
-		Vec3 normal = diff.Normalized();
+		var diff = Position - (Origin + Offset);
+		var normal = diff.Normalized();
 		float vel = Vec3.Dot(Velocity, normal);
 		float old_vel = vel;
 		vel = SpringPhysics.Calculate(diff.Length(), vel, 0, 0, Frequency, Halflife);

@@ -133,7 +133,7 @@ public class World : Scene
 		{
 			Menu optionsMenu = new GameOptionsMenu(pauseMenu);
 
-			ModSelectionMenu modMenu = new ModSelectionMenu(pauseMenu)
+			var modMenu = new ModSelectionMenu(pauseMenu)
 			{
 				Title = "Mods Menu"
 			};
@@ -521,7 +521,7 @@ public class World : Scene
 				Game.Instance.ReloadAssets();
 			}
 
-			Player? ply = Get<Player>();
+			var ply = Get<Player>();
 			if (ply != null)
 			{
 				if (ply.Skin != Save.Instance.GetSkin())

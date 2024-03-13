@@ -1006,7 +1006,7 @@ namespace FMOD
 	{
 		public static RESULT Initialize(DEBUG_FLAGS flags, DEBUG_MODE mode = DEBUG_MODE.TTY, DEBUG_CALLBACK callback = null, string filename = null)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD5_Debug_Initialize(flags, mode, callback, encoder.byteFromStringUTF8(filename));
 			}
@@ -1059,8 +1059,8 @@ namespace FMOD
 		{
 			IntPtr stringMem = Marshal.AllocHGlobal(namelen);
 
-			RESULT result = FMOD5_System_GetDriverInfo(this.handle, id, stringMem, namelen, out guid, out systemrate, out speakermode, out speakermodechannels);
-			using (StringHelper.ThreadSafeEncoding encoding = StringHelper.GetFreeHelper())
+			var result = FMOD5_System_GetDriverInfo(this.handle, id, stringMem, namelen, out guid, out systemrate, out speakermode, out speakermodechannels);
+			using (var encoding = StringHelper.GetFreeHelper())
 			{
 				name = encoding.stringFromNative(stringMem);
 			}
@@ -1130,14 +1130,14 @@ namespace FMOD
 		// Plug-in support.
 		public RESULT setPluginPath(string path)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD5_System_SetPluginPath(this.handle, encoder.byteFromStringUTF8(path));
 			}
 		}
 		public RESULT loadPlugin(string filename, out uint handle, uint priority = 0)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD5_System_LoadPlugin(this.handle, encoder.byteFromStringUTF8(filename), out handle, priority);
 			}
@@ -1166,8 +1166,8 @@ namespace FMOD
 		{
 			IntPtr stringMem = Marshal.AllocHGlobal(namelen);
 
-			RESULT result = FMOD5_System_GetPluginInfo(this.handle, handle, out plugintype, stringMem, namelen, out version);
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			var result = FMOD5_System_GetPluginInfo(this.handle, handle, out plugintype, stringMem, namelen, out version);
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				name = encoder.stringFromNative(stringMem);
 			}
@@ -1305,7 +1305,7 @@ namespace FMOD
 		// Sound/DSP/Channel/FX creation and retrieval.
 		public RESULT createSound(string name, MODE mode, ref CREATESOUNDEXINFO exinfo, out Sound sound)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD5_System_CreateSound(this.handle, encoder.byteFromStringUTF8(name), mode, ref exinfo, out sound.handle);
 			}
@@ -1320,14 +1320,14 @@ namespace FMOD
 		}
 		public RESULT createSound(string name, MODE mode, out Sound sound)
 		{
-			CREATESOUNDEXINFO exinfo = new CREATESOUNDEXINFO();
+			var exinfo = new CREATESOUNDEXINFO();
 			exinfo.cbsize = MarshalHelper.SizeOf(typeof(CREATESOUNDEXINFO));
 
 			return createSound(name, mode, ref exinfo, out sound);
 		}
 		public RESULT createStream(string name, MODE mode, ref CREATESOUNDEXINFO exinfo, out Sound sound)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD5_System_CreateStream(this.handle, encoder.byteFromStringUTF8(name), mode, ref exinfo, out sound.handle);
 			}
@@ -1342,7 +1342,7 @@ namespace FMOD
 		}
 		public RESULT createStream(string name, MODE mode, out Sound sound)
 		{
-			CREATESOUNDEXINFO exinfo = new CREATESOUNDEXINFO();
+			var exinfo = new CREATESOUNDEXINFO();
 			exinfo.cbsize = MarshalHelper.SizeOf(typeof(CREATESOUNDEXINFO));
 
 			return createStream(name, mode, ref exinfo, out sound);
@@ -1357,14 +1357,14 @@ namespace FMOD
 		}
 		public RESULT createChannelGroup(string name, out ChannelGroup channelgroup)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD5_System_CreateChannelGroup(this.handle, encoder.byteFromStringUTF8(name), out channelgroup.handle);
 			}
 		}
 		public RESULT createSoundGroup(string name, out SoundGroup soundgroup)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD5_System_CreateSoundGroup(this.handle, encoder.byteFromStringUTF8(name), out soundgroup.handle);
 			}
@@ -1437,9 +1437,9 @@ namespace FMOD
 		{
 			IntPtr stringMem = Marshal.AllocHGlobal(namelen);
 
-			RESULT result = FMOD5_System_GetRecordDriverInfo(this.handle, id, stringMem, namelen, out guid, out systemrate, out speakermode, out speakermodechannels, out state);
+			var result = FMOD5_System_GetRecordDriverInfo(this.handle, id, stringMem, namelen, out guid, out systemrate, out speakermode, out speakermodechannels, out state);
 
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				name = encoder.stringFromNative(stringMem);
 			}
@@ -1493,7 +1493,7 @@ namespace FMOD
 		// Network functions
 		public RESULT setNetworkProxy(string proxy)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD5_System_SetNetworkProxy(this.handle, encoder.byteFromStringUTF8(proxy));
 			}
@@ -1502,8 +1502,8 @@ namespace FMOD
 		{
 			IntPtr stringMem = Marshal.AllocHGlobal(proxylen);
 
-			RESULT result = FMOD5_System_GetNetworkProxy(this.handle, stringMem, proxylen);
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			var result = FMOD5_System_GetNetworkProxy(this.handle, stringMem, proxylen);
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				proxy = encoder.stringFromNative(stringMem);
 			}
@@ -1799,8 +1799,8 @@ namespace FMOD
 		{
 			IntPtr stringMem = Marshal.AllocHGlobal(namelen);
 
-			RESULT result = FMOD5_Sound_GetName(this.handle, stringMem, namelen);
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			var result = FMOD5_Sound_GetName(this.handle, stringMem, namelen);
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				name = encoder.stringFromNative(stringMem);
 			}
@@ -1826,7 +1826,7 @@ namespace FMOD
 		}
 		public RESULT getTag(string name, int index, out TAG tag)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD5_Sound_GetTag(this.handle, encoder.byteFromStringUTF8(name), index, out tag);
 			}
@@ -1874,8 +1874,8 @@ namespace FMOD
 		{
 			IntPtr stringMem = Marshal.AllocHGlobal(namelen);
 
-			RESULT result = FMOD5_Sound_GetSyncPointInfo(this.handle, point, stringMem, namelen, out offset, offsettype);
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			var result = FMOD5_Sound_GetSyncPointInfo(this.handle, point, stringMem, namelen, out offset, offsettype);
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				name = encoder.stringFromNative(stringMem);
 			}
@@ -1889,7 +1889,7 @@ namespace FMOD
 		}
 		public RESULT addSyncPoint(uint offset, TIMEUNIT offsettype, string name, out IntPtr point)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return FMOD5_Sound_AddSyncPoint(this.handle, offset, offsettype, encoder.byteFromStringUTF8(name), out point);
 			}
@@ -2677,8 +2677,8 @@ namespace FMOD
 		{
 			IntPtr stringMem = Marshal.AllocHGlobal(namelen);
 
-			RESULT result = FMOD5_ChannelGroup_GetName(this.handle, stringMem, namelen);
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			var result = FMOD5_ChannelGroup_GetName(this.handle, stringMem, namelen);
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				name = encoder.stringFromNative(stringMem);
 			}
@@ -3170,8 +3170,8 @@ namespace FMOD
 		{
 			IntPtr stringMem = Marshal.AllocHGlobal(namelen);
 
-			RESULT result = FMOD5_SoundGroup_GetName(this.handle, stringMem, namelen);
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			var result = FMOD5_SoundGroup_GetName(this.handle, stringMem, namelen);
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				name = encoder.stringFromNative(stringMem);
 			}
@@ -3384,7 +3384,7 @@ namespace FMOD
 		public RESULT getParameterInfo(int index, out DSP_PARAMETER_DESC desc)
 		{
 			IntPtr descPtr;
-			RESULT result = FMOD5_DSP_GetParameterInfo(this.handle, index, out descPtr);
+			var result = FMOD5_DSP_GetParameterInfo(this.handle, index, out descPtr);
 			desc = (DSP_PARAMETER_DESC)MarshalHelper.PtrToStructure(descPtr, typeof(DSP_PARAMETER_DESC));
 			return result;
 		}
@@ -3402,8 +3402,8 @@ namespace FMOD
 		{
 			IntPtr nameMem = Marshal.AllocHGlobal(32);
 
-			RESULT result = FMOD5_DSP_GetInfo(this.handle, nameMem, out version, out channels, out configwidth, out configheight);
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			var result = FMOD5_DSP_GetInfo(this.handle, nameMem, out version, out channels, out configwidth, out configheight);
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				name = encoder.stringFromNative(nameMem);
 			}
@@ -3876,7 +3876,7 @@ namespace FMOD
 
 		public static implicit operator string(StringWrapper fstring)
 		{
-			using (StringHelper.ThreadSafeEncoding encoder = StringHelper.GetFreeHelper())
+			using (var encoder = StringHelper.GetFreeHelper())
 			{
 				return encoder.stringFromNative(fstring.nativeUtf8Ptr);
 			}

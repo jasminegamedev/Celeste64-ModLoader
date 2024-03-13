@@ -17,10 +17,10 @@ public static class Utils
 	// }
 	public static bool IsPointInTriangle(in Vec3 point, in Vec3 v0, in Vec3 v1, in Vec3 v2)
 	{
-		Vec3 u = v1 - v0;
-		Vec3 v = v2 - v0;
-		Vec3 n = Vec3.Cross(u, v);
-		Vec3 w = point - v0;
+		var u = v1 - v0;
+		var v = v2 - v0;
+		var n = Vec3.Cross(u, v);
+		var w = point - v0;
 
 		float oneOver4ASquared = 1.0f / Vec3.Dot(n, n);
 
@@ -57,7 +57,7 @@ public static class Utils
 
 	public static Vec3 ClosestPointOnLine(in Vec3 point, in Vec3 v0, in Vec3 v1)
 	{
-		Vec3 vector = v1 - v0;
+		var vector = v1 - v0;
 		if (vector is { X: 0f, Y: 0f })
 			return v0;
 
@@ -75,9 +75,9 @@ public static class Utils
 		t = 0f;
 
 		// Calculate the normal of the triangle
-		Vec3 edge1 = v1 - v0;
-		Vec3 edge2 = v2 - v0;
-		Vec3 normal = Vec3.Cross(edge1, edge2);
+		var edge1 = v1 - v0;
+		var edge2 = v2 - v0;
+		var normal = Vec3.Cross(edge1, edge2);
 
 		// Check if the ray and triangle are parallel
 		float dot = Vec3.Dot(normal, direction);
@@ -85,7 +85,7 @@ public static class Utils
 			return false;
 
 		// Calculate the intersection point
-		Vec3 rayToVertex = v0 - origin;
+		var rayToVertex = v0 - origin;
 		t = Vec3.Dot(rayToVertex, normal) / dot;
 
 		// Check if the intersection point is behind the ray's origin
@@ -93,7 +93,7 @@ public static class Utils
 			return false;
 
 		// Calculate the barycentric coordinates
-		Vec3 intersectionPoint = origin + t * direction;
+		var intersectionPoint = origin + t * direction;
 		CalculateBarycentricCoordinates(intersectionPoint, v0, v1, v2, out float u, out float v, out float w);
 
 		// Check if the intersection point is inside the triangle
@@ -102,9 +102,9 @@ public static class Utils
 
 	private static void CalculateBarycentricCoordinates(Vec3 point, Vec3 v0, Vec3 v1, Vec3 v2, out float u, out float v, out float w)
 	{
-		Vec3 edge1 = v1 - v0;
-		Vec3 edge2 = v2 - v0;
-		Vec3 toPoint = point - v0;
+		var edge1 = v1 - v0;
+		var edge2 = v2 - v0;
+		var toPoint = point - v0;
 
 		float dot11 = Vec3.Dot(edge1, edge1);
 		float dot12 = Vec3.Dot(edge1, edge2);
@@ -263,7 +263,7 @@ public static class Utils
 			return target;
 		}
 
-		Vec3 vector = target - from;
+		var vector = target - from;
 		if (vector.LengthSquared() <= amount * amount)
 		{
 			return target;

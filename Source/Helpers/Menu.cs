@@ -320,7 +320,7 @@ public class Menu
 
 	internal void PopSubMenu()
 	{
-		Menu popped = submenus.Pop();
+		var popped = submenus.Pop();
 		popped.Closed();
 	}
 
@@ -409,7 +409,7 @@ public class Menu
 			if (!IsInMainMenu && Controls.Cancel.ConsumePress())
 			{
 				Audio.Play(Sfx.main_menu_toggle_off);
-				Menu popped = GetSecondDeepestMenu(this).submenus.Pop();
+				var popped = GetSecondDeepestMenu(this).submenus.Pop();
 				popped.Closed();
 			}
 		}
