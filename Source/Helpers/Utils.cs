@@ -30,9 +30,9 @@ public static class Utils
 		float b0 = 1.0f - b1 - b2;
 
 		return
-			b0 >= 0 && b0 <= 1 &&
-			b1 >= 0 && b1 <= 1 &&
-			b2 >= 0 && b2 <= 1;
+			b0 is >= 0 and <= 1 &&
+			b1 is >= 0 and <= 1 &&
+			b2 is >= 0 and <= 1;
 	}
 
 	public static Vec3 ClosestPointOnTriangle(in Vec3 point, in Plane plane, in Vec3 v0, in Vec3 v1, in Vec3 v2)
@@ -58,7 +58,7 @@ public static class Utils
 	public static Vec3 ClosestPointOnLine(in Vec3 point, in Vec3 v0, in Vec3 v1)
 	{
 		Vec3 vector = v1 - v0;
-		if (vector.X == 0f && vector.Y == 0f)
+		if (vector is { X: 0f, Y: 0f })
 			return v0;
 
 		float num = Vec3.Dot(v1 - v0, vector) / (vector.X * vector.X + vector.Y * vector.Y);
@@ -153,7 +153,7 @@ public static class Utils
 		var rel = line0 - (plane.Normal * plane.D);
 		var t = -Vec3.Dot(plane.Normal, rel) / Vec3.Dot(plane.Normal, edge);
 
-		if (t >= 0 && t <= 1)
+		if (t is >= 0 and <= 1)
 		{
 			point = line0 + t * edge;
 			return true;

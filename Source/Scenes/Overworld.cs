@@ -162,7 +162,7 @@ public class Overworld : Scene
 		foreach (var level in Assets.Levels)
 		{
 			GameMod? mod = ModManager.Instance.Mods.FirstOrDefault(mod => mod.Levels.Contains(level));
-			if (mod != null && mod.Enabled)
+			if (mod is { Enabled: true })
 			{
 				entries.Add(new(level, mod));
 			}
@@ -354,7 +354,7 @@ public class Overworld : Scene
 		}
 		else if (Paused)
 		{
-			if (Controls.Pause.ConsumePress() || (pauseMenu != null && pauseMenu.IsInMainMenu && Controls.Cancel.ConsumePress()))
+			if (Controls.Pause.ConsumePress() || (pauseMenu is { IsInMainMenu: true } && Controls.Cancel.ConsumePress()))
 			{
 				if (pauseMenu != null)
 				{

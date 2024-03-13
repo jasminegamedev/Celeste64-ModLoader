@@ -337,9 +337,8 @@ public class World : Scene
 			}
 			adding.RemoveRange(0, addCount);
 
-			for (int i = 0; i < destroying.Count; i++)
+			foreach (var it in destroying)
 			{
-				var it = destroying[i];
 				it.Destroyed();
 				ModManager.Instance.OnActorDestroyed(it);
 
@@ -452,7 +451,7 @@ public class World : Scene
 				}
 
 				// ONLY update the player when dead
-				if (Get<Player>() is { } player && player.Dead)
+				if (Get<Player>() is { Dead: true } player)
 				{
 					player.Update();
 					player.LateUpdate();

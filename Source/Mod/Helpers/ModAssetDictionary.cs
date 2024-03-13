@@ -165,9 +165,9 @@ public class ModAssetDictionary<V> : IEnumerable<KeyValuePair<string, V>>
 	/// </summary>
 	private bool TryGetAssetReplaceForKeyInMod(string key, GameMod? mod, [MaybeNullWhen(false)] out V asset)
 	{
-		if (mod != null && mod.ModInfo != null
-			&& mod.ModInfo.AssetReplaceItems.TryGetValue(key, out string? modKey)
-			&& modKey != null
+		if (mod is { ModInfo: not null }
+		    && mod.ModInfo.AssetReplaceItems.TryGetValue(key, out string? modKey)
+		    && modKey != null
 		)
 		{
 			if (getDictionary(mod).TryGetValue(modKey, out V? modAsset) && modAsset != null)

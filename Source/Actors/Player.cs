@@ -435,7 +435,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	public StatusEffect AddStatusEffect<T>(bool RemoveAfterDuration = false, float DurationOverride = 10) where T : StatusEffect, new()
 	{
 		StatusEffect? existingEffect = GetStatusEffect<T>();
-		if (existingEffect != null && !existingEffect.RemoveOnReapply)
+		if (existingEffect is { RemoveOnReapply: false })
 		{
 			return existingEffect;
 		}
@@ -496,7 +496,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 			CameraTargetDistance = StoredCameraDistance;
 			StateMachine.State = States.Respawn;
 		}
-		else if (World.Entry.Submap && World.Entry.Reason == World.EntryReasons.Entered)
+		else if (World.Entry is { Submap: true, Reason: World.EntryReasons.Entered })
 		{
 			StateMachine.State = States.StrawbReveal;
 		}
@@ -900,7 +900,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 			Vec2 forward, side;
 
 			var cameraForward = (World.Camera.LookAt - World.Camera.Position).Normalized().XY();
-			if (cameraForward.X == 0 && cameraForward.Y == 0)
+			if (cameraForward is { X: 0, Y: 0 })
 				forward = TargetFacing;
 			else
 				forward = cameraForward.Normalized();
@@ -1163,9 +1163,9 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	{
 		if (World.SolidWallCheckClosestToNormal(SolidWaistTestPos + offset, ClimbCheckDist, -new Vec3(TargetFacing, 0), out hit)
 		&& (RelativeMoveInput == Vec2.Zero || Vec2.Dot(hit.Normal.XY().Normalized(), RelativeMoveInput) <= -0.5f)
-		&& (hit.Actor is not Solid || (hit.Actor is Solid solid && solid.IsClimbable)) && ClimbNormalCheck(hit.Normal)
+		&& (hit.Actor is not Solid || hit.Actor is Solid { IsClimbable: true }) && ClimbNormalCheck(hit.Normal)
 		&& World.SolidRayCast(SolidWaistTestPos, -hit.Normal, ClimbCheckDist + 2, out RayHit rayHit) && ClimbNormalCheck(rayHit.Normal)
-		&& (rayHit.Actor is not Solid || (rayHit.Actor is Solid secondSolid && secondSolid.IsClimbable)))
+		&& (rayHit.Actor is not Solid || rayHit.Actor is Solid { IsClimbable: true }))
 			return true;
 		return false;
 	}
@@ -1274,7 +1274,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 		if (OnGround)
 		{
 			foreach (var actor in World.All<NPC>())
-				if (actor is NPC npc && npc.InteractEnabled)
+				if (actor is NPC { InteractEnabled: true } npc)
 				{
 					if ((Position - npc.Position).LengthSquared() < npc.InteractRadius * npc.InteractRadius &&
 						Vec2.Dot((npc.Position - Position).XY(), TargetFacing) > 0 &&
@@ -1924,7 +1924,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 			return;
 		}
 
-		if (ClimbingWallActor is Solid solid && !solid.IsClimbable)
+		if (ClimbingWallActor is Solid { IsClimbable: false })
 		{
 			StateMachine.State = States.Normal;
 			return;
@@ -1973,7 +1973,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 		Model.Flags = ModelFlags.Default | ModelFlags.Silhouette;
 		Hair.Flags = ModelFlags.Default | ModelFlags.Silhouette;
 
-		if (LastStrawb != null && LastStrawb.BubbleTo.HasValue)
+		if (LastStrawb is { BubbleTo: not null })
 		{
 			BubbleTo(LastStrawb.BubbleTo.Value);
 		}
