@@ -1,4 +1,3 @@
-using System.Reflection;
 using Celeste64.Mod.Helpers;
 using System.Collections.ObjectModel;
 
@@ -12,33 +11,28 @@ public class EditorWorld : World
 		new TestWindow(),
 	];
 
-	public readonly List<ActorDefinition> Definitions = [];
+	public List<ActorDefinition> Definitions => Map is FujiMap fujiMap ? fujiMap.Definitions : [];
 	public ReadOnlyDictionary<ActorDefinition, Actor[]> ActorsFromDefinition => actorsFromDefinition.AsReadOnly();
 	public ReadOnlyDictionary<Actor, ActorDefinition> DefinitionFromActors => definitionFromActors.AsReadOnly();
-
-	private readonly Dictionary<ActorDefinition, Actor[]> actorsFromDefinition = new();
-	private readonly Dictionary<Actor, ActorDefinition> definitionFromActors = new();
 
 	public ActorDefinition? Selected { internal set; get; } = null;
 	public Actor[] SelectedActors => Selected is not null && ActorsFromDefinition.TryGetValue(Selected, out var actors) ? actors : [];
 
+	private readonly Dictionary<ActorDefinition, Actor[]> actorsFromDefinition = new();
+	private readonly Dictionary<Actor, ActorDefinition> definitionFromActors = new();
+
 	private Vec3 cameraPos = new(0, -10, 0);
 	private Vec2 cameraRot = new(0, 0);
 
-	// private readonly WorldRenderer worldRenderer = new();
 	private readonly Batcher3D batch3D = new();
 
 	internal EditorWorld(EntryInfo entry) : base(entry)
 	{
-		Camera.NearPlane = 0.1f;
+		Camera.NearPlane = 0.1f; // Allow getting closer to objects
 		Camera.FarPlane = 4000; // Increase render distance
-		Camera.FOVMultiplier = 1.25f;
+		Camera.FOVMultiplier = 1.25f; // Higher FOV feels better in the editor
 
-		if (Map is not FujiMap fujiMap)
-			return; // We can't load sledge map (for now at least)
-
-		// Load map
-		Definitions.AddRange(fujiMap.Definitions);
+		// Map gets implicitly loaded, since our Definitions are taken directly from it
 	}
 
 	private float previousScale = 1.0f;
@@ -64,14 +58,10 @@ public class EditorWorld : World
 			return;
 		}
 
-		if (Input.Keyboard.Ctrl && Input.Keyboard.Pressed(Keys.S))
+		if (Input.Keyboard.Ctrl && Input.Keyboard.Pressed(Keys.S) && Map is FujiMap { FullPath: { } fullPath } fujiMap)
 		{
-			// TODO: Dont actually hardcode this lol
-			var path = "/media/Storage/Code/C#/Fuji/Mods/Template-BasicCassetteLevel/Maps/test.bin";
-			Log.Info($"Saving map to '{path}'");
-
-			using var fs = File.Open(path, FileMode.Create);
-			FujiMapWriter.WriteTo(this, fs);
+			Log.Info($"Saving map to '{fullPath}'");
+			fujiMap.SaveToFile();
 
 			return;
 		}
@@ -185,7 +175,7 @@ public class EditorWorld : World
 
 	public override void Render(Target target)
 	{
-		// We copy and modify World.Render, since thats easier
+		// We copy and modify World.Render, since that's easier
 
 		debugRndTimer.Restart();
 		Camera.Target = target;
@@ -468,9 +458,4 @@ public class EditorWorld : World
 
 		return closest.HasValue;
 	}
-}
-
-internal class EditorHandler : ImGuiHandler
-{
-
 }

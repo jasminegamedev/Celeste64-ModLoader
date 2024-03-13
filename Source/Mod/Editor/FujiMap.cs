@@ -8,13 +8,25 @@ namespace Celeste64.Mod.Editor;
 /// </summary>
 public class FujiMap : Map
 {
-	internal readonly List<ActorDefinition> Definitions = [];
+	/// <summary>
+	/// Magic 4 bytes at the start of the file, to indicate the format.
+	/// </summary>
+	public static readonly byte[] FormatMagic = [(byte)'F', (byte)'U', (byte)'J', (byte)'I'];
 
-	public FujiMap(string name, string virtPath, Stream stream)
+	/// <summary>
+	/// Current version of the map format. Needs to be incremented with every change to it.
+	/// </summary>
+	public const byte FormatVersion = 1;
+
+	public readonly string? FullPath;
+	public readonly List<ActorDefinition> Definitions = [];
+
+	public FujiMap(string name, string virtPath, Stream stream, string? fullPath)
 	{
 		Name = name;
 		Filename = virtPath;
 		Folder = Path.GetDirectoryName(virtPath) ?? string.Empty;
+		FullPath = fullPath;
 
 		using var reader = new BinaryReader(stream);
 
@@ -22,7 +34,7 @@ public class FujiMap : Map
 		{
 			// Header
 			var magic = reader.ReadBytes(4);
-			if (!magic.SequenceEqual(FujiMapWriter.FormatMagic))
+			if (!magic.SequenceEqual(FormatMagic))
 			{
 				isMalformed = true;
 				readExceptionMessage = $"Invalid magic bytes! Found '{(char)magic[0]}{(char)magic[1]}{(char)magic[2]}{(char)magic[3]}'";
@@ -110,6 +122,121 @@ public class FujiMap : Map
 
 			Log.Error($"Failed to load map {name}, more details below.");
 			Log.Error(ex.ToString());
+		}
+	}
+
+	public void SaveToFile()
+	{
+		// Only allow saving when the mod is a folder
+		if (FullPath == null)
+		{
+			Log.Warning("Tried to save zipped map file");
+			return;
+		}
+
+		using var fs = File.Open(FullPath, FileMode.Create);
+		using var writer = new BinaryWriter(fs);
+
+		// Header
+		writer.Write(FormatMagic);
+		writer.Write(FormatVersion);
+
+		// Metadata
+		// Skybox
+		writer.Write("city");
+		// Snow amount
+		writer.Write(1.0f);
+		// Snow direction
+		writer.Write(new Vec3(0.0f, 0.0f, -1.0f));
+		// Ambience
+		writer.Write("mountain");
+		// Music
+		writer.Write("mus_lvl1");
+
+		// Definitions
+		writer.Write(Definitions.Count);
+		foreach (var def in Definitions)
+		{
+			Log.Info($"Writing def: {def}");
+			writer.Write(def.GetType().FullName!);
+
+			var props = def.GetType()
+				.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
+				.Where(prop => !prop.HasAttr<PropertyIgnoreAttribute>());
+
+			foreach (var prop in props)
+			{
+				if (prop.GetCustomAttribute<PropertyCustomAttribute>() is { } custom)
+				{
+					custom.Serialize(prop.GetValue(def)!, writer);
+					continue;
+				}
+
+				switch (prop.GetValue(def))
+				{
+					// Primitives
+					case bool v:
+						writer.Write(v);
+						break;
+					case byte v:
+						writer.Write(v);
+						break;
+					case byte[] v:
+						writer.Write7BitEncodedInt(v.Length);
+						writer.Write(v);
+						break;
+					case char v:
+						writer.Write(v);
+						break;
+					case char[] v:
+						writer.Write7BitEncodedInt(v.Length);
+						writer.Write(v);
+						break;
+					case decimal v:
+						writer.Write(v);
+						break;
+					case double v:
+						writer.Write(v);
+						break;
+					case float v:
+						writer.Write(v);
+						break;
+					case int v:
+						writer.Write(v);
+						break;
+					case long v:
+						writer.Write(v);
+						break;
+					case sbyte v:
+						writer.Write(v);
+						break;
+					case short v:
+						writer.Write(v);
+						break;
+					case Half v:
+						writer.Write(v);
+						break;
+					case string v:
+						writer.Write(v);
+						break;
+
+					// Special support
+					case Vec2 v:
+						writer.Write(v);
+						break;
+					case Vec3 v:
+						writer.Write(v);
+						break;
+					case Color v:
+						writer.Write(v);
+						break;
+
+					default:
+						throw new Exception($"Property '{prop.Name}' of type {prop.PropertyType} from definition '{def}' cannot be serialized");
+				}
+
+				Log.Info($" * {prop.Name}: {prop.GetValue(def)}");
+			}
 		}
 	}
 

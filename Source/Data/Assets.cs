@@ -15,8 +15,8 @@ public static class Assets
 
 	public const string MapsFolder = "Maps";
 	public const string MapsExtensionSledge = "map";
-public const string MapsExtensionFuji = "bin";
-	
+	public const string MapsExtensionFuji = "bin";
+
 	public const string TexturesFolder = "Textures";
 	public const string TexturesExtension = "png";
 
@@ -157,13 +157,14 @@ public const string MapsExtensionFuji = "bin";
 
 			tasks.Add(Task.Run(() =>
 			{
-				if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file, 
-					    stream => new FujiMap(GetResourceNameFromVirt(file, MapsFolder), file, stream), out var map))
+				var fullPath = mod.Filesystem is FolderModFilesystem fs ? fs.VirtToRealPath(file) : null;
+				if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file,
+					    stream => new FujiMap(GetResourceNameFromVirt(file, MapsFolder), file, stream, fullPath), out var map))
 				{
 					maps.Add((map, mod));
 				}
 			}));
-		}		
+		}
 
 		// load texture pngs
 		foreach (var (file, mod) in globalFs.FindFilesInDirectoryRecursiveWithMod(TexturesFolder, TexturesExtension))
@@ -274,8 +275,8 @@ public const string MapsExtensionFuji = "bin";
 				Levels.AddRange(levels);
 			}
 
-			// if (mod.Filesystem != null && mod.Filesystem.TryOpenFile("Dialog.json", 
-			// 	    stream => JsonSerializer.Deserialize(stream, DialogLineDictContext.Default.DictionaryStringListDialogLine) ?? [], 
+			// if (mod.Filesystem != null && mod.Filesystem.TryOpenFile("Dialog.json",
+			// 	    stream => JsonSerializer.Deserialize(stream, DialogLineDictContext.Default.DictionaryStringListDialogLine) ?? [],
 			// 	    out var dialog))
 			// {
 			// 	foreach (var (key, value) in dialog)
