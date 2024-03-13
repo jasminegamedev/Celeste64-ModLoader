@@ -10,11 +10,17 @@ public class TestWindow : EditorWindow
 	protected override void RenderWindow(EditorWorld editor)
 	{
 		ImGui.Text("Testing");
+
+		if (ImGui.Button("Add Spikes"))
+		{
+			editor.Definitions.Add(new SpikeBlock.Definition());
+		}
+
 		ImGui.Text($"Selected: {editor.Selected}");
 
-		if (editor.Selected is { DefinitionType: { } defType, _Data: { } data })
+		if (editor.Selected is { } selected)
 		{
-			var props = defType
+			var props = selected.GetType()
 				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
 				.Where(prop => !prop.HasAttr<PropertyIgnoreAttribute>());
 
@@ -22,25 +28,25 @@ public class TestWindow : EditorWindow
 			{
 				if (prop.GetCustomAttribute<PropertyCustomAttribute>() is { } custom)
 				{
-					var obj = prop.GetValue(data)!;
+					var obj = prop.GetValue(selected)!;
 					custom.RenderGui(ref obj);
-					prop.SetValue(data, obj);
+					prop.SetValue(selected, obj);
 
 					continue;
 				}
 
-				switch (prop.GetValue(data))
+				switch (prop.GetValue(selected))
 				{
 					case Vec3 v:
 						if (ImGui.DragFloat3(prop.Name, ref v))
 						{
-							prop.SetValue(data, v);
-							data.Dirty = true;
+							prop.SetValue(selected, v);
+							selected.Dirty = true;
 						}
 						break;
 
 					default:
-						ImGui.Text($" - {prop.Name}: {prop.GetValue(data)}");
+						ImGui.Text($" - {prop.Name}: {prop.GetValue(selected)}");
 						break;
 				}
 			}

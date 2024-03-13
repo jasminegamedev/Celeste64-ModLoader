@@ -227,12 +227,14 @@ public class World : Scene
 			}
 		}
 
-		ModManager.Instance.OnPreMapLoaded(this, map);
-
-		// load content
-		map.Load(this);
-
-		ModManager.Instance.OnWorldLoaded(this);
+		// The editor handles loading itself
+		if (Type == WorldType.Game)
+		{
+			ModManager.Instance.OnPreMapLoaded(this, map);
+			// load content
+			map.Load(this);
+			ModManager.Instance.OnWorldLoaded(this);
+		}
 
 		Log.Info($"Loaded Map '{Entry.Map}' in {stopwatch.ElapsedMilliseconds}ms");
 	}

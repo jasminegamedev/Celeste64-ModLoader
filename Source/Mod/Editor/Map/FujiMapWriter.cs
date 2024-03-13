@@ -39,7 +39,7 @@ public static class FujiMapWriter
 		writer.Write("mus_lvl1");
 
 		// Definitions
-		// writer.Write(editor.Definitions.Count);
+		writer.Write(editor.Definitions.Count);
 		// foreach (var def in editor.Definitions)
 		// {
 		// 	Log.Info($"Def: {def}");

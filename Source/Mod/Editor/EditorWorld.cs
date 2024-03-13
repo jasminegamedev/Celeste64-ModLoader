@@ -1,5 +1,6 @@
 using System.Reflection;
 using Celeste64.Mod.Helpers;
+using System.Collections.ObjectModel;
 
 namespace Celeste64.Mod.Editor;
 
@@ -11,7 +12,15 @@ public class EditorWorld : World
 		new TestWindow(),
 	];
 
-	public Actor? Selected { internal set; get; } = null;
+	public readonly List<ActorDefinition> Definitions = [];
+	public ReadOnlyDictionary<ActorDefinition, Actor[]> ActorsFromDefinition => actorsFromDefinition.AsReadOnly();
+	public ReadOnlyDictionary<Actor, ActorDefinition> DefinitionFromActors => definitionFromActors.AsReadOnly();
+
+	private readonly Dictionary<ActorDefinition, Actor[]> actorsFromDefinition = new();
+	private readonly Dictionary<Actor, ActorDefinition> definitionFromActors = new();
+
+	public ActorDefinition? Selected { internal set; get; } = null;
+	public Actor[] SelectedActors => Selected is not null && ActorsFromDefinition.TryGetValue(Selected, out var actors) ? actors : [];
 
 	private Vec3 cameraPos = new(0, -10, 0);
 	private Vec2 cameraRot = new(0, 0);
@@ -146,10 +155,40 @@ public class EditorWorld : World
 				var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
 
 				if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
-					Selected = hit.Actor;
+					Selected = hit.Actor is not null && definitionFromActors.TryGetValue(hit.Actor, out var def) ? def : null;
 				else
 					Selected = null;
 			}
+		}
+
+		// Update actors of definitions
+		foreach (var def in Definitions)
+		{
+			Log.Info($"{def} {def.Dirty} {(def as SpikeBlock.Definition).Position}");
+		}
+		foreach (var def in Definitions.Where(def => def.Dirty))
+		{
+			Log.Info($"Recreating {def}");
+
+			if (actorsFromDefinition.Remove(def, out var actors))
+			{
+				foreach (var actor in actors)
+				{
+					definitionFromActors.Remove(actor);
+					Destroy(actor);
+				}
+			}
+
+			var newActors = def.Load(WorldType.Editor);
+			actorsFromDefinition[def] = newActors;
+
+			foreach (var actor in newActors)
+			{
+				definitionFromActors.Add(actor, def);
+				Add(actor);
+			}
+
+			def.Dirty = false;
 		}
 
 		// Don't call base.Update, since we don't want the actors to update
@@ -269,15 +308,27 @@ public class EditorWorld : World
 			state.DepthMask = true;
 		}
 
-		// Render selected actor bounding box on-top of everything else
-		if (Selected is { } selected)
-		{
-			var lineColor = Color.Green;
-			var innerColor = Color.Green * 0.4f;
-			var inflate = 0.25f;
+		var selectedLineColor = Color.Green;
+		var selectedInnerColor = Color.Green * 0.4f;
+		const float selectedBoundsInflate = 0.25f;
 
+		// Render selected actors bounding box
+		foreach (var selected in SelectedActors)
+		{
 			var matrix = selected.Matrix;
-			var bounds = selected.LocalBounds.Inflate(inflate);
+			var bounds = selected.LocalBounds.Inflate(selectedBoundsInflate);
+
+			batch3D.Box(bounds.Min, bounds.Max, selectedInnerColor, matrix);
+		}
+		batch3D.Render(ref state);
+		batch3D.Clear();
+
+		// Render outline on-top of everything else
+		target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
+		foreach (var selected in SelectedActors)
+		{
+			var matrix = selected.Matrix;
+			var bounds = selected.LocalBounds.Inflate(selectedBoundsInflate);
 			var v000 = bounds.Min;
 			var v100 = bounds.Min with { X = bounds.Max.X };
 			var v010 = bounds.Min with { Y = bounds.Max.Y };
@@ -290,33 +341,25 @@ public class EditorWorld : World
 			// Scale thickness based on distance
 			var lineThickness = Vec3.Distance(Camera.Position, bounds.Center) * 0.0003f;
 
-			batch3D.Box(v000, v111, innerColor, matrix);
-			batch3D.Render(ref state);
-			batch3D.Clear();
+			batch3D.Line(v000, v100, selectedLineColor, matrix, lineThickness);
+			batch3D.Line(v000, v010, selectedLineColor, matrix, lineThickness);
+			batch3D.Line(v000, v001, selectedLineColor, matrix, lineThickness);
 
-			// Ignore depth for outline
-			target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
+			batch3D.Line(v111, v011, selectedLineColor, matrix, lineThickness);
+			batch3D.Line(v111, v101, selectedLineColor, matrix, lineThickness);
+			batch3D.Line(v111, v110, selectedLineColor, matrix, lineThickness);
 
-			batch3D.Line(v000, v100, lineColor, matrix, lineThickness);
-			batch3D.Line(v000, v010, lineColor, matrix, lineThickness);
-			batch3D.Line(v000, v001, lineColor, matrix, lineThickness);
+			batch3D.Line(v010, v011, selectedLineColor, matrix, lineThickness);
+			batch3D.Line(v010, v110, selectedLineColor, matrix, lineThickness);
 
-			batch3D.Line(v111, v011, lineColor, matrix, lineThickness);
-			batch3D.Line(v111, v101, lineColor, matrix, lineThickness);
-			batch3D.Line(v111, v110, lineColor, matrix, lineThickness);
+			batch3D.Line(v101, v100, selectedLineColor, matrix, lineThickness);
+			batch3D.Line(v101, v001, selectedLineColor, matrix, lineThickness);
 
-			batch3D.Line(v010, v011, lineColor, matrix, lineThickness);
-			batch3D.Line(v010, v110, lineColor, matrix, lineThickness);
-
-			batch3D.Line(v101, v100, lineColor, matrix, lineThickness);
-			batch3D.Line(v101, v001, lineColor, matrix, lineThickness);
-
-			batch3D.Line(v100, v110, lineColor, matrix, lineThickness);
-			batch3D.Line(v001, v011, lineColor, matrix, lineThickness);
-
-			batch3D.Render(ref state);
-			batch3D.Clear();
+			batch3D.Line(v100, v110, selectedLineColor, matrix, lineThickness);
+			batch3D.Line(v001, v011, selectedLineColor, matrix, lineThickness);
 		}
+		batch3D.Render(ref state);
+		batch3D.Clear();
 
 		// ui
 		{
@@ -361,7 +404,7 @@ public class EditorWorld : World
 				continue;
 
 			// Don't re-select an actor
-			if (actor == Selected)
+			if (SelectedActors.Contains(actor))
 				continue;
 
 			// TODO: Allow selecting decorations, since they're currently one giant object
