@@ -1,5 +1,4 @@
-﻿
-namespace Celeste64;
+﻿namespace Celeste64;
 
 public class Cutscene : Actor, IHaveUI
 {
@@ -15,6 +14,7 @@ public class Cutscene : Actor, IHaveUI
 		public float Ease;
 		public bool Talking;
 	}
+
 	public Saying CurrentSaying;
 	public AudioHandle DialogSnapshot;
 	public float Timer = 0;
@@ -164,6 +164,7 @@ public class Cutscene : Actor, IHaveUI
 			yield return Co.Run(Face(a0, a1.Position));
 			yield return Co.Run(Face(a1, a0.Position));
 		}
+
 		yield return Co.Continue;
 	}
 

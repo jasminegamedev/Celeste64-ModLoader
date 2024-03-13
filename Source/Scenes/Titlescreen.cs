@@ -1,4 +1,3 @@
-
 namespace Celeste64;
 
 public class Titlescreen : Scene
@@ -23,13 +22,7 @@ public class Titlescreen : Scene
 		if (Controls.Confirm.Pressed && !Game.Instance.IsMidTransition)
 		{
 			Audio.Play(Sfx.main_menu_first_input);
-			Game.Instance.Goto(new Transition()
-			{
-				Mode = Transition.Modes.Replace,
-				Scene = () => new Overworld(false),
-				ToBlack = new AngledWipe(),
-				ToPause = true
-			});
+			Game.Instance.Goto(new Transition() { Mode = Transition.Modes.Replace, Scene = () => new Overworld(false), ToBlack = new AngledWipe(), ToPause = true });
 		}
 
 		if (Controls.Cancel.Pressed)
@@ -65,8 +58,7 @@ public class Titlescreen : Scene
 				Matrix.CreateRotationX(wobble.Y) *
 				Matrix.CreateRotationZ(wobble.X) *
 				Matrix.CreateTranslation(0, 0, 53) *
-				Matrix.CreateRotationZ(-(1.0f - Ease.Cube.Out(easing)) * 10)
-				,
+				Matrix.CreateRotationZ(-(1.0f - Ease.Cube.Out(easing)) * 10),
 			Silhouette = false,
 			SunDirection = -Vec3.UnitZ,
 			VerticalFogColor = Color.White,

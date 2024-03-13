@@ -5,6 +5,7 @@ namespace Celeste64;
 public class SpriteRenderer
 {
 	private record struct SpriteBatch(Texture Texture, int Index, int Count);
+
 	private readonly List<SpriteVertex> spriteVertices = [];
 	private readonly List<int> spriteIndices = [];
 	private readonly List<SpriteBatch> spriteBatches = [];

@@ -228,21 +228,25 @@ public class Overworld : Scene
 				Controls.Menu.ConsumePress();
 				index--;
 			}
+
 			if (Controls.Menu.Horizontal.Positive.Pressed)
 			{
 				Controls.Menu.ConsumePress();
 				index++;
 			}
+
 			if (Controls.Menu.Vertical.Positive.Pressed)
 			{
 				Controls.Menu.ConsumePress();
 				index = entries.Count - 1;
 			}
+
 			if (Controls.Menu.Vertical.Negative.Pressed)
 			{
 				Controls.Menu.ConsumePress();
 				index = 0;
 			}
+
 			index = Calc.Clamp(index, 0, entries.Count - 1);
 
 			if (was != index)
@@ -257,13 +261,7 @@ public class Overworld : Scene
 
 			if (Controls.Cancel.ConsumePress())
 			{
-				Game.Instance.Goto(new Transition()
-				{
-					Mode = Transition.Modes.Replace,
-					Scene = () => new Titlescreen(),
-					ToBlack = new AngledWipe(),
-					ToPause = true
-				});
+				Game.Instance.Goto(new Transition() { Mode = Transition.Modes.Replace, Scene = () => new Titlescreen(), ToBlack = new AngledWipe(), ToPause = true });
 			}
 
 			if (Controls.Pause.ConsumePress())
@@ -276,10 +274,7 @@ public class Overworld : Scene
 					pauseMenu.Title = Loc.Str("PauseOptions");
 
 					Menu optionsMenu = new GameOptionsMenu(pauseMenu);
-					ModSelectionMenu modMenu = new ModSelectionMenu(pauseMenu)
-					{
-						Title = "Mods Menu"
-					};
+					ModSelectionMenu modMenu = new ModSelectionMenu(pauseMenu) { Title = "Mods Menu" };
 
 					pauseMenu.Add(new Menu.Submenu("PauseOptions", pauseMenu, optionsMenu));
 					pauseMenu.Add(new Menu.Submenu("Mods", pauseMenu, modMenu));
@@ -290,6 +285,7 @@ public class Overworld : Scene
 							Game.Instance.NeedsReload = false;
 							Game.Instance.ReloadAssets();
 						}
+
 						Paused = false;
 					}));
 				}
@@ -360,11 +356,13 @@ public class Overworld : Scene
 				{
 					pauseMenu.CloseSubMenus();
 				}
+
 				if (Game.Instance.NeedsReload)
 				{
 					Game.Instance.NeedsReload = false;
 					Game.Instance.ReloadAssets();
 				}
+
 				Paused = false;
 			}
 		}
@@ -431,12 +429,7 @@ public class Overworld : Scene
 				if (material.Shader?.Has("u_texture_sampler") ?? false)
 					material.Set("u_texture_sampler", new TextureSampler(TextureFilter.Linear, TextureWrap.ClampToEdge, TextureWrap.ClampToEdge));
 
-				var cmd = new DrawCommand(target, mesh, material)
-				{
-					DepthMask = true,
-					DepthCompare = DepthCompare.Less,
-					CullMode = CullMode.None
-				};
+				var cmd = new DrawCommand(target, mesh, material) { DepthMask = true, DepthCompare = DepthCompare.Less, CullMode = CullMode.None };
 				cmd.Submit();
 			}
 
@@ -498,6 +491,7 @@ public class Overworld : Scene
 					batch.Rect(bounds, Color.White * Ease.Cube.In(cameraCloseUpEase));
 					batch.PopBlend();
 				}
+
 				batch.Render(target);
 				batch.Clear();
 			}

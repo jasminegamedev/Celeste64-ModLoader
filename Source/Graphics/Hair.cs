@@ -45,7 +45,6 @@ public class Hair : Model
 		foreach (var node in other.nodes)
 			nodes.Add(node);
 		modified = true;
-
 	}
 
 	public void Update(in Matrix positionTransform)
@@ -157,12 +156,7 @@ public class Hair : Model
 		Materials[0].SilhouetteColor = Color;
 
 		// draw hair
-		var call = new DrawCommand(state.Camera.Target, mesh, Materials[0])
-		{
-			DepthCompare = state.DepthCompare,
-			DepthMask = state.DepthMask,
-			CullMode = CullMode.Front,
-		};
+		var call = new DrawCommand(state.Camera.Target, mesh, Materials[0]) { DepthCompare = state.DepthCompare, DepthMask = state.DepthMask, CullMode = CullMode.Front, };
 		call.Submit();
 		state.Calls++;
 		state.Triangles += mesh.IndexCount / 3;

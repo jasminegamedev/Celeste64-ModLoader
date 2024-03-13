@@ -1,4 +1,3 @@
-
 namespace Celeste64;
 
 public abstract class ScreenWipe
@@ -38,5 +37,4 @@ public abstract class ScreenWipe
 	public abstract void Start();
 	public abstract void Step(float percent);
 	public abstract void Render(Batcher batch, Rect bounds);
-
 }

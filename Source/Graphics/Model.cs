@@ -1,4 +1,3 @@
-
 namespace Celeste64;
 
 public abstract class Model
@@ -21,6 +20,9 @@ public abstract class Model
 		}
 	}
 
-	public virtual void Prepare() { }
+	public virtual void Prepare()
+	{
+	}
+
 	public abstract void Render(ref RenderState state);
 }

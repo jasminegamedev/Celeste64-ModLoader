@@ -11,8 +11,15 @@ public class ModSelectionMenu : Menu
 	private const int rows = 2;
 	private const int columns = 4;
 
-	private int CurrentPageStart { get { return currentPage * columns * rows; } }
-	private int CurrentIndex { get { return currentRow * columns + currentColumn; } }
+	private int CurrentPageStart
+	{
+		get { return currentPage * columns * rows; }
+	}
+
+	private int CurrentIndex
+	{
+		get { return currentRow * columns + currentColumn; }
+	}
 
 	private Subtexture postcardImage;
 	private Subtexture strawberryImage;
@@ -143,6 +150,7 @@ public class ModSelectionMenu : Menu
 				{
 					RenderMod(batch, mods[CurrentPageStart + index], new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
 				}
+
 				index++;
 			}
 		}
@@ -171,6 +179,7 @@ public class ModSelectionMenu : Menu
 				currentColumn += 1;
 			}
 		}
+
 		if (Controls.Menu.Horizontal.Negative.Pressed)
 		{
 			if (currentColumn == 0)
@@ -200,6 +209,7 @@ public class ModSelectionMenu : Menu
 			{
 				RootMenu.PushSubMenu(modInfoMenu);
 			}
+
 			Controls.Consume();
 		}
 	}

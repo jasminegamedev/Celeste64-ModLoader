@@ -10,6 +10,7 @@ public static class ConsoleHelper
 
 	[DllImport("kernel32.dll", SetLastError = true)]
 	public static extern bool SetStdHandle(int nStdHandle, IntPtr hHandle);
+
 	[DllImport("kernel32")]
 	static extern bool AllocConsole();
 
@@ -17,12 +18,12 @@ public static class ConsoleHelper
 
 	[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
 	public static extern IntPtr CreateFile([MarshalAs(UnmanagedType.LPTStr)] string filename,
-										   [MarshalAs(UnmanagedType.U4)] uint access,
-										   [MarshalAs(UnmanagedType.U4)] FileShare share,
-																			 IntPtr securityAttributes,
-										   [MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
-										   [MarshalAs(UnmanagedType.U4)] FileAttributes flagsAndAttributes,
-																			 IntPtr templateFile);
+		[MarshalAs(UnmanagedType.U4)] uint access,
+		[MarshalAs(UnmanagedType.U4)] FileShare share,
+		IntPtr securityAttributes,
+		[MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
+		[MarshalAs(UnmanagedType.U4)] FileAttributes flagsAndAttributes,
+		IntPtr templateFile);
 
 	public const uint GENERIC_WRITE = 0x40000000;
 	public const uint GENERIC_READ = 0x80000000;

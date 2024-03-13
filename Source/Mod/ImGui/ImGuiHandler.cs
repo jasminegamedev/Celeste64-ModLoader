@@ -19,11 +19,15 @@ public abstract class ImGuiHandler
 	/// <summary>
 	/// Called once per frame and should be used to update state.
 	/// </summary>
-	public virtual void Update() { }
+	public virtual void Update()
+	{
+	}
 
 	/// <summary>
 	/// Called an undefined amount per frame and should only be used to draw the current state.
 	/// This should <b>not</b> update any state.
 	/// </summary>
-	public virtual void Render() { }
+	public virtual void Render()
+	{
+	}
 }

@@ -6,7 +6,11 @@ namespace Celeste64.Mod;
 public abstract class GameMod
 {
 	#region Internally Used Data
-	internal Save.ModRecord ModSaveData { get { return Save.Instance.GetOrMakeMod(ModInfo.Id); } }
+
+	internal Save.ModRecord ModSaveData
+	{
+		get { return Save.Instance.GetOrMakeMod(ModInfo.Id); }
+	}
 
 	// They get set as part of the Mod Loading step, not the constructor.
 	internal IModFilesystem Filesystem { get; set; } = null!;
@@ -32,6 +36,7 @@ public abstract class GameMod
 	/// to make sure that a mod can't accidentally skip calling this due to not calling base.OnModUnloaded.
 	/// </summary>
 	internal Action? OnUnloadedCleanup { get; private set; }
+
 	#endregion
 
 	// These provide readonly properties to access assets associated with this mod.
@@ -52,13 +57,32 @@ public abstract class GameMod
 
 	// This is here to give mods easier access to these objects, so they don't have to get them themselves
 	// Warning, these may be null if they haven't been initialized yet, so you should always do a null check before using them.
-	public Game? Game { get { return Game.Instance; } }
-	public World? World { get { return Game != null ? Game.World : null; } }
-	public Map? Map { get { return World != null ? World.Map : null; } }
-	public Player? Player { get { return World != null ? World.Get<Player>() : null; } }
+	public Game? Game
+	{
+		get { return Game.Instance; }
+	}
+
+	public World? World
+	{
+		get { return Game != null ? Game.World : null; }
+	}
+
+	public Map? Map
+	{
+		get { return World != null ? World.Map : null; }
+	}
+
+	public Player? Player
+	{
+		get { return World != null ? World.Get<Player>() : null; }
+	}
 
 	// Common Metadata about this mod.
-	public bool Enabled { get { return this is VanillaGameMod || ModSaveData.Enabled; } }
+	public bool Enabled
+	{
+		get { return this is VanillaGameMod || ModSaveData.Enabled; }
+	}
+
 	public virtual Type? SettingsType { get; set; }
 	public virtual GameModSettings? Settings { get; set; }
 
@@ -81,6 +105,7 @@ public abstract class GameMod
 	public readonly List<string> PreventHookProtectionYesIKnowThisIsDangerousAndCanBreak = [];
 
 	#region Save Functions
+
 	// These functions allow modders to save data and get save data from the save file.
 	// These are done as wrapper functions mostly to make it harder to accidentally mess up the save data in an unexpected way
 	// And so we can change how they work later if needed.
@@ -89,34 +114,42 @@ public abstract class GameMod
 	{
 		return ModSaveData.SetString(key, value);
 	}
+
 	public string GetString(string key, string defaultValue = "")
 	{
 		return ModSaveData.GetString(key, defaultValue);
 	}
+
 	public int SaveInt(string key, int value)
 	{
 		return ModSaveData.SetInt(key, value);
 	}
+
 	public int GetInt(string key, int defaultValue = 0)
 	{
 		return ModSaveData.GetInt(key, defaultValue);
 	}
+
 	public float SaveFloat(string key, float value)
 	{
 		return ModSaveData.SetFloat(key, value);
 	}
+
 	public float GetFloat(string key, float defaultValue = 0.0f)
 	{
 		return ModSaveData.GetFloat(key, defaultValue);
 	}
+
 	public bool SaveBool(string key, bool value)
 	{
 		return ModSaveData.SetBool(key, value);
 	}
+
 	public bool GetBool(string key, bool defaultValue = false)
 	{
 		return ModSaveData.GetBool(key, defaultValue);
 	}
+
 	#endregion
 
 	#region Mod Settings
@@ -177,6 +210,7 @@ public abstract class GameMod
 				SaveSettingsForType($"{settingKey}{prop.Name}.", prop.PropertyType, propValue);
 			}
 		}
+
 		return true;
 	}
 
@@ -236,6 +270,7 @@ public abstract class GameMod
 				LoadSettingsForType($"{settingKey}{prop.Name}.", prop.PropertyType, propValue);
 			}
 		}
+
 		return true;
 	}
 
@@ -280,9 +315,7 @@ public abstract class GameMod
 			{
 				// We go through the Mod strings directly to avoid possible naming conflicts with other mods or the vanilla game
 				// If the property name can be localized, use that, otherwise, just use the attribute name to make localization optional
-				propName = Loc.TryGetModString(this, nameAttibute, out string localizedName) ?
-					localizedName :
-					nameAttibute;
+				propName = Loc.TryGetModString(this, nameAttibute, out string localizedName) ? localizedName : nameAttibute;
 			}
 
 			Menu.Item? newItem = null;
@@ -297,9 +330,7 @@ public abstract class GameMod
 			string? subheader = prop.GetCustomAttribute<SettingSubHeaderAttribute>()?.SubHeader;
 			if (!string.IsNullOrEmpty(subheader))
 			{
-				string subHeader = Loc.TryGetModString(this, subheader, out string localizedSubHeader) ?
-					localizedSubHeader :
-					subheader;
+				string subHeader = Loc.TryGetModString(this, subheader, out string localizedSubHeader) ? localizedSubHeader : subheader;
 				menu.Add(new Menu.SubHeader((Loc.Unlocalized)subHeader));
 			}
 
@@ -332,6 +363,7 @@ public abstract class GameMod
 					min = settingRangeAttribute.Min;
 					max = settingRangeAttribute.Max;
 				}
+
 				newItem = new Menu.Slider(
 					(Loc.Unlocalized)propName,
 					min,
@@ -366,12 +398,12 @@ public abstract class GameMod
 					subMenu.Title = propName;
 					AddMenuSettingsForType(subMenu, prop.PropertyType, value);
 					subMenu.Add(new Menu.Option((Loc.Unlocalized)"Back", () =>
+					{
+						if (menu != null)
 						{
-							if (menu != null)
-							{
-								menu.PopRootSubMenu();
-							}
-						}));
+							menu.PopRootSubMenu();
+						}
+					}));
 					newItem = new Menu.Submenu(
 						(Loc.Unlocalized)propName,
 						menu.RootMenu,
@@ -385,11 +417,10 @@ public abstract class GameMod
 				string? propDescription = prop.GetCustomAttribute<SettingDescriptionAttribute>()?.Description;
 				if (!string.IsNullOrEmpty(propDescription))
 				{
-					propDescription = Loc.TryGetModString(this, propDescription, out string localizedDescription) ?
-						localizedDescription :
-						propDescription;
+					propDescription = Loc.TryGetModString(this, propDescription, out string localizedDescription) ? localizedDescription : propDescription;
 					newItem.Describe((Loc.Unlocalized)propDescription);
 				}
+
 				menu.Add(newItem);
 			}
 		}
@@ -516,36 +547,45 @@ public abstract class GameMod
 
 	#region Game Events
 
-
 	// Game Event Functions. These are used to provide an "interface" of sorts that mods can easily override.
 	// They will not be called if the mod is disabled.
 
 	/// <summary>
 	/// Called when the Mod is first loaded, or when it becomes enabled
 	/// </summary>
-	public virtual void OnModLoaded() { }
+	public virtual void OnModLoaded()
+	{
+	}
 
 	/// <summary>
 	/// Called when a mod is unloaded, or when it becomes disabled
 	/// </summary>
-	public virtual void OnModUnloaded() { }
+	public virtual void OnModUnloaded()
+	{
+	}
 
 	/// <summary>
 	/// Called once every frame
 	/// </summary>
 	/// <param name="deltaTime">How much time passed since the previous update</param>
-	public virtual void Update(float deltaTime) { }
+	public virtual void Update(float deltaTime)
+	{
+	}
 
 	/// <summary>
 	/// Called at the very beginning of when the game is loaded
 	/// </summary>
 	/// <param name="game"></param>
-	public virtual void OnGameLoaded(Game game) { }
+	public virtual void OnGameLoaded(Game game)
+	{
+	}
 
 	/// <summary>
 	/// Called after all assets have been loaded or reloaded.
 	/// </summary>
-	public virtual void OnAssetsLoaded() { }
+	public virtual void OnAssetsLoaded()
+	{
+	}
 
 	/// <summary>
 	/// Called right before the Map load starts.
@@ -553,82 +593,108 @@ public abstract class GameMod
 	/// </summary>
 	/// <param name="world">A reference to the world</param>
 	/// <param name="map">A reference to the map that was loaded</param>
-	public virtual void OnPreMapLoaded(World world, Map map) { }
+	public virtual void OnPreMapLoaded(World world, Map map)
+	{
+	}
 
 	/// <summary>
 	/// Called after a map is finished loading.
 	/// </summary>
 	/// <param name="map">A reference to the map that was loaded</param>
-	public virtual void OnMapLoaded(Map map) { }
+	public virtual void OnMapLoaded(Map map)
+	{
+	}
 
 	/// <summary>
 	/// Called after a scene transistion either when a scene is first loaded, or reloaded.
 	/// </summary>
 	/// <param name="scene">A reference to the Scene that was entered</param>
-	public virtual void OnSceneEntered(Scene scene) { }
+	public virtual void OnSceneEntered(Scene scene)
+	{
+	}
 
 	/// <summary>
 	/// Called after the world finishes loading.
 	/// </summary>
 	/// <param name="world">A reference to the World object that was created</param>
-	public virtual void OnWorldLoaded(World world) { }
+	public virtual void OnWorldLoaded(World world)
+	{
+	}
 
 	/// <summary>
 	/// Called whenever a new actor is first created.
 	/// </summary>
 	/// <param name="actor">A reference to the Actor that was created.</param>
-	public virtual void OnActorCreated(Actor actor) { }
+	public virtual void OnActorCreated(Actor actor)
+	{
+	}
 
 	/// <summary>
 	/// Called after an actor is actually added to the world.
 	/// </summary>
 	/// <param name="actor">A reference to the Actor that was added</param>
-	public virtual void OnActorAdded(Actor actor) { }
+	public virtual void OnActorAdded(Actor actor)
+	{
+	}
 
 	/// <summary>
 	/// Called when an actor is destroyed.
 	/// </summary>
 	/// <param name="actor">A reference to the actor that was destroyed</param>
-	public virtual void OnActorDestroyed(Actor actor) { }
+	public virtual void OnActorDestroyed(Actor actor)
+	{
+	}
 
 	/// <summary>
 	/// Called when the player is killed
 	/// </summary>
 	/// <param name="player">A reference to the player</param>
-	public virtual void OnPlayerKilled(Player player) { }
+	public virtual void OnPlayerKilled(Player player)
+	{
+	}
 
 	/// <summary>
 	/// Called whenever a player lands on the ground.
 	/// </summary>
 	/// <param name="player">A reference to the player</param>
-	public virtual void OnPlayerLanded(Player player) { }
+	public virtual void OnPlayerLanded(Player player)
+	{
+	}
 
 	/// <summary>
 	/// Called whenever a player jumps.
 	/// </summary>
 	/// <param name="player">A reference to the player</param>
-	public virtual void OnPlayerJumped(Player player, Player.JumpType jumpType) { }
+	public virtual void OnPlayerJumped(Player player, Player.JumpType jumpType)
+	{
+	}
 
 	/// <summary>
 	/// Called whenever the player's state changes
 	/// </summary>
 	/// <param name="player">A reference to the player</param>
 	/// <param name="state">The new state</param>
-	public virtual void OnPlayerStateChanged(Player player, Player.States? state) { }
+	public virtual void OnPlayerStateChanged(Player player, Player.States? state)
+	{
+	}
 
 	/// <summary>
 	/// Called when the current skin is changed.
 	/// </summary>
 	/// <param name="player">A reference to the player</param>
 	/// <param name="skin">The new skin that this changed to</param>
-	public virtual void OnPlayerSkinChange(Player player, SkinInfo skin) { }
+	public virtual void OnPlayerSkinChange(Player player, SkinInfo skin)
+	{
+	}
 
 	/// <summary>
 	/// Called whenever an item is pickuped up by the player
 	/// </summary>
 	/// <param name="player">The player that picked up the item</param>
 	/// <param name="item">The IPickup item that was picked up</param>
-	public virtual void OnItemPickup(Player player, IPickup item) { }
+	public virtual void OnItemPickup(Player player, IPickup item)
+	{
+	}
 
 	#endregion
 }

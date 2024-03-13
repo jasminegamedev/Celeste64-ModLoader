@@ -77,12 +77,7 @@ public class SkinnedTemplate
 				foreach (var index in primitive.GetIndices())
 					Indices.Add(vertexCount + (int)index);
 
-				part.Add(new()
-				{
-					Material = primitive.Material?.LogicalIndex ?? 0,
-					Index = indexStart,
-					Count = Indices.Count - indexStart
-				});
+				part.Add(new() { Material = primitive.Material?.LogicalIndex ?? 0, Index = indexStart, Count = Indices.Count - indexStart });
 			}
 		}
 	}
@@ -105,8 +100,8 @@ public class SkinnedTemplate
 			// figure out which texture to use by just using the first texture found
 			foreach (var channel in logicalMat.Channels)
 				if (channel.Texture != null &&
-					channel.Texture.PrimaryImage != null &&
-					textures.TryGetValue(channel.Texture.PrimaryImage.Content, out var texture))
+				    channel.Texture.PrimaryImage != null &&
+				    textures.TryGetValue(channel.Texture.PrimaryImage.Content, out var texture))
 				{
 					Materials[i].Texture = texture;
 					break;

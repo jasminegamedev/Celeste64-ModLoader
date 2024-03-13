@@ -107,6 +107,7 @@ public sealed class ZipModFilesystem : IModFilesystem
 				value = default;
 				return false;
 			}
+
 			if (stream.CanSeek)
 			{
 				value = callback(stream)!;
@@ -141,8 +142,8 @@ public sealed class ZipModFilesystem : IModFilesystem
 			{
 				var fullName = e.FullName;
 				var valid = !fullName.EndsWith('/')
-							&& fullName.StartsWith(modRoot + directory, StringComparison.Ordinal)
-							&& fullName.EndsWith(extension, StringComparison.Ordinal);
+				            && fullName.StartsWith(modRoot + directory, StringComparison.Ordinal)
+				            && fullName.EndsWith(extension, StringComparison.Ordinal);
 				return valid ? fullName.Substring(modRoot.Length) : null;
 			}).Where(x => x is { }).ToList()!;
 		}

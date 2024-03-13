@@ -1,5 +1,4 @@
-﻿
-namespace Celeste64;
+﻿namespace Celeste64;
 
 public class SpikeBlock : Attacher, IHaveModels
 {
@@ -62,20 +61,20 @@ public class SpikeBlock : Attacher, IHaveModels
 		var models = new List<SkinnedModel>();
 
 		for (int x = 0; x < columns; x++)
-			for (int y = 0; y < rows; y++)
+		for (int y = 0; y < rows; y++)
+		{
+			models.Add(new SkinnedModel(Assets.Models["spike"])
 			{
-				models.Add(new SkinnedModel(Assets.Models["spike"])
-				{
-					Flags = ModelFlags.Terrain,
-					Transform =
+				Flags = ModelFlags.Terrain,
+				Transform =
 					Matrix.CreateScale(2.5f) *
 					rotation *
 					Matrix.CreateTranslation(
 						horizontal * ((x + 0.5f) * step - width / 2) +
 						vertical * ((y + 0.5f) * step - height / 2) +
 						-forward * (step / 2))
-				});
-			}
+			});
+		}
 
 		Model = new SimpleModel(models);
 		Direction = forward;

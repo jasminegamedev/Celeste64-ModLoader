@@ -131,14 +131,18 @@ public static class Utils
 			line0 = p0;
 			index++;
 		}
+
 		if (PlaneLineIntersection(plane, v1, v2, out var p1))
 		{
-			if (index == 0) line0 = p1; else line1 = p1;
+			if (index == 0) line0 = p1;
+			else line1 = p1;
 			index++;
 		}
+
 		if (PlaneLineIntersection(plane, v2, v0, out var p2))
 		{
-			if (index == 0) line0 = p2; else line1 = p2;
+			if (index == 0) line0 = p2;
+			else line1 = p2;
 			index++;
 		}
 
@@ -229,10 +233,14 @@ public static class Utils
 		{
 			var i0 = i + 1;
 			var i1 = (i + 1) % sliceCount + 1;
-			indices.Add(v0); indices.Add(i1); indices.Add(i0);
+			indices.Add(v0);
+			indices.Add(i1);
+			indices.Add(i0);
 			i0 = i + sliceCount * (stackCount - 2) + 1;
 			i1 = (i + 1) % sliceCount + sliceCount * (stackCount - 2) + 1;
-			indices.Add(v1); indices.Add(i0); indices.Add(i1);
+			indices.Add(v1);
+			indices.Add(i0);
+			indices.Add(i1);
 		}
 
 		// add quads per stack / slice

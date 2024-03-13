@@ -18,10 +18,14 @@ public class ControlsConfig
 		public Gamepads? OnlyFor { get; set; }
 		public Gamepads? NotFor { get; set; }
 
-		public Binding() { }
+		public Binding()
+		{
+		}
+
 		public Binding(Keys input) => Key = input;
 		public Binding(MouseButtons input) => MouseButton = input;
 		public Binding(Buttons input) => Button = input;
+
 		public Binding(Axes input, float deadzone, bool inverted)
 		{
 			Axis = input;
@@ -98,17 +102,20 @@ public class ControlsConfig
 	{
 		Actions = new()
 		{
-			["Jump"] = [
+			["Jump"] =
+			[
 				new(Keys.C),
 				new(Buttons.South),
 				new(Buttons.North),
 			],
-			["Dash"] = [
+			["Dash"] =
+			[
 				new(Keys.X),
 				new(Buttons.West),
 				new(Buttons.East),
 			],
-			["Climb"] = [
+			["Climb"] =
+			[
 				new(Keys.Z),
 				new(Keys.V),
 				new(Keys.LeftShift),
@@ -118,17 +125,20 @@ public class ControlsConfig
 				new(Axes.LeftTrigger, 0.4f, false),
 				new(Axes.RightTrigger, 0.4f, false),
 			],
-			["Confirm"] = [
+			["Confirm"] =
+			[
 				new(Keys.C),
 				new(Buttons.South) { NotFor = Gamepads.Nintendo },
 				new(Buttons.East) { OnlyFor = Gamepads.Nintendo },
 			],
-			["Cancel"] = [
+			["Cancel"] =
+			[
 				new(Keys.X),
 				new(Buttons.East) { NotFor = Gamepads.Nintendo },
 				new(Buttons.South) { OnlyFor = Gamepads.Nintendo },
 			],
-			["Pause"] = [
+			["Pause"] =
+			[
 				new(Keys.Enter),
 				new(Keys.Escape),
 				new(Buttons.Start),
@@ -136,28 +146,31 @@ public class ControlsConfig
 				new(Buttons.Back)
 			],
 		},
-
 		Sticks = new()
 		{
 			["Move"] = new()
 			{
 				Deadzone = 0.35f,
-				Left = [
+				Left =
+				[
 					new(Keys.Left),
 					new(Buttons.Left),
 					new(Axes.LeftX, 0.0f, true)
 				],
-				Right = [
+				Right =
+				[
 					new(Keys.Right),
 					new(Buttons.Right),
 					new(Axes.LeftX, 0.0f, false)
 				],
-				Up = [
+				Up =
+				[
 					new(Keys.Up),
 					new(Buttons.Up),
 					new(Axes.LeftY, 0.0f, true)
 				],
-				Down = [
+				Down =
+				[
 					new(Keys.Down),
 					new(Buttons.Down),
 					new(Axes.LeftY, 0.0f, false)
@@ -166,19 +179,23 @@ public class ControlsConfig
 			["Camera"] = new()
 			{
 				Deadzone = 0.35f,
-				Left = [
+				Left =
+				[
 					new(Keys.A),
 					new(Axes.RightX, 0.0f, true)
 				],
-				Right = [
+				Right =
+				[
 					new(Keys.D),
 					new(Axes.RightX, 0.0f, false)
 				],
-				Up = [
+				Up =
+				[
 					new(Keys.W),
 					new(Axes.RightY, 0.0f, true)
 				],
-				Down = [
+				Down =
+				[
 					new(Keys.S),
 					new(Axes.RightY, 0.0f, false)
 				],
@@ -186,22 +203,26 @@ public class ControlsConfig
 			["Menu"] = new()
 			{
 				Deadzone = 0.35f,
-				Left = [
+				Left =
+				[
 					new(Keys.Left),
 					new(Buttons.Left),
 					new(Axes.LeftX, 0.50f, true)
 				],
-				Right = [
+				Right =
+				[
 					new(Keys.Right),
 					new(Buttons.Right),
 					new(Axes.LeftX, 0.50f, false)
 				],
-				Up = [
+				Up =
+				[
 					new(Keys.Up),
 					new(Buttons.Up),
 					new(Axes.LeftY, 0.50f, true)
 				],
-				Down = [
+				Down =
+				[
 					new(Keys.Down),
 					new(Buttons.Down),
 					new(Axes.LeftY, 0.50f, false)
@@ -236,7 +257,9 @@ public class ControlsConfigBindingConverter : JsonConverter<ControlsConfig.Bindi
 	AllowTrailingCommas = true
 )]
 [JsonSerializable(typeof(ControlsConfig.Binding))]
-internal partial class ControlsConfigBindingContext : JsonSerializerContext { }
+internal partial class ControlsConfigBindingContext : JsonSerializerContext
+{
+}
 
 // normal serialization
 [JsonSourceGenerationOptions(
@@ -247,4 +270,6 @@ internal partial class ControlsConfigBindingContext : JsonSerializerContext { }
 	Converters = [typeof(ControlsConfigBindingConverter)]
 )]
 [JsonSerializable(typeof(ControlsConfig))]
-internal partial class ControlsConfigContext : JsonSerializerContext { }
+internal partial class ControlsConfigContext : JsonSerializerContext
+{
+}

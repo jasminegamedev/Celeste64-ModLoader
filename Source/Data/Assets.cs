@@ -140,7 +140,7 @@ public static class Assets
 			tasks.Add(Task.Run(() =>
 			{
 				if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file,
-						stream => new Map(GetResourceNameFromVirt(file, MapsFolder), file, stream), out var map))
+					    stream => new Map(GetResourceNameFromVirt(file, MapsFolder), file, stream), out var map))
 				{
 					maps.Add((map, mod));
 				}
@@ -178,7 +178,7 @@ public static class Assets
 			tasks.Add(Task.Run(() =>
 			{
 				if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file, stream => SharpGLTF.Schema2.ModelRoot.ReadGLB(stream),
-						out var input))
+					    out var input))
 				{
 					var model = new SkinnedTemplate(input);
 					models.Add((GetResourceNameFromVirt(file, ModelsFolder), model, mod));
@@ -207,6 +207,7 @@ public static class Assets
 			if (mod.Filesystem != null && file.EndsWith($".strings.{AudioExtension}"))
 				mod.Filesystem.TryOpenFile(file, Audio.LoadBankFromStream);
 		}
+
 		// load banks second
 		foreach (var (file, mod) in allBankFiles)
 		{
@@ -219,7 +220,7 @@ public static class Assets
 			tasks.Add(Task.Run(() =>
 			{
 				if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file, stream => Audio.LoadWavFromStream(stream),
-						out FMOD.Sound? sound))
+					    out FMOD.Sound? sound))
 				{
 					if (sound != null)
 					{
@@ -234,7 +235,7 @@ public static class Assets
 			tasks.Add(Task.Run(() =>
 			{
 				if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file, stream => Audio.LoadWavFromStream(stream),
-						out FMOD.Sound? song))
+					    out FMOD.Sound? song))
 				{
 					if (song != null)
 					{
@@ -249,8 +250,8 @@ public static class Assets
 		{
 			mod.Levels.Clear();
 			if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(LevelsJSON,
-					stream => JsonSerializer.Deserialize(stream, LevelInfoListContext.Default.ListLevelInfo) ?? [],
-					out var levels))
+				    stream => JsonSerializer.Deserialize(stream, LevelInfoListContext.Default.ListLevelInfo) ?? [],
+				    out var levels))
 			{
 				mod.Levels.AddRange(levels);
 				Levels.AddRange(levels);
@@ -289,12 +290,7 @@ public static class Assets
 
 		// pack sprites into single texture
 		{
-			Packer packer = new Packer
-			{
-				Trim = false,
-				CombineDuplicates = false,
-				Padding = 1
-			};
+			Packer packer = new Packer { Trim = false, CombineDuplicates = false, Padding = 1 };
 			foreach (var (file, mod) in globalFs.FindFilesInDirectoryRecursiveWithMod(SpritesFolder, SpritesExtension))
 			{
 				if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file, stream => new Image(stream), out var img))
@@ -341,6 +337,7 @@ public static class Assets
 				model.ConstructResources();
 				Models.Add(name, model, mod);
 			}
+
 			foreach (var (lang, mod) in langs)
 			{
 				if (Languages.TryGetValue(lang.ID, out var existing))
@@ -376,7 +373,7 @@ public static class Assets
 		foreach (var (file, mod) in globalFs.FindFilesInDirectoryRecursiveWithMod(SkinsFolder, SkinsExtension))
 		{
 			if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file,
-					stream => JsonSerializer.Deserialize(stream, SkinInfoContext.Default.SkinInfo), out var skin) && skin.IsValid())
+				    stream => JsonSerializer.Deserialize(stream, SkinInfoContext.Default.SkinInfo), out var skin) && skin.IsValid())
 			{
 				mod.Skins.Add(skin);
 			}

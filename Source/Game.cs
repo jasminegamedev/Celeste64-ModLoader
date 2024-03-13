@@ -38,6 +38,7 @@ public class Game : Module
 	}
 
 	public const string GamePath = "Celeste64";
+
 	// ModloaderCustom
 	public const string GameTitle = "Celeste 64: Fragments of the Mountain + Fuji Mod Loader";
 	public static readonly Version GameVersion = typeof(Game).Assembly.GetName().Version!;
@@ -50,6 +51,7 @@ public class Game : Module
 	public static event Action OnResolutionChanged = () => { };
 
 	private static float _resolutionScale = 1.0f;
+
 	public static float ResolutionScale
 	{
 		get => _resolutionScale;
@@ -91,8 +93,15 @@ public class Game : Module
 	public SoundHandle? AmbienceWav;
 	public SoundHandle? MusicWav;
 
-	public Scene? Scene { get { return scenes.TryPeek(out Scene? scene) ? scene : null; } }
-	public World? World { get { return Scene is World world ? world : null; } }
+	public Scene? Scene
+	{
+		get { return scenes.TryPeek(out Scene? scene) ? scene : null; }
+	}
+
+	public World? World
+	{
+		get { return Scene is World world ? world : null; }
+	}
 
 	internal bool NeedsReload = false;
 
@@ -348,6 +357,7 @@ public class Game : Module
 				ReloadAssets();
 			}
 		}
+
 		ModManager.Instance.Update(Time.Delta);
 	}
 
@@ -463,6 +473,7 @@ public class Game : Module
 				path = LogFileName;
 			}
 		}
+
 		if (File.Exists(path))
 		{
 			new Process { StartInfo = new ProcessStartInfo(path) { UseShellExecute = true } }.Start();

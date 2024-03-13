@@ -26,7 +26,8 @@ public class IncrementalHookGenerator : IIncrementalGenerator
 
 	private enum HookType
 	{
-		OnHook, ILHook
+		OnHook,
+		ILHook
 	}
 
 	public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -111,6 +112,7 @@ public class IncrementalHookGenerator : IIncrementalGenerator
 				{
 					continue;
 				}
+
 				emittedSymbols.Add((method.Name, method.Parameters));
 
 				var returnType = method.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -164,6 +166,7 @@ public class IncrementalHookGenerator : IIncrementalGenerator
 							? $"typeof({classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}).GetMethod(\"{method.Name}\", {bindingFlags}, [{paramTypes}])"
 							: $"typeof({classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}).GetMethod(\"{method.Name}\", {bindingFlags})";
 					}
+
 					code.AppendLine($"{Indent}public static readonly {MethodBase} m_{methodName} = {methodBase};");
 				}
 

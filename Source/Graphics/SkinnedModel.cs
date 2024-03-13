@@ -1,5 +1,4 @@
 using SharpGLTF.Transforms;
-
 using BlendInput = (int TrackIdx, float Time, float Weight);
 
 namespace Celeste64;
@@ -194,7 +193,7 @@ public class SkinnedModel : Model
 				result.Add((
 					playing[i].Index,
 					playing[i].Time % playing[i].Duration,
-					 1.0f - playing[i].Blend // why inverse?
+					1.0f - playing[i].Blend // why inverse?
 				));
 
 				if (result.Count >= result.Capacity)
@@ -235,7 +234,7 @@ public class SkinnedModel : Model
 					state.ApplyToMaterial(mat, statXform.WorldMatrix * BaseTranslation);
 
 					if (mat.Shader != null &&
-						mat.Shader.Has("u_jointMult"))
+					    mat.Shader.Has("u_jointMult"))
 						mat.Set("u_jointMult", 0.0f);
 
 					DrawCommand cmd = new(state.Camera.Target, Template.Mesh, mat)
@@ -261,7 +260,7 @@ public class SkinnedModel : Model
 					state.ApplyToMaterial(mat, BaseTranslation);
 
 					if (mat.Shader != null &&
-						mat.Shader.Has("u_jointMat"))
+					    mat.Shader.Has("u_jointMat"))
 					{
 						for (int j = 0, n = Math.Min(SkinMatrixCount, skinXform.SkinMatrices.Count); j < n; j++)
 							transformSkin[j] = skinXform.SkinMatrices[j];

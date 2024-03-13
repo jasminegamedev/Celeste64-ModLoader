@@ -1,4 +1,3 @@
-
 namespace Celeste64;
 
 /// <summary>
@@ -64,7 +63,9 @@ public interface IListenToAudioCallback
 /// <summary>
 /// Actor is recycled instead of destroyed. Call World.Request<T> to get a new one.
 /// </summary>
-public interface IRecycle { }
+public interface IRecycle
+{
+}
 
 /// <summary>
 /// Strawberries search for any of these within their Target GroupName, and

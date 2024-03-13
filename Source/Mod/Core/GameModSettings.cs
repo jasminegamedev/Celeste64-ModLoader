@@ -2,7 +2,6 @@
 
 public abstract class GameModSettings
 {
-
 }
 
 /// <summary>
@@ -12,6 +11,7 @@ public abstract class GameModSettings
 public class SettingNameAttribute : Attribute
 {
 	public string Name;
+
 	public SettingNameAttribute(string name)
 	{
 		Name = name;
@@ -25,6 +25,7 @@ public class SettingNameAttribute : Attribute
 public class SettingDescriptionAttribute : Attribute
 {
 	public string Description;
+
 	public SettingDescriptionAttribute(string description)
 	{
 		Description = description;
@@ -40,6 +41,7 @@ public class SettingRangeAttribute : Attribute
 {
 	public int Min;
 	public int Max;
+
 	public SettingRangeAttribute(int min, int max)
 	{
 		Min = min;
@@ -98,4 +100,6 @@ public class SettingSubHeaderAttribute : Attribute
 /// Create a submenu based on this type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
-public class SettingSubMenuAttribute : Attribute { }
+public class SettingSubMenuAttribute : Attribute
+{
+}

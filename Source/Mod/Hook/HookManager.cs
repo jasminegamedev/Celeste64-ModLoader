@@ -4,7 +4,9 @@ namespace Celeste64.Mod;
 
 public sealed class HookManager
 {
-	private HookManager() { }
+	private HookManager()
+	{
+	}
 
 	public static HookManager Instance => instance ??= new HookManager();
 	private static HookManager? instance = null;
@@ -50,10 +52,12 @@ public sealed class HookManager
 		{
 			hook.Dispose();
 		}
+
 		foreach (var hook in ilHooks)
 		{
 			hook.Dispose();
 		}
+
 		hooks.Clear();
 		ilHooks.Clear();
 	}

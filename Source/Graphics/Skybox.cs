@@ -53,8 +53,12 @@ public class Skybox
 		verts.Add(new SpriteVertex(c, v2, Color.White));
 		verts.Add(new SpriteVertex(d, v3, Color.White));
 
-		indices.Add(n + 0); indices.Add(n + 1); indices.Add(n + 2);
-		indices.Add(n + 0); indices.Add(n + 2); indices.Add(n + 3);
+		indices.Add(n + 0);
+		indices.Add(n + 1);
+		indices.Add(n + 2);
+		indices.Add(n + 0);
+		indices.Add(n + 2);
+		indices.Add(n + 3);
 	}
 
 	public void Render(in Camera camera, in Matrix transform, float size)
@@ -69,12 +73,7 @@ public class Skybox
 		if (material.Shader?.Has("u_texture") ?? false)
 			material.Set("u_texture", Texture);
 
-		DrawCommand cmd = new(camera.Target, mesh, material)
-		{
-			DepthMask = false,
-			DepthCompare = DepthCompare.Always,
-			CullMode = CullMode.Front
-		};
+		DrawCommand cmd = new(camera.Target, mesh, material) { DepthMask = false, DepthCompare = DepthCompare.Always, CullMode = CullMode.Front };
 		cmd.Submit();
 	}
 }

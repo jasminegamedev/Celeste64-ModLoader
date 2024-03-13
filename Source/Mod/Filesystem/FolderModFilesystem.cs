@@ -12,6 +12,7 @@ public sealed class FolderModFilesystem : IModFilesystem
 	internal GameMod? Mod { get; set; }
 
 	private readonly FileSystemWatcher watcher;
+
 	// keeps track of whether a file is known to exist or known not to exist in the directory.
 	private readonly ConcurrentDictionary<string, bool> _knownExistingFiles = new();
 
@@ -136,7 +137,6 @@ public sealed class FolderModFilesystem : IModFilesystem
 
 	public void BackgroundCleanup()
 	{
-
 	}
 
 	public void Dispose()

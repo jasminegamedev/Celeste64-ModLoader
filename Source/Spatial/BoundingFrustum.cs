@@ -12,9 +12,16 @@ public struct BoundingFrustum
 	public const int CornerCount = 8;
 
 	[InlineArray(PlaneCount)]
-	private struct PlaneArray { private Plane _element0; }
+	private struct PlaneArray
+	{
+		private Plane _element0;
+	}
+
 	[InlineArray(CornerCount)]
-	private struct CornerArray { private Vec3 _element0; }
+	private struct CornerArray
+	{
+		private Vec3 _element0;
+	}
 
 	private Matrix matrix;
 	private CornerArray corners;
@@ -65,6 +72,7 @@ public struct BoundingFrustum
 			min = Vec3.Min(min, corners[i]);
 			max = Vec3.Max(max, corners[i]);
 		}
+
 		return new BoundingBox(min, max);
 	}
 
@@ -125,5 +133,3 @@ public struct BoundingFrustum
 		p.D *= factor;
 	}
 }
-
-

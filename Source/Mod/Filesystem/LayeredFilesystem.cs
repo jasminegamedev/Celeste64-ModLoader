@@ -29,6 +29,7 @@ public sealed class LayeredFilesystem : IModFilesystem
 		{
 			mod.Filesystem.OnFileChanged += OnInnerFileChanged;
 		}
+
 		mods.Add(mod);
 	}
 
@@ -38,6 +39,7 @@ public sealed class LayeredFilesystem : IModFilesystem
 		{
 			mod.Filesystem.OnFileChanged -= OnInnerFileChanged;
 		}
+
 		mods.Remove(mod);
 	}
 

@@ -1,13 +1,20 @@
-﻿
-using ImGuiNET;
+﻿using ImGuiNET;
 
 namespace Celeste64.Mod;
 
 internal class FujiDebugMenu : ImGuiHandler
 {
 	private bool visible = false;
-	public override bool Active { get => Save.Instance.EnableDebugMenu; }
-	public override bool Visible { get => visible; }
+
+	public override bool Active
+	{
+		get => Save.Instance.EnableDebugMenu;
+	}
+
+	public override bool Visible
+	{
+		get => visible;
+	}
 
 	public override void Update()
 	{
@@ -41,6 +48,7 @@ internal class FujiDebugMenu : ImGuiHandler
 						});
 					}
 				}
+
 				ImGui.EndMenu();
 			}
 		}
@@ -59,9 +67,11 @@ internal class FujiDebugMenu : ImGuiHandler
 						{
 							player.Position = checkpoint.Position;
 						}
+
 						i++;
 					}
 				}
+
 				ImGui.EndMenu();
 			}
 
@@ -71,10 +81,12 @@ internal class FujiDebugMenu : ImGuiHandler
 				{
 					player.Kill();
 				}
+
 				if (ImGui.MenuItem("Give Double Dash"))
 				{
 					player.DashesLocal = 2;
 				}
+
 				if (ImGui.MenuItem("Toggle Debug Fly"))
 				{
 					if (player.StateMachine.State != Player.States.DebugFly)
@@ -86,6 +98,7 @@ internal class FujiDebugMenu : ImGuiHandler
 						player.StateMachine.State = Player.States.Normal;
 					}
 				}
+
 				ImGui.EndMenu();
 			}
 		}

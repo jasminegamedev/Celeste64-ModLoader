@@ -1,4 +1,3 @@
-
 namespace Celeste64;
 
 public class SpotlightWipe : ScreenWipe
@@ -10,9 +9,11 @@ public class SpotlightWipe : ScreenWipe
 	private const float EaseDuration = 1.2f;
 	private const float EaseOpenPercent = 0.3f; // how long (in percent) it eases the small circle open
 	private const float EaseClosePercent = 0.3f; // how long (in percent) it eases the entire screen
-												 // ex. if 0.2 and 0.3, it would open for 0.2, wait until 0.7, then open for the remaining 0.3
+	// ex. if 0.2 and 0.3, it would open for 0.2, wait until 0.7, then open for the remaining 0.3
 
-	public SpotlightWipe() : base(EaseDuration) { }
+	public SpotlightWipe() : base(EaseDuration)
+	{
+	}
 
 	public override void Start()
 	{
@@ -24,7 +25,6 @@ public class SpotlightWipe : ScreenWipe
 
 	public override void Step(float percent)
 	{
-
 	}
 
 	public override void Render(Batcher batch, Rect bounds)

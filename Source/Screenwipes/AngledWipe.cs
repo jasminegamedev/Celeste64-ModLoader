@@ -1,4 +1,3 @@
-
 namespace Celeste64;
 
 public class AngledWipe : ScreenWipe
@@ -16,12 +15,10 @@ public class AngledWipe : ScreenWipe
 
 	public override void Start()
 	{
-
 	}
 
 	public override void Step(float percent)
 	{
-
 	}
 
 	public override void Render(Batcher batch, Rect bounds)
@@ -82,6 +79,7 @@ public class AngledWipe : ScreenWipe
 		{
 			batch.Triangle(triangles[i], triangles[i + 1], triangles[i + 2], Color.Black);
 		}
+
 		batch.PopMatrix();
 	}
 }

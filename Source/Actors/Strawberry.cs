@@ -1,4 +1,3 @@
-
 namespace Celeste64;
 
 public class Strawberry : Actor, IHaveModels, IHaveSprites, IPickup, ICastPointShadow
@@ -46,7 +45,6 @@ public class Strawberry : Actor, IHaveModels, IHaveSprites, IPickup, ICastPointS
 			Gravity = new Vec3(0, 0, 80),
 			Size = 1.2f
 		});
-
 	}
 
 	public override void Added()
