@@ -1,3 +1,4 @@
+using SharpGLTF.Runtime;
 using SharpGLTF.Transforms;
 
 using BlendInput = (int TrackIdx, float Time, float Weight);
@@ -40,8 +41,8 @@ public class SkinnedModel : Model
 		Flags = ModelFlags.Default;
 
 		// by default just use the template's materials
-		for (int i = 0; i < Template.Materials.Length; i++)
-			Materials.Add(Template.Materials[i]);
+		foreach (var t in Template.Materials)
+			Materials.Add(t);
 
 		foreach (var it in Template.Root.LogicalAnimations)
 		{
@@ -221,9 +222,8 @@ public class SkinnedModel : Model
 
 	public override void Render(ref RenderState state)
 	{
-		for (int i = 0; i < Instance.Count; i++)
+		foreach (var drawable in Instance)
 		{
-			var drawable = Instance[i];
 			var meshPart = Template.Parts[drawable.Template.LogicalMeshIndex];
 
 			if (drawable.Transform is RigidTransform statXform)
@@ -235,7 +235,7 @@ public class SkinnedModel : Model
 					state.ApplyToMaterial(mat, statXform.WorldMatrix * BaseTranslation);
 
 					if (mat.Shader != null &&
-						mat.Shader.Has("u_jointMult"))
+					    mat.Shader.Has("u_jointMult"))
 						mat.Set("u_jointMult", 0.0f);
 
 					DrawCommand cmd = new(state.Camera.Target, Template.Mesh, mat)
@@ -261,7 +261,7 @@ public class SkinnedModel : Model
 					state.ApplyToMaterial(mat, BaseTranslation);
 
 					if (mat.Shader != null &&
-						mat.Shader.Has("u_jointMat"))
+					    mat.Shader.Has("u_jointMat"))
 					{
 						for (int j = 0, n = Math.Min(SkinMatrixCount, skinXform.SkinMatrices.Count); j < n; j++)
 							transformSkin[j] = skinXform.SkinMatrices[j];

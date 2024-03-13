@@ -1,4 +1,5 @@
-﻿using SharpGLTF.Transforms;
+﻿using SharpGLTF.Runtime;
+using SharpGLTF.Transforms;
 using System.Runtime.InteropServices;
 
 namespace Celeste64;
@@ -24,10 +25,8 @@ public class SimpleModel : Model
 
 		foreach (var it in combine)
 		{
-			for (int i = 0; i < it.Instance.Count; i++)
+			foreach (var drawable in it.Instance)
 			{
-				var drawable = it.Instance[i];
-
 				if (drawable.Transform is not RigidTransform statXform)
 					continue;
 
@@ -41,8 +40,8 @@ public class SimpleModel : Model
 				for (int n = 0; n < meshVertices.Count; n++)
 					vertices.Add(meshVertices[n].Transform(meshMatrix));
 
-				for (int n = 0; n < meshIndices.Count; n++)
-					indices.Add(vertexOffset + meshIndices[n]);
+				foreach (var idx in meshIndices)
+					indices.Add(vertexOffset + idx);
 
 				foreach (var primitive in meshPart)
 				{
