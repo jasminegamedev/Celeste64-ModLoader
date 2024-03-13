@@ -1,3 +1,4 @@
+
 namespace Celeste64;
 
 public class Badeline : NPC
@@ -18,11 +19,15 @@ public class Badeline : NPC
 				mat.Color = HairColor;
 				mat.Effects = 0;
 			}
-
 			mat.SilhouetteColor = HairColor;
 		}
 
-		Hair = new() { Color = HairColor, ForwardOffsetPerNode = 0, Nodes = 10 };
+		Hair = new()
+		{
+			Color = HairColor,
+			ForwardOffsetPerNode = 0,
+			Nodes = 10
+		};
 
 		InteractHoverOffset = new Vec3(0, -2, 16);
 		InteractRadius = 32;
@@ -49,6 +54,7 @@ public class Badeline : NPC
 			Hair.Materials[0].Effects = 0;
 			Hair.Update(hairMatrix);
 		}
+
 	}
 
 	public override void Interact(Player player)
@@ -78,3 +84,4 @@ public class Badeline : NPC
 		InteractEnabled = Loc.HasLines($"Baddy{Save.CurrentRecord.GetFlag(TALK_FLAG) + 1}");
 	}
 }
+

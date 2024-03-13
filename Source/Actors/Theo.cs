@@ -1,3 +1,4 @@
+
 namespace Celeste64;
 
 public class Theo : NPC
@@ -33,3 +34,4 @@ public class Theo : NPC
 		InteractEnabled = Loc.HasLines($"Theo{Save.CurrentRecord.GetFlag(TALK_FLAG) + 1}");
 	}
 }
+

@@ -39,7 +39,13 @@ public static class ModLoader
 		ModManager.Instance.VanillaGameMod = new VanillaGameMod
 		{
 			// Mod Infos are required now, so make a dummy mod info for the valilla game too. This shouldn't really be used for anything.
-			ModInfo = new ModInfo { Id = "Celeste64Vanilla", Name = "Celese 64: Fragments of the Mountains", VersionString = "1.0.0", }, Filesystem = new FolderModFilesystem(Assets.ContentPath)
+			ModInfo = new ModInfo
+			{
+				Id = "Celeste64Vanilla",
+				Name = "Celese 64: Fragments of the Mountains",
+				VersionString = "1.0.0",
+			},
+			Filesystem = new FolderModFilesystem(Assets.ContentPath)
 		};
 
 		List<(ModInfo, IModFilesystem)> modInfos = [];
@@ -110,9 +116,9 @@ public static class ModLoader
 					var version = new Version(versionString);
 
 					if (loaded.FirstOrDefault(loadedInfo => loadedInfo.Id == modID) is { } dep &&
-					    dep.Version.Major == version.Major &&
-					    (dep.Version.Minor > version.Minor ||
-					     dep.Version.Minor == version.Minor && dep.Version.Build >= version.Build))
+						dep.Version.Major == version.Major &&
+						(dep.Version.Minor > version.Minor ||
+						 dep.Version.Minor == version.Minor && dep.Version.Build >= version.Build))
 					{
 						continue;
 					}
@@ -170,7 +176,6 @@ public static class ModLoader
 			Log.Error($"Fuji Error: Tried to load mod from {modFolder} but could not find a {Assets.FujiJSON} file");
 			return null;
 		}
-
 		if (info != null && !info.IsValid())
 		{
 			FailedToLoadMods.Add(modFolder);
@@ -203,7 +208,7 @@ public static class ModLoader
 					if (loadedMod is { })
 					{
 						Log.Error($"Mod at {fs.Root} contains multiple classes extending from {typeof(GameMod)} " +
-						          $"[{loadedMod.GetType().FullName} vs {type.FullName}]! Only the first one will be used!");
+								  $"[{loadedMod.GetType().FullName} vs {type.FullName}]! Only the first one will be used!");
 						continue;
 					}
 
@@ -219,7 +224,7 @@ public static class ModLoader
 					if (loadedModSettings is { })
 					{
 						Log.Error($"Mod at {fs.Root} contains multiple classes extending from {typeof(GameModSettings)} " +
-						          $"[{loadedModSettings.GetType().FullName} vs {type.FullName}]! Only the first one will be used!");
+								  $"[{loadedModSettings.GetType().FullName} vs {type.FullName}]! Only the first one will be used!");
 						continue;
 					}
 
@@ -240,7 +245,11 @@ public static class ModLoader
 			}
 
 			// Either no GameMod found or mod was disabled, so make a dummy one
-			loadedMod = new DummyGameMod { ModInfo = info, Filesystem = fs };
+			loadedMod = new DummyGameMod
+			{
+				ModInfo = info,
+				Filesystem = fs
+			};
 		}
 
 		if (loadedModSettings != null && loadedModSettingsType != null)

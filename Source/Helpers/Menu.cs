@@ -1,3 +1,4 @@
+
 namespace Celeste64;
 
 public class Menu
@@ -11,10 +12,7 @@ public class Menu
 		// Whether this item can be selected when scrolling through the menu.
 		public virtual bool Selectable { get; } = true;
 		public virtual bool Pressed() => false;
-
-		public virtual void Slide(int dir)
-		{
-		}
+		public virtual void Slide(int dir) { }
 
 		// LocString is the base localized string object, before any changes.
 		// This is kept separate from the label so we can get substrings from the LocString like the Description.
@@ -125,7 +123,6 @@ public class Menu
 		}
 
 		public override string Label => $"{LocString} : {getLabels()[getId() - min]}";
-
 		public override void Slide(int dir)
 		{
 			if (getLabels().Count > 1)
@@ -153,7 +150,6 @@ public class Menu
 				action();
 				return true;
 			}
-
 			return false;
 		}
 	}
@@ -208,6 +204,7 @@ public class Menu
 		public MultiSelect(Loc.Localized locString, Action<T> set, Func<T> get)
 			: base(locString, GetEnumOptions(), () => (int)(object)get(), (i) => set((T)(object)i))
 		{
+
 		}
 	}
 
@@ -278,7 +275,6 @@ public class Menu
 					size.X = MathF.Max(size.X, font.WidthOf(items[i].Label));
 					size.Y += font.LineHeight;
 				}
-
 				size.Y += Spacing;
 			}
 
@@ -296,14 +292,17 @@ public class Menu
 
 	public Menu()
 	{
+
 	}
 
 	public virtual void Initialized()
 	{
+
 	}
 
 	public virtual void Closed()
 	{
+
 	}
 
 	public Menu Add(Item item)
@@ -355,7 +354,6 @@ public class Menu
 		{
 			submenu.Closed();
 		}
-
 		submenus.Clear();
 	}
 
@@ -386,7 +384,6 @@ public class Menu
 				{
 					scrolledAmount = Index - 2;
 				}
-
 				scrolledAmount = Math.Clamp(scrolledAmount, 0, items.Count - maxItemsCount);
 			}
 
@@ -471,7 +468,6 @@ public class Menu
 				position.Y += Spacing;
 			}
 		}
-
 		batch.PopMatrix();
 
 		// Render a scrolbar if there are too many items to show on screen at once

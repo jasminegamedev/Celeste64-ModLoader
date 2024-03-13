@@ -6,14 +6,11 @@ namespace Celeste64;
 public class SimpleModel : Model
 {
 	public record struct Part(int MaterialIndex, int IndexStart, int IndexCount);
-
 	public readonly Mesh Mesh = new();
 	public readonly List<Part> Parts = [];
 	public CullMode CullMode = CullMode.Back;
 
-	public SimpleModel()
-	{
-	}
+	public SimpleModel() { }
 
 	public SimpleModel(List<SimpleModel> combine)
 	{
@@ -57,7 +54,12 @@ public class SimpleModel : Model
 						Materials.Add(mat);
 					}
 
-					var next = new Part() { MaterialIndex = matIndex, IndexStart = primitive.Index + indexOffset, IndexCount = primitive.Count };
+					var next = new Part()
+					{
+						MaterialIndex = matIndex,
+						IndexStart = primitive.Index + indexOffset,
+						IndexCount = primitive.Count
+					};
 
 					if (Parts.Count > 0)
 					{
@@ -92,7 +94,7 @@ public class SimpleModel : Model
 			state.ApplyToMaterial(mat, Matrix.Identity);
 
 			if (mat.Shader != null &&
-			    mat.Shader.Has("u_jointMult"))
+				mat.Shader.Has("u_jointMult"))
 				mat.Set("u_jointMult", 0.0f);
 		}
 

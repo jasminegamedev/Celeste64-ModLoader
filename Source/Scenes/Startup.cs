@@ -64,7 +64,10 @@ public class Startup : Scene
 		//Assets.Levels[0].Enter(new AngledWipe());
 		Game.Instance.Goto(new Transition()
 		{
-			Mode = Transition.Modes.Replace, Scene = () => new Titlescreen(), ToBlack = null, FromBlack = new AngledWipe(),
+			Mode = Transition.Modes.Replace,
+			Scene = () => new Titlescreen(),
+			ToBlack = null,
+			FromBlack = new AngledWipe(),
 		});
 	}
 

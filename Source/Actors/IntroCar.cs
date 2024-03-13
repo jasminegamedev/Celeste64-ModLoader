@@ -1,3 +1,4 @@
+
 namespace Celeste64;
 
 public class IntroCar : Solid
@@ -40,7 +41,12 @@ public class IntroCar : Solid
 						vertices.Add(Vec3.Transform(meshVertices[meshIndices[primitive.Index + n + 0]].Pos, meshMatrix));
 					for (int n = 0; n < primitive.Count; n += 3)
 					{
-						faces.Add(new Face() { Plane = Plane.CreateFromVertices(vertices[v + n + 0], vertices[v + n + 1], vertices[v + n + 2]), VertexStart = v + n, VertexCount = 3 });
+						faces.Add(new Face()
+						{
+							Plane = Plane.CreateFromVertices(vertices[v + n + 0], vertices[v + n + 1], vertices[v + n + 2]),
+							VertexStart = v + n,
+							VertexCount = 3
+						});
 					}
 				}
 			}

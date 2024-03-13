@@ -1,3 +1,4 @@
+
 namespace Celeste64;
 
 public class TrafficBlock(Vec3 end) : Solid

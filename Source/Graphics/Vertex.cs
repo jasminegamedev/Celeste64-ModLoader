@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace Celeste64;
 
+
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public readonly struct SpriteVertex(Vec3 position, Vec2 texcoord, Color color) : IVertex
 {
@@ -31,9 +32,7 @@ public readonly struct Vertex(Vec3 position, Vec2 texcoord, Vec3 color, Vec3 nor
 	public readonly VertexFormat Format => VertexFormat;
 
 	public Vertex(Vec3 position, Vec2 texcoord, Vec3 color, Vec3 normal)
-		: this(position, texcoord, color, normal, Vec4.Zero, Vec4.One)
-	{
-	}
+		: this(position, texcoord, color, normal, Vec4.Zero, Vec4.One) { }
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public Vertex Transform(in Matrix mat)

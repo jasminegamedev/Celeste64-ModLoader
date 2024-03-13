@@ -1,3 +1,4 @@
+
 namespace Celeste64;
 
 public class Actor
@@ -156,30 +157,14 @@ public class Actor
 		Transformed();
 	}
 
-	public virtual void Created()
-	{
-	}
-
-	public virtual void Added()
-	{
-	}
-
-	public virtual void Update()
-	{
-	}
-
-	public virtual void LateUpdate()
-	{
-	}
-
-	public virtual void Destroyed()
-	{
-	}
+	public virtual void Created() { }
+	public virtual void Added() { }
+	public virtual void Update() { }
+	public virtual void LateUpdate() { }
+	public virtual void Destroyed() { }
 
 	/// <summary>
 	/// Called when we move
 	/// </summary>
-	public virtual void Transformed()
-	{
-	}
+	public virtual void Transformed() { }
 }

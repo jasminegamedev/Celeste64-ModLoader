@@ -69,7 +69,7 @@ public static class Audio
 
 		var path
 			= Path.GetDirectoryName(AppContext.BaseDirectory)
-			  ?? Directory.GetCurrentDirectory();
+			?? Directory.GetCurrentDirectory();
 
 		NativeLibrary.SetDllImportResolver(typeof(FMOD.Studio.System).Assembly,
 			(name, assembly, dllImportSearchPath) =>
@@ -171,7 +171,6 @@ public static class Audio
 		{
 			return PlaySoundInChannel(sound, SoundEffectGroup, loopCount, loopStart, loopEnd);
 		}
-
 		return null;
 	}
 
@@ -188,7 +187,6 @@ public static class Audio
 		{
 			return PlaySoundInChannel(song, MusicGroup, loopCount, loopStart, loopEnd);
 		}
-
 		return null;
 	}
 
@@ -210,7 +208,6 @@ public static class Audio
 			sound.getLength(out uint length, FMOD.TIMEUNIT.MS);
 			Check(channel.setLoopPoints((uint)Math.Clamp(loopStart, 0, length), FMOD.TIMEUNIT.MS, (uint)Math.Clamp(loopEnd, 0, length - 1), FMOD.TIMEUNIT.MS));
 		}
-
 		SoundHandle handle = new(channel, sound);
 		playingSounds.Add(handle);
 		return handle;
@@ -257,7 +254,6 @@ public static class Audio
 			if (sound.IsPlaying)
 				sound.Stop();
 		}
-
 		playingSounds.Clear();
 	}
 
@@ -345,7 +341,6 @@ public static class Audio
 				bus.stopAllEvents(mode);
 		}
 	}
-
 	public static void SetBusPaused(string name, bool paused)
 	{
 		if (system.isValid())
@@ -364,7 +359,7 @@ public static class Audio
 	public static void SetBusVolume(string busName, float value)
 	{
 		if (buses.TryGetValue(busName, out var id) &&
-		    system.getBusByID(id, out var bus) == FMOD.RESULT.OK)
+			system.getBusByID(id, out var bus) == FMOD.RESULT.OK)
 			bus.setVolume(value);
 	}
 
@@ -404,4 +399,5 @@ public static class AudioUtil
 	{
 		return ((ulong)id.data1 << 32) | (id.data2);
 	}
+
 }

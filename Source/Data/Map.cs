@@ -59,10 +59,15 @@ public class Map
 			return new MovingBlock(
 				entity.GetIntProperty("slow", 0) > 0,
 				map.FindTargetNodeFromParam(entity, "target"));
-		}) { IsSolidGeometry = true },
+		})
+		{ IsSolidGeometry = true },
 		["GateBlock"] = new((map, entity) => new GateBlock(map.FindTargetNodeFromParam(entity, "target"))) { IsSolidGeometry = true },
 		["TrafficBlock"] = new((map, entity) => new TrafficBlock(map.FindTargetNodeFromParam(entity, "target"))) { IsSolidGeometry = true },
-		["FallingBlock"] = new((map, entity) => { return new FallingBlock() { Secret = (entity.GetIntProperty("secret", 0) != 0) }; }) { IsSolidGeometry = true },
+		["FallingBlock"] = new((map, entity) =>
+		{
+			return new FallingBlock() { Secret = (entity.GetIntProperty("secret", 0) != 0) };
+		})
+		{ IsSolidGeometry = true },
 		["FloatyBlock"] = new((map, entity) => new FloatyBlock()) { IsSolidGeometry = true },
 		["DeathBlock"] = new((map, entity) => new DeathBlock()) { UseSolidsAsBounds = true },
 		["SpikeBlock"] = new((map, entity) => new SpikeBlock()) { UseSolidsAsBounds = true },
@@ -80,7 +85,6 @@ public class Map
 					entity.GetIntProperty("height", 10)
 				);
 			}
-
 			return null;
 		}),
 		["BreakBlock"] = new((map, entity) =>
@@ -89,7 +93,8 @@ public class Map
 				entity.GetIntProperty("bounces", 0) != 0,
 				entity.GetIntProperty("transparent", 0) != 0,
 				entity.GetIntProperty("secret", 0) != 0);
-		}) { IsSolidGeometry = true },
+		})
+		{ IsSolidGeometry = true },
 		["CassetteBlock"] = new((map, entity) => new CassetteBlock(entity.GetIntProperty("startOn", 1) != 0)) { IsSolidGeometry = true },
 		["NonClimbableBlock"] = new((map, entity) => new NonClimbableBlock()) { IsSolidGeometry = true },
 		["DoubleDashPuzzleBlock"] = new((map, entity) => new DoubleDashPuzzleBlock()) { IsSolidGeometry = true },
@@ -103,7 +108,6 @@ public class Map
 			{
 				return new SolidMesh(model, entity.GetFloatProperty("scale", 6));
 			}
-
 			return null;
 		})
 	};
@@ -219,7 +223,7 @@ public class Map
 			{
 				int k = rng.Int(n--);
 				(floatingDecorations[k], floatingDecorations[n]) =
-					(floatingDecorations[n], floatingDecorations[k]);
+				(floatingDecorations[n], floatingDecorations[k]);
 			}
 		}
 
@@ -248,30 +252,29 @@ public class Map
 		if (staticSolids.Count > 0)
 		{
 			var combined = new List<SledgeSolid>();
-			var available = new List<(BoundingBox Bounds, SledgeSolid Solid)>();
-			available.AddRange(staticSolids);
+			var available = new List<(BoundingBox Bounds, SledgeSolid Solid)>(); available.AddRange(staticSolids);
 			var bounds = localStaticSolidsBounds;
 
 			// split into a grid so we don't have one massive solid
 			var chunk = new Vec3(ChunkSize ?? 1000, ChunkSize ?? 1000, ChunkSize ?? 1000);
 			for (int x = 0; x < bounds.Size.X / chunk.X; x++)
-			for (int y = 0; y < bounds.Size.Y / chunk.Y; y++)
-			for (int z = 0; z < bounds.Size.Z / chunk.Z; z++)
-			{
-				var box = new BoundingBox(bounds.Min, bounds.Min + chunk * new Vec3(1 + x, 1 + y, 1 + z));
-
-				for (int i = available.Count - 1; i >= 0; i--)
-					if (box.Contains(available[i].Bounds.Center))
+				for (int y = 0; y < bounds.Size.Y / chunk.Y; y++)
+					for (int z = 0; z < bounds.Size.Z / chunk.Z; z++)
 					{
-						combined.Add(available[i].Solid);
-						available.RemoveAt(i);
-					}
+						var box = new BoundingBox(bounds.Min, bounds.Min + chunk * new Vec3(1 + x, 1 + y, 1 + z));
 
-				var result = new Solid();
-				GenerateSolid(result, combined);
-				world.Add(result);
-				combined.Clear();
-			}
+						for (int i = available.Count - 1; i >= 0; i--)
+							if (box.Contains(available[i].Bounds.Center))
+							{
+								combined.Add(available[i].Solid);
+								available.RemoveAt(i);
+							}
+
+						var result = new Solid();
+						GenerateSolid(result, combined);
+						world.Add(result);
+						combined.Clear();
+					}
 		}
 
 		// load all decorations into one big model *shrug*
@@ -341,6 +344,7 @@ public class Map
 
 			if (name != StartCheckpoint)
 				HandleActorCreation(world, entity, new Checkpoint(name), null);
+
 		}
 		else if (ActorFactories.TryGetValue(entity.ClassName, out var factory))
 		{
@@ -360,7 +364,6 @@ public class Map
 				CollectSolids(entity, collection);
 				GenerateSolid(solid, collection);
 			}
-
 			if (entity.Properties.ContainsKey("climbable"))
 				solid.Climbable = entity.GetStringProperty("climbable", "true") != "false";
 		}
@@ -370,7 +373,7 @@ public class Map
 			it.Position = Vec3.Transform(entity.GetVectorProperty("origin", Vec3.Zero), baseTransform);
 
 		if (entity.Properties.ContainsKey("_tb_group") &&
-		    groupNames.TryGetValue(entity.GetIntProperty("_tb_group", -1), out var groupName))
+			groupNames.TryGetValue(entity.GetIntProperty("_tb_group", -1), out var groupName))
 			it.GroupName = groupName;
 
 
@@ -400,7 +403,6 @@ public class Map
 			if (entity.Properties.ContainsKey("angle"))
 				rotationXYZ.Z = entity.GetIntProperty("angle", 0) * Calc.DegToRad - MathF.PI / 2;
 		}
-
 		it.RotationXYZ = rotationXYZ;
 
 
@@ -449,7 +451,6 @@ public class Map
 			pos = Vec3.Transform(target.GetVectorProperty("origin", Vec3.Zero), baseTransform);
 			return true;
 		}
-
 		pos = Vec3.Zero;
 		return false;
 	}
@@ -479,11 +480,11 @@ public class Map
 			min = max = sol.Faces[0].Vertices[0];
 
 		foreach (var face in sol.Faces)
-		foreach (var vert in face.Vertices)
-		{
-			min = Vec3.Min(min, vert);
-			max = Vec3.Max(max, vert);
-		}
+			foreach (var vert in face.Vertices)
+			{
+				min = Vec3.Min(min, vert);
+				max = Vec3.Max(max, vert);
+			}
 
 		if (transform.HasValue)
 			return BoundingBox.Transform(new(min, max), transform.Value);
@@ -506,25 +507,24 @@ public class Map
 
 	private void GenerateModel(SimpleModel model, List<SledgeSolid> collection, in Matrix transform)
 	{
-		var used = Pool.Get<HashSet<string>>();
-		used.Clear();
+		var used = Pool.Get<HashSet<string>>(); used.Clear();
 
 		// find all used materials
 		foreach (var solid in collection)
-		foreach (var face in solid.Faces)
-		{
-			if (face.TextureName.StartsWith("__") || face.TextureName == "TB_empty" || face.TextureName == "invisible")
-				continue;
-
-			if (!used.Contains(face.TextureName))
+			foreach (var face in solid.Faces)
 			{
-				used.Add(face.TextureName);
-				if (currentMaterials.ContainsKey(face.TextureName))
-					model.Materials.Add(currentMaterials[face.TextureName]);
-				else
-					model.Materials.Add(currentMaterials["wall"]);
+				if (face.TextureName.StartsWith("__") || face.TextureName == "TB_empty" || face.TextureName == "invisible")
+					continue;
+
+				if (!used.Contains(face.TextureName))
+				{
+					used.Add(face.TextureName);
+					if (currentMaterials.ContainsKey(face.TextureName))
+						model.Materials.Add(currentMaterials[face.TextureName]);
+					else
+						model.Materials.Add(currentMaterials["wall"]);
+				}
 			}
-		}
 
 		if (used.Count <= 0)
 		{
@@ -544,36 +544,41 @@ public class Map
 
 			// add all faces with this material
 			foreach (var solid in collection)
-			foreach (var face in solid.Faces)
-			{
-				if (face.TextureName.StartsWith("__") || face.TextureName == "TB_empty" || face.TextureName == "invisible")
-					continue;
-				if (face.TextureName != texture.Name && texture.Name != "wall")
-					continue;
-
-				var vertexIndex = meshVertices.Count;
-				var plane = Plane.Normalize(Plane.Transform(face.Plane, transform));
-				CalculateRotatedUV(face, out var rotatedUAxis, out var rotatedVAxis);
-
-				// add face vertices
-				for (int i = 0; i < face.Vertices.Count; i++)
+				foreach (var face in solid.Faces)
 				{
-					var pos = Vec3.Transform(face.Vertices[i], transform);
-					var uv = CalculateUV(face, face.Vertices[i], texture.Size, rotatedUAxis, rotatedVAxis);
-					meshVertices.Add(new Vertex(pos, uv, Color.White, plane.Normal));
-				}
+					if (face.TextureName.StartsWith("__") || face.TextureName == "TB_empty" || face.TextureName == "invisible")
+						continue;
+					if (face.TextureName != texture.Name && texture.Name != "wall")
+						continue;
 
-				// add mesh indices
-				for (int i = 0; i < face.Vertices.Count - 2; i++)
-				{
-					meshIndices.Add(vertexIndex + 0);
-					meshIndices.Add(vertexIndex + i + 1);
-					meshIndices.Add(vertexIndex + i + 2);
+					var vertexIndex = meshVertices.Count;
+					var plane = Plane.Normalize(Plane.Transform(face.Plane, transform));
+					CalculateRotatedUV(face, out var rotatedUAxis, out var rotatedVAxis);
+
+					// add face vertices
+					for (int i = 0; i < face.Vertices.Count; i++)
+					{
+						var pos = Vec3.Transform(face.Vertices[i], transform);
+						var uv = CalculateUV(face, face.Vertices[i], texture.Size, rotatedUAxis, rotatedVAxis);
+						meshVertices.Add(new Vertex(pos, uv, Color.White, plane.Normal));
+					}
+
+					// add mesh indices
+					for (int i = 0; i < face.Vertices.Count - 2; i++)
+					{
+						meshIndices.Add(vertexIndex + 0);
+						meshIndices.Add(vertexIndex + i + 1);
+						meshIndices.Add(vertexIndex + i + 2);
+					}
 				}
-			}
 
 			// add this part of the model
-			model.Parts.Add(new() { MaterialIndex = n, IndexStart = start, IndexCount = meshIndices.Count - start });
+			model.Parts.Add(new()
+			{
+				MaterialIndex = n,
+				IndexStart = start,
+				IndexCount = meshIndices.Count - start
+			});
 		}
 
 		model.Mesh.SetVertices<Vertex>(CollectionsMarshal.AsSpan(meshVertices));
@@ -604,28 +609,33 @@ public class Map
 
 		// find all used materials
 		foreach (var solid in collection)
-		foreach (var face in solid.Faces)
-		{
-			if (face.TextureName.StartsWith("__") || face.TextureName == "TB_empty")
-				continue;
-
-			// add collider vertices
-			var vertexIndex = colliderVertices.Count;
-			var last = Vec3.Zero;
-			for (int i = 0; i < face.Vertices.Count; i++)
+			foreach (var face in solid.Faces)
 			{
-				// skip collider vertices that are too close together ...
-				var it = Vec3.Transform(face.Vertices[i], transform);
-				if (i == 0 || (last - it).LengthSquared() > 1)
-					colliderVertices.Add(last = it);
-			}
+				if (face.TextureName.StartsWith("__") || face.TextureName == "TB_empty")
+					continue;
 
-			// add collider face
-			if (colliderVertices.Count > vertexIndex)
-			{
-				colliderFaces.Add(new() { Plane = Plane.Normalize(Plane.Transform(face.Plane, transform)), VertexStart = vertexIndex, VertexCount = colliderVertices.Count - vertexIndex });
+				// add collider vertices
+				var vertexIndex = colliderVertices.Count;
+				var last = Vec3.Zero;
+				for (int i = 0; i < face.Vertices.Count; i++)
+				{
+					// skip collider vertices that are too close together ...
+					var it = Vec3.Transform(face.Vertices[i], transform);
+					if (i == 0 || (last - it).LengthSquared() > 1)
+						colliderVertices.Add(last = it);
+				}
+
+				// add collider face
+				if (colliderVertices.Count > vertexIndex)
+				{
+					colliderFaces.Add(new()
+					{
+						Plane = Plane.Normalize(Plane.Transform(face.Plane, transform)),
+						VertexStart = vertexIndex,
+						VertexCount = colliderVertices.Count - vertexIndex
+					});
+				}
 			}
-		}
 
 		// set up values
 		if (colliderVertices.Count > 0)

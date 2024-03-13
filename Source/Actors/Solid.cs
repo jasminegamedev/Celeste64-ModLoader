@@ -1,3 +1,4 @@
+
 namespace Celeste64;
 
 public class Solid : Actor, IHaveModels
@@ -45,7 +46,6 @@ public class Solid : Actor, IHaveModels
 			return WorldVerticesLocal;
 		}
 	}
-
 	public virtual Face[] WorldFaces
 	{
 		get
@@ -57,7 +57,10 @@ public class Solid : Actor, IHaveModels
 
 	public virtual bool IsClimbable
 	{
-		get { return Climbable; }
+		get
+		{
+			return Climbable;
+		}
 	}
 
 	public Vec3 Velocity = Vec3.Zero;

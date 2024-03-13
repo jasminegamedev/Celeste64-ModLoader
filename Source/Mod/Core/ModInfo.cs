@@ -1,3 +1,4 @@
+
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
@@ -39,9 +40,9 @@ public class ModInfo
 				Version = new Version(value);
 			else
 				Version = new Version(value[..splitIdx]);
+
 		}
 	}
-
 	private string _versionString { get; set; } = "";
 
 	/// <summary>
@@ -74,19 +75,18 @@ public class ModInfo
 	/// </summary>
 	public Dictionary<string, string> AssetReplaceItems { get; set; } = new();
 
-	[JsonIgnore] internal ModAssemblyLoadContext? AssemblyContext = null;
+	[JsonIgnore]
+	internal ModAssemblyLoadContext? AssemblyContext = null;
 
 	private static readonly Regex IdRegex = new("[a-zA-z0-9_]", RegexOptions.Compiled);
 
 	public bool IsValid()
 	{
 		return !string.IsNullOrEmpty(Id) && !string.IsNullOrEmpty(Name) && !string.IsNullOrEmpty(VersionString) &&
-		       IdRegex.IsMatch(Id) && Id != "_";
+			   IdRegex.IsMatch(Id) && Id != "_";
 	}
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(ModInfo))]
-internal partial class ModInfoContext : JsonSerializerContext
-{
-}
+internal partial class ModInfoContext : JsonSerializerContext { }

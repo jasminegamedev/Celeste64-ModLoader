@@ -1,3 +1,4 @@
+
 using Celeste64.Mod;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -312,18 +313,18 @@ public class Save
 	public SkinInfo GetSkin()
 	{
 		return Assets.EnabledSkins.FirstOrDefault(s => s.Name == SkinName) ??
-		       ModManager.Instance.VanillaGameMod?.Skins.FirstOrDefault() ??
-		       new SkinInfo
-		       {
-			       Name = "Madeline",
-			       Model = "player",
-			       HideHair = false,
-			       HairNormal = 0xdb2c00,
-			       HairNoDash = 0x6ec0ff,
-			       HairTwoDash = 0xfa91ff,
-			       HairRefillFlash = 0xffffff,
-			       HairFeather = 0xf2d450
-		       };
+			ModManager.Instance.VanillaGameMod?.Skins.FirstOrDefault() ??
+			new SkinInfo
+			{
+				Name = "Madeline",
+				Model = "player",
+				HideHair = false,
+				HairNormal = 0xdb2c00,
+				HairNoDash = 0x6ec0ff,
+				HairTwoDash = 0xfa91ff,
+				HairRefillFlash = 0xffffff,
+				HairFeather = 0xf2d450
+			};
 	}
 
 	public void SyncSettings()
@@ -350,7 +351,7 @@ public class Save
 
 		// validate that the temp path worked, and overwride existing if it did.
 		if (File.Exists(tempPath) &&
-		    Deserialize(File.ReadAllText(tempPath)) != null)
+			Deserialize(File.ReadAllText(tempPath)) != null)
 		{
 			File.Copy(tempPath, savePath, true);
 		}
@@ -377,6 +378,4 @@ public class Save
 
 [JsonSourceGenerationOptions(WriteIndented = true, AllowTrailingCommas = true, UseStringEnumConverter = true)]
 [JsonSerializable(typeof(Save))]
-internal partial class SaveContext : JsonSerializerContext
-{
-}
+internal partial class SaveContext : JsonSerializerContext { }

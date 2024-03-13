@@ -1,3 +1,4 @@
+
 namespace Celeste64;
 
 [Flags]

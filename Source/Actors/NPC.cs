@@ -1,4 +1,5 @@
-﻿namespace Celeste64;
+﻿
+namespace Celeste64;
 
 public abstract class NPC : Actor, IHaveModels, IHaveSprites, IHavePushout, ICastPointShadow
 {

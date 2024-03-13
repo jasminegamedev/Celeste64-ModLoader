@@ -51,39 +51,22 @@ namespace FMOD
 		DSP callbacks
 	*/
 	public delegate RESULT DSP_CREATE_CALLBACK(ref DSP_STATE dsp_state);
-
 	public delegate RESULT DSP_RELEASE_CALLBACK(ref DSP_STATE dsp_state);
-
 	public delegate RESULT DSP_RESET_CALLBACK(ref DSP_STATE dsp_state);
-
 	public delegate RESULT DSP_SETPOSITION_CALLBACK(ref DSP_STATE dsp_state, uint pos);
-
 	public delegate RESULT DSP_READ_CALLBACK(ref DSP_STATE dsp_state, IntPtr inbuffer, IntPtr outbuffer, uint length, int inchannels, ref int outchannels);
-
 	public delegate RESULT DSP_SHOULDIPROCESS_CALLBACK(ref DSP_STATE dsp_state, bool inputsidle, uint length, CHANNELMASK inmask, int inchannels, SPEAKERMODE speakermode);
-
 	public delegate RESULT DSP_PROCESS_CALLBACK(ref DSP_STATE dsp_state, uint length, ref DSP_BUFFER_ARRAY inbufferarray, ref DSP_BUFFER_ARRAY outbufferarray, bool inputsidle, DSP_PROCESS_OPERATION op);
-
 	public delegate RESULT DSP_SETPARAM_FLOAT_CALLBACK(ref DSP_STATE dsp_state, int index, float value);
-
 	public delegate RESULT DSP_SETPARAM_INT_CALLBACK(ref DSP_STATE dsp_state, int index, int value);
-
 	public delegate RESULT DSP_SETPARAM_BOOL_CALLBACK(ref DSP_STATE dsp_state, int index, bool value);
-
 	public delegate RESULT DSP_SETPARAM_DATA_CALLBACK(ref DSP_STATE dsp_state, int index, IntPtr data, uint length);
-
 	public delegate RESULT DSP_GETPARAM_FLOAT_CALLBACK(ref DSP_STATE dsp_state, int index, ref float value, IntPtr valuestr);
-
 	public delegate RESULT DSP_GETPARAM_INT_CALLBACK(ref DSP_STATE dsp_state, int index, ref int value, IntPtr valuestr);
-
 	public delegate RESULT DSP_GETPARAM_BOOL_CALLBACK(ref DSP_STATE dsp_state, int index, ref bool value, IntPtr valuestr);
-
 	public delegate RESULT DSP_GETPARAM_DATA_CALLBACK(ref DSP_STATE dsp_state, int index, ref IntPtr data, ref uint length, IntPtr valuestr);
-
 	public delegate RESULT DSP_SYSTEM_REGISTER_CALLBACK(ref DSP_STATE dsp_state);
-
 	public delegate RESULT DSP_SYSTEM_DEREGISTER_CALLBACK(ref DSP_STATE dsp_state);
-
 	public delegate RESULT DSP_SYSTEM_MIX_CALLBACK(ref DSP_STATE dsp_state, int stage);
 
 
@@ -91,39 +74,22 @@ namespace FMOD
 		DSP functions
 	*/
 	public delegate IntPtr DSP_ALLOC_FUNC(uint size, MEMORY_TYPE type, IntPtr sourcestr);
-
 	public delegate IntPtr DSP_REALLOC_FUNC(IntPtr ptr, uint size, MEMORY_TYPE type, IntPtr sourcestr);
-
 	public delegate void DSP_FREE_FUNC(IntPtr ptr, MEMORY_TYPE type, IntPtr sourcestr);
-
 	public delegate void DSP_LOG_FUNC(DEBUG_FLAGS level, IntPtr file, int line, IntPtr function, IntPtr str);
-
 	public delegate RESULT DSP_GETSAMPLERATE_FUNC(ref DSP_STATE dsp_state, ref int rate);
-
 	public delegate RESULT DSP_GETBLOCKSIZE_FUNC(ref DSP_STATE dsp_state, ref uint blocksize);
-
 	public delegate RESULT DSP_GETSPEAKERMODE_FUNC(ref DSP_STATE dsp_state, ref int speakermode_mixer, ref int speakermode_output);
-
 	public delegate RESULT DSP_GETCLOCK_FUNC(ref DSP_STATE dsp_state, out ulong clock, out uint offset, out uint length);
-
 	public delegate RESULT DSP_GETLISTENERATTRIBUTES_FUNC(ref DSP_STATE dsp_state, ref int numlisteners, IntPtr attributes);
-
 	public delegate RESULT DSP_GETUSERDATA_FUNC(ref DSP_STATE dsp_state, out IntPtr userdata);
-
 	public delegate RESULT DSP_DFT_FFTREAL_FUNC(ref DSP_STATE dsp_state, int size, IntPtr signal, IntPtr dft, IntPtr window, int signalhop);
-
 	public delegate RESULT DSP_DFT_IFFTREAL_FUNC(ref DSP_STATE dsp_state, int size, IntPtr dft, IntPtr signal, IntPtr window, int signalhop);
-
 	public delegate RESULT DSP_PAN_SUMMONOMATRIX_FUNC(ref DSP_STATE dsp_state, int sourceSpeakerMode, float lowFrequencyGain, float overallGain, IntPtr matrix);
-
 	public delegate RESULT DSP_PAN_SUMSTEREOMATRIX_FUNC(ref DSP_STATE dsp_state, int sourceSpeakerMode, float pan, float lowFrequencyGain, float overallGain, int matrixHop, IntPtr matrix);
-
 	public delegate RESULT DSP_PAN_SUMSURROUNDMATRIX_FUNC(ref DSP_STATE dsp_state, int sourceSpeakerMode, int targetSpeakerMode, float direction, float extent, float rotation, float lowFrequencyGain, float overallGain, int matrixHop, IntPtr matrix, DSP_PAN_SURROUND_FLAGS flags);
-
 	public delegate RESULT DSP_PAN_SUMMONOTOSURROUNDMATRIX_FUNC(ref DSP_STATE dsp_state, int targetSpeakerMode, float direction, float extent, float lowFrequencyGain, float overallGain, int matrixHop, IntPtr matrix);
-
 	public delegate RESULT DSP_PAN_SUMSTEREOTOSURROUNDMATRIX_FUNC(ref DSP_STATE dsp_state, int targetSpeakerMode, float direction, float extent, float rotation, float lowFrequencyGain, float overallGain, int matrixHop, IntPtr matrix);
-
 	public delegate RESULT DSP_PAN_GETROLLOFFGAIN_FUNC(ref DSP_STATE dsp_state, DSP_PAN_3D_ROLLOFF_TYPE rolloff, float distance, float mindistance, float maxdistance, out float gain);
 
 
@@ -236,23 +202,24 @@ namespace FMOD
 	[StructLayout(LayoutKind.Explicit)]
 	public struct DSP_PARAMETER_DESC_UNION
 	{
-		[FieldOffset(0)] public DSP_PARAMETER_DESC_FLOAT floatdesc;
-		[FieldOffset(0)] public DSP_PARAMETER_DESC_INT intdesc;
-		[FieldOffset(0)] public DSP_PARAMETER_DESC_BOOL booldesc;
-		[FieldOffset(0)] public DSP_PARAMETER_DESC_DATA datadesc;
+		[FieldOffset(0)]
+		public DSP_PARAMETER_DESC_FLOAT floatdesc;
+		[FieldOffset(0)]
+		public DSP_PARAMETER_DESC_INT intdesc;
+		[FieldOffset(0)]
+		public DSP_PARAMETER_DESC_BOOL booldesc;
+		[FieldOffset(0)]
+		public DSP_PARAMETER_DESC_DATA datadesc;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
 	public struct DSP_PARAMETER_DESC
 	{
 		public DSP_PARAMETER_TYPE type;
-
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
 		public byte[] name;
-
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
 		public byte[] label;
-
 		public string description;
 
 		public DSP_PARAMETER_DESC_UNION desc;
@@ -287,13 +254,10 @@ namespace FMOD
 	public struct DSP_PARAMETER_3DATTRIBUTES_MULTI
 	{
 		public int numlisteners;
-
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
 		public ATTRIBUTES_3D[] relative;
-
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
 		public float[] weight;
-
 		public ATTRIBUTES_3D absolute;
 	}
 
@@ -352,10 +316,8 @@ namespace FMOD
 		public float integratedloudness;
 		public float loudness10thpercentile;
 		public float loudness95thpercentile;
-
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 66)]
 		public float[] loudnesshistogram;
-
 		public float maxtruepeak;
 		public float maxmomentaryloudness;
 	}
@@ -378,10 +340,8 @@ namespace FMOD
 	public struct DSP_DESCRIPTION
 	{
 		public uint pluginsdkversion;
-
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
 		public byte[] name;
-
 		public uint version;
 		public int numinputbuffers;
 		public int numoutputbuffers;
@@ -462,13 +422,10 @@ namespace FMOD
 	public struct DSP_METERING_INFO
 	{
 		public int numsamples;
-
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
 		public float[] peaklevel;
-
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
 		public float[] rmslevel;
-
 		public short numchannels;
 	}
 

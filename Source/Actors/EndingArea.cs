@@ -1,5 +1,4 @@
+
 namespace Celeste64;
 
-public class EndingArea : Actor
-{
-}
+public class EndingArea : Actor { }

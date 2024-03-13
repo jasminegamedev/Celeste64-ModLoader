@@ -1,3 +1,4 @@
+
 using System.Text.Json.Serialization;
 
 namespace Celeste64;
@@ -27,17 +28,10 @@ public class SkinInfo
 		return true;
 	}
 
-	public virtual void OnEquipped(Player player, Model m)
-	{
-	}
-
-	public virtual void OnRemoved(Player player, Model m)
-	{
-	}
+	public virtual void OnEquipped(Player player, Model m) { }
+	public virtual void OnRemoved(Player player, Model m) { }
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(SkinInfo))]
-internal partial class SkinInfoContext : JsonSerializerContext
-{
-}
+internal partial class SkinInfoContext : JsonSerializerContext { }

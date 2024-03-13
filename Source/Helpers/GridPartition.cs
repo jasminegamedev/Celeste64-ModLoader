@@ -28,16 +28,16 @@ public class GridPartition<T>
 	{
 		var b = Cells(bounds);
 		for (int x = b.X; x < b.X + b.Width; x++)
-		for (int y = b.Y; y < b.Y + b.Height; y++)
-			Cell(x, y).Add(instance);
+			for (int y = b.Y; y < b.Y + b.Height; y++)
+				Cell(x, y).Add(instance);
 	}
 
 	public void Remove(in T instance, in Rect bounds)
 	{
 		var b = Cells(bounds);
 		for (int x = b.X; x < b.X + b.Width; x++)
-		for (int y = b.Y; y < b.Y + b.Height; y++)
-			Cell(x, y).Remove(instance);
+			for (int y = b.Y; y < b.Y + b.Height; y++)
+				Cell(x, y).Remove(instance);
 	}
 
 	public void Query(List<T> populate, in Rect bounds)
@@ -47,17 +47,17 @@ public class GridPartition<T>
 
 		var b = Cells(bounds);
 		for (int x = b.X; x < b.X + b.Width; x++)
-		for (int y = b.Y; y < b.Y + b.Height; y++)
-		{
-			foreach (var it in Cell(x, y))
+			for (int y = b.Y; y < b.Y + b.Height; y++)
 			{
-				if (!already.Contains(it))
+				foreach (var it in Cell(x, y))
 				{
-					populate.Add(it);
-					already.Add(it);
+					if (!already.Contains(it))
+					{
+						populate.Add(it);
+						already.Add(it);
+					}
 				}
 			}
-		}
 
 		Pool.Return(already);
 	}

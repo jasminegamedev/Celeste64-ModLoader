@@ -1,18 +1,12 @@
-﻿namespace Celeste64;
+﻿
+namespace Celeste64;
 
 public class FallingBlock : Solid, IUnlockStrawberry
 {
 	public virtual float MaxFallSpeed => -160;
 	public virtual float Gravity => 600;
 
-	public enum States
-	{
-		Wait,
-		Shake,
-		Fall,
-		Landed,
-		Respawn
-	}
+	public enum States { Wait, Shake, Fall, Landed, Respawn }
 
 	public Vec3? EndPosition;
 	public bool Secret = false;
@@ -30,7 +24,7 @@ public class FallingBlock : Solid, IUnlockStrawberry
 
 		StartPosition = Position;
 		if (World.SolidRayCast(WorldBounds.Center, -Vec3.UnitZ, 200, out var hit)
-		    && hit.Actor is not FallingBlock)
+		&& hit.Actor is not FallingBlock)
 			EndPosition = hit.Point - Vec3.UnitZ * LocalBounds.Min.Z;
 	}
 

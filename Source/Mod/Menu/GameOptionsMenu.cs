@@ -13,7 +13,10 @@ public class GameOptionsMenu : Menu
 		FujiOptionsMenu.Title = Loc.Str("FujiOptions");
 		FujiOptionsMenu.Add(new Toggle("FujiEnableDebugMenu", Save.Instance.ToggleEnableDebugMenu, () => Save.Instance.EnableDebugMenu));
 		FujiOptionsMenu.Add(new Toggle("FujiWriteLog", Save.Instance.ToggleWriteLog, () => Save.Instance.WriteLog));
-		FujiOptionsMenu.Add(new Option("Exit", () => { PopSubMenu(); }));
+		FujiOptionsMenu.Add(new Option("Exit", () =>
+		{
+			PopSubMenu();
+		}));
 
 		// Setup this menu
 		Title = Loc.Str("OptionsTitle");
@@ -32,7 +35,6 @@ public class GameOptionsMenu : Menu
 					newLanguage.Use();
 				}));
 		}
-
 		Add(new MultiSelect<Save.InvertCameraOptions>("OptionsInvertCamera", Save.Instance.SetCameraInverted, () => Save.Instance.InvertCamera));
 		Add(new Spacer());
 		Add(new Slider("OptionsBGM", 0, 10, () => Save.Instance.MusicVolume, Save.Instance.SetMusicVolume));

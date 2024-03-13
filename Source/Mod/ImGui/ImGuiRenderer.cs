@@ -98,7 +98,7 @@ internal class ImGuiRenderer
 	public void BeforeRender()
 	{
 		if (target == null || target.IsDisposed || target.Width != App.WidthInPixels ||
-		    target.Height != App.HeightInPixels)
+			target.Height != App.HeightInPixels)
 		{
 			target?.Dispose();
 			target = new Target(App.WidthInPixels, App.HeightInPixels, [TextureFormat.Color, TextureFormat.Depth24Stencil8]);

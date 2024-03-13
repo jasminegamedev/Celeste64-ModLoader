@@ -1,4 +1,5 @@
-﻿namespace Celeste64;
+﻿
+namespace Celeste64;
 
 public struct Camera()
 {
@@ -126,7 +127,6 @@ public struct Camera()
 				var height = target?.Height ?? App.HeightInPixels;
 				projection = Matrix.CreatePerspectiveFieldOfView(MathF.PI / 4.0f * fovMultiplier, width / (float)height, nearPlane, farPlane);
 			}
-
 			return projection.Value;
 		}
 	}

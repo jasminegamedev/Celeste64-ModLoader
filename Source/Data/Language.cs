@@ -13,12 +13,10 @@ public class Language
 	public string ID { get; set; } = string.Empty;
 	public string Label { get; set; } = string.Empty;
 	public string Font { get; set; } = string.Empty;
-
 	[JsonIgnore]
 	public ModAssetDictionary<string> ModStrings { get; set; } = new(
 		gamemod => gamemod.Strings.TryGetValue(Current.ID, out var value) ? value : []
 	);
-
 	[JsonIgnore]
 	public ModAssetDictionary<List<Line>> ModDialog { get; set; } = new(
 		gamemod => gamemod.DialogLines.TryGetValue(Current.ID, out var value) ? value : []
@@ -29,7 +27,8 @@ public class Language
 
 	internal List<string> KnownMissingKeys = new();
 
-	[JsonIgnore] private SpriteFont? spriteFont;
+	[JsonIgnore]
+	private SpriteFont? spriteFont;
 
 	private void TryLogMissing(string key)
 	{
@@ -175,18 +174,15 @@ public class Language
 		{
 			mod.Strings.Add(ID, new Dictionary<string, string>());
 		}
-
 		if (!mod.DialogLines.ContainsKey(ID))
 		{
 			mod.DialogLines.Add(ID, new Dictionary<string, List<Line>>());
 		}
-
 		if (other.Strings != null)
 		{
 			foreach (var (k, v) in other.Strings)
 				mod.Strings[ID].Add(k, v);
 		}
-
 		if (other.Dialog != null)
 		{
 			foreach (var (k, v) in other.Dialog)
@@ -314,6 +310,4 @@ public static class Loc
 	AllowTrailingCommas = true
 )]
 [JsonSerializable(typeof(Language))]
-internal partial class LanguageContext : JsonSerializerContext
-{
-}
+internal partial class LanguageContext : JsonSerializerContext { }

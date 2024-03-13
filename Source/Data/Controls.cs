@@ -1,3 +1,4 @@
+
 namespace Celeste64;
 
 public static class Controls
@@ -50,6 +51,7 @@ public static class Controls
 			it.BindTo(Cancel);
 		foreach (var it in FindAction(config, "Pause"))
 			it.BindTo(Pause);
+
 	}
 
 	public static void Clear()

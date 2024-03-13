@@ -22,7 +22,6 @@ internal static class SledgeHooks
 	}
 
 	public delegate void orig_Solid_ComputeVertices(Sledge.Formats.Map.Objects.Solid self);
-
 	public static void On_Solid_ComputeVertices(orig_Solid_ComputeVertices orig, Sledge.Formats.Map.Objects.Solid self)
 	{
 		const float planeMatchEpsilon = 0.0075f; // Magic number that seems to match VHE
@@ -37,7 +36,7 @@ internal static class SledgeHooks
 			//In Sledge's original implementation, they only compared the planes normal. This caused issues if two planes had similar normal.
 			//We are changing it to compare the distance as well for more accuracy.
 			var pg = poly.Polygons.FirstOrDefault(x => x.Plane.Normal.EquivalentTo(face.Plane.Normal, planeMatchEpsilon)
-			                                           && Math.Abs(x.Plane.D - face.Plane.D) < 0.001f);
+				&& Math.Abs(x.Plane.D - face.Plane.D) < 0.001f);
 			if (pg != null)
 			{
 				face.Vertices.AddRange(pg.Vertices.Select(x => x.ToVector3()));

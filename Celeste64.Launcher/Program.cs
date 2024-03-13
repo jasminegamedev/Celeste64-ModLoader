@@ -14,18 +14,19 @@ public class Program
 		{
 			ConsoleHelper.CreateConsole();
 		}
-
 		Version loaderVersion = typeof(Program).Assembly.GetName().Version!;
 		Game.LoaderVersion = $"Fuji: v.{loaderVersion.Major}.{loaderVersion.Minor}.{loaderVersion.Build}";
 		if (!string.IsNullOrEmpty(BuildProperties.ModVersion()))
 		{
 			Game.LoaderVersion += "-" + BuildProperties.ModVersion();
 		}
-
 		Log.Info($"Celeste 64 v.{Game.GameVersion.Major}.{Game.GameVersion.Minor}.{Game.GameVersion.Build}");
 		Log.Info(Game.LoaderVersion);
 
-		AppDomain.CurrentDomain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) => { HandleError((Exception)e.ExceptionObject); };
+		AppDomain.CurrentDomain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) =>
+		{
+			HandleError((Exception)e.ExceptionObject);
+		};
 
 		Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 		Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;

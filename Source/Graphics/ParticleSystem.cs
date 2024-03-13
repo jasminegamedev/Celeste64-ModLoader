@@ -1,4 +1,5 @@
-﻿namespace Celeste64;
+﻿
+namespace Celeste64;
 
 public readonly struct ParticleTheme
 {
@@ -41,7 +42,12 @@ public class ParticleSystem
 			if (Particles.Count >= MaxParticles)
 				Particles.RemoveAt(0);
 
-			Particles.Add(new Particle() with { Position = position, Velocity = Theme.StartVelocity + velocity, Life = Theme.Life });
+			Particles.Add(new Particle() with
+			{
+				Position = position,
+				Velocity = Theme.StartVelocity + velocity,
+				Life = Theme.Life
+			});
 
 			Accumulator--;
 		}

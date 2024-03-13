@@ -115,7 +115,6 @@ public class ModInfoMenu : Menu
 		{
 			Add(new Submenu("ModOptions", RootMenu, modOptionsMenu));
 		}
-
 		Add(new Option("Back", () =>
 		{
 			if (RootMenu != null)

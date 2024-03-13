@@ -1,3 +1,4 @@
+
 namespace Celeste64;
 
 /// <summary>
@@ -10,9 +11,7 @@ public record struct BoundingBox(Vec3 Min, Vec3 Max)
 	public readonly Vec3 Size => Max - Min;
 
 	public BoundingBox(Vec3 position, float size)
-		: this(position - Vec3.One * size / 2, position + Vec3.One * size)
-	{
-	}
+		: this(position - Vec3.One * size / 2, position + Vec3.One * size) { }
 
 	public readonly PlaneIntersectionType Intersects(in Plane plane)
 	{
@@ -98,22 +97,19 @@ public record struct BoundingBox(Vec3 Min, Vec3 Max)
 	public static BoundingBox Transform(in BoundingBox a, in Matrix matrix)
 	{
 		var corners = a.GetCorners();
-		var min = Vec3.Transform(corners[0], matrix);
-		var max = Vec3.Transform(corners[0], matrix);
+		var min = Vec3.Transform(corners[0], matrix); var max = Vec3.Transform(corners[0], matrix);
 		for (int i = 1; i < corners.Count; i++)
 		{
 			var it = Vec3.Transform(corners[i], matrix);
 			min = Vec3.Min(min, it);
 			max = Vec3.Max(max, it);
 		}
-
 		return new BoundingBox(min, max);
 	}
 
 	public readonly StackList8<Vec3> GetCorners()
 	{
-		return
-		[
+		return [
 			new Vec3(Min.X, Max.Y, Max.Z),
 			new Vec3(Max.X, Max.Y, Max.Z),
 			new Vec3(Max.X, Min.Y, Max.Z),

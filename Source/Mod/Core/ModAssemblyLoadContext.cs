@@ -18,24 +18,22 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext
 	private static string[] AssemblyLoadBlackList => _assemblyLoadBlackList ??= AssemblyLoadContext.Default.Assemblies.Select(asm => asm.GetName().Name)
 		.Append("Mono.Cecil.Pdb").Append("Mono.Cecil.Mdb") // These two aren't picked up by default for some reason
 		.ToArray()!;
-
 	private static string[]? _assemblyLoadBlackList = null;
 
 	/// <summary>
 	/// The folder name where mod unmanaged assemblies will be loaded from.
 	/// </summary>
 	private static string UnmanagedLibraryFolder => _unmanagedLibraryFolder ??= (
-		RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "lib-win-x64" :
-		RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? RuntimeInformation.OSArchitecture switch
-		{
-			Architecture.X64 => "lib-linux-x64",
-			Architecture.Arm => "lib-linux-arm",
-			Architecture.Arm64 => "lib-linux-arm64",
-			_ => throw new PlatformNotSupportedException(),
-		} :
-		RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "lib-osx-x64" :
-		throw new PlatformNotSupportedException());
-
+			RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "lib-win-x64" :
+			RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? RuntimeInformation.OSArchitecture switch
+			{
+				Architecture.X64 => "lib-linux-x64",
+				Architecture.Arm => "lib-linux-arm",
+				Architecture.Arm64 => "lib-linux-arm64",
+				_ => throw new PlatformNotSupportedException(),
+			} :
+			RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "lib-osx-x64" :
+			throw new PlatformNotSupportedException());
 	private static string? _unmanagedLibraryFolder = null;
 
 
@@ -75,7 +73,6 @@ internal sealed class ModAssemblyLoadContext : AssemblyLoadContext
 			if (_contextsByModID.TryGetValue(modId, out var alc))
 				_dependencyContexts.Add(alc);
 		}
-
 		_contextsByModID.TryAdd(info.Id, this);
 
 		// Load all assemblies

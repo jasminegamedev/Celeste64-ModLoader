@@ -6,13 +6,7 @@ namespace Celeste64;
 
 public class World : Scene
 {
-	public enum EntryReasons
-	{
-		Entered,
-		Returned,
-		Respawned
-	}
-
+	public enum EntryReasons { Entered, Returned, Respawned }
 	public readonly record struct EntryInfo(string Map, string CheckPoint, bool Submap, EntryReasons Reason);
 
 	public Camera Camera = new();
@@ -55,7 +49,6 @@ public class World : Scene
 	private int strawbCounterWas;
 
 	private bool IsInEndingArea => Get<Player>() is { } player && Overlaps<EndingArea>(player.Position);
-
 	private bool IsPauseEnabled
 	{
 		get
@@ -140,10 +133,16 @@ public class World : Scene
 		{
 			Menu optionsMenu = new GameOptionsMenu(pauseMenu);
 
-			ModSelectionMenu modMenu = new ModSelectionMenu(pauseMenu) { Title = "Mods Menu" };
+			ModSelectionMenu modMenu = new ModSelectionMenu(pauseMenu)
+			{
+				Title = "Mods Menu"
+			};
 
 			pauseMenu.Title = Loc.Str("PauseTitle");
-			pauseMenu.Add(new Menu.Option("PauseResume", () => { SetPaused(false); }));
+			pauseMenu.Add(new Menu.Option("PauseResume", () =>
+			{
+				SetPaused(false);
+			}));
 			pauseMenu.Add(new Menu.Option("PauseRetry", () =>
 			{
 				SetPaused(false);
@@ -159,7 +158,6 @@ public class World : Scene
 					() => Save.Instance.GetSkin().Name, Save.Instance.SetSkinName)
 				);
 			}
-
 			pauseMenu.Add(new Menu.Submenu("PauseOptions", pauseMenu, optionsMenu));
 			pauseMenu.Add(new Menu.Submenu("Mods", pauseMenu, modMenu));
 			pauseMenu.Add(new Menu.Option("PauseSaveQuit", () => Game.Instance.Goto(new Transition()
@@ -307,7 +305,6 @@ public class World : Scene
 					list.Add(actor);
 			trackedTypes.Add(type);
 		}
-
 		return list;
 	}
 
@@ -338,7 +335,6 @@ public class World : Scene
 				adding[i].Added();
 				ModManager.Instance.OnActorAdded(adding[i]);
 			}
-
 			adding.RemoveRange(0, addCount);
 
 			for (int i = 0; i < destroying.Count; i++)
@@ -365,7 +361,6 @@ public class World : Scene
 					list.Enqueue(it);
 				}
 			}
-
 			destroying.Clear();
 		}
 	}
@@ -495,7 +490,6 @@ public class World : Scene
 						debugUpdateCount++;
 						actor.Update();
 					}
-
 				foreach (var actor in Actors)
 					if (actor.UpdateOffScreen || actor.WorldBounds.Intersects(view))
 						actor.LateUpdate();
@@ -538,7 +532,6 @@ public class World : Scene
 				}
 			}
 		}
-
 		if (paused != Paused)
 		{
 			Audio.SetBusPaused(Sfx.bus_gameplay, paused);
@@ -600,9 +593,9 @@ public class World : Scene
 				for (int i = 0; i < face.VertexCount - 2; i++)
 				{
 					if (Utils.RayIntersectsTriangle(point, direction,
-						    verts[face.VertexStart + 0],
-						    verts[face.VertexStart + i + 1],
-						    verts[face.VertexStart + i + 2], out float dist))
+						verts[face.VertexStart + 0],
+						verts[face.VertexStart + i + 1],
+						verts[face.VertexStart + i + 2], out float dist))
 					{
 						// too far away
 						if (dist > distance)
@@ -667,8 +660,8 @@ public class World : Scene
 				for (int i = 0; i < face.VertexCount - 2; i++)
 				{
 					if (Utils.PlaneTriangleIntersection(flatPlane,
-						    verts[face.VertexStart + 0], verts[face.VertexStart + i + 1], verts[face.VertexStart + i + 2],
-						    out var line0, out var line1))
+						verts[face.VertexStart + 0], verts[face.VertexStart + i + 1], verts[face.VertexStart + i + 2],
+						out var line0, out var line1))
 					{
 						var next = new Vec3(new Line(line0.XY(), line1.XY()).ClosestPoint(flatPoint), point.Z);
 						var diff = (point - next);
@@ -677,10 +670,16 @@ public class World : Scene
 
 						var pushout = (radius - diff.Length()) * diff.Normalized();
 						if (closestTriangleOnPlane.HasValue && pushout.LengthSquared() <
-						    closestTriangleOnPlane.Value.Pushout.LengthSquared())
+							closestTriangleOnPlane.Value.Pushout.LengthSquared())
 							continue;
 
-						closestTriangleOnPlane = new WallHit() { Pushout = pushout, Point = next, Normal = face.Plane.Normal, Actor = solid };
+						closestTriangleOnPlane = new WallHit()
+						{
+							Pushout = pushout,
+							Point = next,
+							Normal = face.Plane.Normal,
+							Actor = solid
+						};
 					}
 				}
 
@@ -709,7 +708,6 @@ public class World : Scene
 				if (hits[i].Pushout.LengthSquared() > closest.Pushout.LengthSquared()) // note reversed because we want the most pushout
 					closest = hits[i];
 			}
-
 			hit = closest;
 			return true;
 		}
@@ -733,7 +731,6 @@ public class World : Scene
 				if (d1 > d0)
 					hit = hits[i];
 			}
-
 			return true;
 		}
 		else
@@ -773,7 +770,6 @@ public class World : Scene
 				if (actor.WorldBounds.Contains(point) && (predicate == null || predicate((actor as T)!)))
 					return (actor as T)!;
 		}
-
 		return null;
 	}
 
@@ -805,7 +801,7 @@ public class World : Scene
 			{
 				var alpha = (actor as ICastPointShadow)!.PointShadowAlpha;
 				if (alpha > 0 &&
-				    Camera.Frustum.Contains(actor.WorldBounds.Conflate(actor.WorldBounds - Vec3.UnitZ * 1000)))
+					Camera.Frustum.Contains(actor.WorldBounds.Conflate(actor.WorldBounds - Vec3.UnitZ * 1000)))
 					sprites.Add(Sprite.CreateShadowSprite(this, actor.Position + Vec3.UnitZ, alpha));
 			}
 
@@ -822,7 +818,7 @@ public class World : Scene
 			// sort models by distance (for transparency)
 			models.Sort((a, b) =>
 				(int)((b.Actor.Position - Camera.Position).LengthSquared() -
-				      (a.Actor.Position - Camera.Position).LengthSquared()));
+				 (a.Actor.Position - Camera.Position).LengthSquared()));
 
 			// perp all models
 			foreach (var it in models)
@@ -835,9 +831,9 @@ public class World : Scene
 			for (int i = 0; i < skyboxes.Count; i++)
 			{
 				skyboxes[i].Render(Camera,
-					Matrix.CreateRotationZ(i * GeneralTimer * 0.01f) *
-					Matrix.CreateScale(1, 1, 0.5f) *
-					Matrix.CreateTranslation(shift), 300);
+				Matrix.CreateRotationZ(i * GeneralTimer * 0.01f) *
+				Matrix.CreateScale(1, 1, 0.5f) *
+				Matrix.CreateTranslation(shift), 300);
 			}
 		}
 
@@ -988,7 +984,6 @@ public class World : Scene
 				postTarget?.Dispose();
 				postTarget = new(Camera.Target.Width, Camera.Target.Height);
 			}
-
 			postTarget.Clear(Color.Black);
 
 			var postCam = Camera with { Target = postTarget };

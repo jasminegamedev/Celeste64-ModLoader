@@ -68,13 +68,13 @@ internal static class Hooks
 		}
 
 		if (method.DeclaringType != null && method.DeclaringType.Namespace != "Celeste64" && method.DeclaringType.Namespace != "Foster.Framework" ||
-		    method.HasAttr<DisallowHooksAttribute>())
+			method.HasAttr<DisallowHooksAttribute>())
 		{
 			throw new InvalidOperationException($"Tried to hook the method '{method}'. " +
-			                                    "Hooking methods outside of the 'Celeste64' / 'Foster.Framework' namespace is not allowed! " +
-			                                    "Those methods might change their implementation, causing the hook to break! " +
-			                                    "Please consider reaching out to the authors first, before trying to avoid this protection. " +
-			                                    "If you are aware of the risks but need to do it anyway, you can enable the required namespace in 'PreventHookProtectionYesIKnowThisIsDangerousAndCanBreak' list inside your 'GameMod'.");
+												"Hooking methods outside of the 'Celeste64' / 'Foster.Framework' namespace is not allowed! " +
+												"Those methods might change their implementation, causing the hook to break! " +
+												"Please consider reaching out to the authors first, before trying to avoid this protection. " +
+												"If you are aware of the risks but need to do it anyway, you can enable the required namespace in 'PreventHookProtectionYesIKnowThisIsDangerousAndCanBreak' list inside your 'GameMod'.");
 		}
 	}
 }

@@ -32,7 +32,10 @@ public class ModOptionsMenu : Menu
 
 		if (RootMenu != null)
 		{
-			Add(new Option("Back", () => { PopRootSubMenu(); }));
+			Add(new Option("Back", () =>
+			{
+				PopRootSubMenu();
+			}));
 		}
 	}
 }

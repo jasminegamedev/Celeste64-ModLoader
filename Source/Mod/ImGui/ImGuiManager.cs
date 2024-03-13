@@ -46,7 +46,6 @@ public class ImGuiManager
 		{
 			if (handler.Visible) handler.Render();
 		}
-
 		renderer.AfterRender();
 
 		var io = ImGui.GetIO();

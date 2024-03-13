@@ -9,22 +9,16 @@ public readonly struct AudioHandle
 {
 	private readonly EventInstance instance;
 
-	public AudioHandle()
-	{
-	}
-
-	public AudioHandle(in EventInstance instance)
-	{
-		this.instance = instance;
-	}
+	public AudioHandle() { }
+	public AudioHandle(in EventInstance instance) { this.instance = instance; }
 
 	public FMOD.GUID ID
 	{
 		get
 		{
 			if (instance.isValid() &&
-			    instance.getDescription(out var desc) == FMOD.RESULT.OK &&
-			    desc.getID(out var id) == FMOD.RESULT.OK)
+				instance.getDescription(out var desc) == FMOD.RESULT.OK &&
+				desc.getID(out var id) == FMOD.RESULT.OK)
 				return id;
 			return new();
 		}
@@ -35,8 +29,8 @@ public readonly struct AudioHandle
 		get
 		{
 			if (instance.isValid() &&
-			    instance.getDescription(out var desc) == FMOD.RESULT.OK &&
-			    desc.getPath(out var path) == FMOD.RESULT.OK)
+				instance.getDescription(out var desc) == FMOD.RESULT.OK &&
+				desc.getPath(out var path) == FMOD.RESULT.OK)
 				return path;
 			return string.Empty;
 		}
@@ -47,8 +41,8 @@ public readonly struct AudioHandle
 		get
 		{
 			if (instance.isValid() &&
-			    instance.getDescription(out var desc) == FMOD.RESULT.OK &&
-			    desc.isOneshot(out var oneshot) == FMOD.RESULT.OK)
+				instance.getDescription(out var desc) == FMOD.RESULT.OK &&
+				desc.isOneshot(out var oneshot) == FMOD.RESULT.OK)
 				return !oneshot;
 			return false;
 		}
@@ -61,8 +55,8 @@ public readonly struct AudioHandle
 		get
 		{
 			if (instance.isValid() &&
-			    instance.getPlaybackState(out var state) == FMOD.RESULT.OK &&
-			    (state == PLAYBACK_STATE.PLAYING || state == PLAYBACK_STATE.STARTING))
+				instance.getPlaybackState(out var state) == FMOD.RESULT.OK &&
+				(state == PLAYBACK_STATE.PLAYING || state == PLAYBACK_STATE.STARTING))
 				return true;
 			return false;
 		}
@@ -73,8 +67,8 @@ public readonly struct AudioHandle
 		get
 		{
 			if (instance.isValid() &&
-			    instance.getPlaybackState(out var state) == FMOD.RESULT.OK &&
-			    (state == PLAYBACK_STATE.STOPPING || state == PLAYBACK_STATE.STOPPED))
+				instance.getPlaybackState(out var state) == FMOD.RESULT.OK &&
+				(state == PLAYBACK_STATE.STOPPING || state == PLAYBACK_STATE.STOPPED))
 				return true;
 			return false;
 		}
@@ -151,6 +145,7 @@ public readonly struct AudioHandle
 	{
 		if (instance.isValid())
 			instance.setParameterByName(id, value);
+
 	}
 
 	public bool Has(string id) =>
@@ -181,8 +176,8 @@ public readonly struct AudioHandle
 			Audio.Check(instance.getPlaybackState(out var state));
 
 			if (state == PLAYBACK_STATE.STARTING ||
-			    state == PLAYBACK_STATE.PLAYING ||
-			    state == PLAYBACK_STATE.SUSTAINING)
+				state == PLAYBACK_STATE.PLAYING ||
+				state == PLAYBACK_STATE.SUSTAINING)
 			{
 				Audio.Check(instance.stop(STOP_MODE.ALLOWFADEOUT));
 			}

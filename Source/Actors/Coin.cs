@@ -1,4 +1,5 @@
-﻿namespace Celeste64;
+﻿
+namespace Celeste64;
 
 public class Coin : Actor, IHaveModels, IHaveSprites, IPickup, ICastPointShadow
 {

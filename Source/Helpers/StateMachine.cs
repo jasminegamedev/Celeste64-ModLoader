@@ -1,4 +1,5 @@
-﻿namespace Celeste64;
+﻿
+namespace Celeste64;
 
 public unsafe sealed class StateMachine<TIndex, TEvent>
 	where TIndex : unmanaged, Enum
@@ -45,6 +46,7 @@ public unsafe sealed class StateMachine<TIndex, TEvent>
 		this.enter[index] = enter;
 		this.exit[index] = exit;
 		this.routine[index] = routine;
+
 	}
 
 	public void InitStateEvent(TIndex state, TEvent ev, Action? action)
