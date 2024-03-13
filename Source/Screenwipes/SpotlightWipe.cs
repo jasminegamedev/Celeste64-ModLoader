@@ -12,7 +12,7 @@ public class SpotlightWipe() : ScreenWipe(EaseDuration)
 	private const float EaseClosePercent = 0.3f; // how long (in percent) it eases the entire screen
 												 // ex. if 0.2 and 0.3, it would open for 0.2, wait until 0.7, then open for the remaining 0.3
 
-												 public override void Start()
+	public override void Start()
 	{
 		if (IsFromBlack)
 			Audio.Play(Sfx.ui_spotlight_in);

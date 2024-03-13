@@ -15,7 +15,7 @@ public class SolidMesh : Solid
 
 		ObjectModel = new(model)
 		{
-			Flags = ModelFlags.Terrain, 
+			Flags = ModelFlags.Terrain,
 			Transform = Matrix.CreateScale(0.2f),
 		};
 

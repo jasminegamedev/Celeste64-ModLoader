@@ -41,7 +41,7 @@ public class Overworld : Scene
 
 			Menu = new()
 			{
-				UpSound = Sfx.main_menu_roll_up, 
+				UpSound = Sfx.main_menu_roll_up,
 				DownSound = Sfx.main_menu_roll_down,
 			};
 

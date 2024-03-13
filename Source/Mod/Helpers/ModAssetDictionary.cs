@@ -159,8 +159,8 @@ public class ModAssetDictionary<V>(ModAssetDictionary<V>.GetDictionary getDictio
 	private bool TryGetAssetReplaceForKeyInMod(string key, GameMod? mod, [MaybeNullWhen(false)] out V asset)
 	{
 		if (mod is { ModInfo: not null }
-		    && mod.ModInfo.AssetReplaceItems.TryGetValue(key, out string? modKey)
-		    && modKey != null
+			&& mod.ModInfo.AssetReplaceItems.TryGetValue(key, out string? modKey)
+			&& modKey != null
 		)
 		{
 			if (getDictionary(mod).TryGetValue(modKey, out var modAsset) && modAsset != null)

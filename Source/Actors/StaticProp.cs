@@ -15,7 +15,7 @@ public class StaticProp : Actor, IHaveModels, IHavePushout, IListenToAudioCallba
 	{
 		Model = new(model)
 		{
-			Flags = ModelFlags.Terrain, 
+			Flags = ModelFlags.Terrain,
 			Transform = Matrix.CreateScale(0.2f),
 		};
 		LocalBounds = new BoundingBox(new Vec3(-10, -10, 0), new Vec3(10, 10, 80));

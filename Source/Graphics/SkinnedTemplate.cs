@@ -105,7 +105,7 @@ public class SkinnedTemplate
 			// figure out which texture to use by just using the first texture found
 			foreach (var channel in logicalMat.Channels)
 				if (channel.Texture is { PrimaryImage: not null } &&
-				    textures.TryGetValue(channel.Texture.PrimaryImage.Content, out var texture))
+					textures.TryGetValue(channel.Texture.PrimaryImage.Content, out var texture))
 				{
 					Materials[i].Texture = texture;
 					break;
