@@ -7,19 +7,28 @@ public class TestWindow : EditorWindow
 {
 	protected override string Title => "Test";
 
-	protected override void RenderWindow(EditorScene editor)
+	protected override void RenderWindow(EditorWorld editor)
 	{
 		ImGui.Text("Testing");
 		ImGui.Text($"Selected: {editor.Selected}");
-		
+
 		if (editor.Selected is { DefinitionType: { } defType, _Data: { } data })
 		{
 			var props = defType
 				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-				.Where(prop => !prop.HasAttr<SerializeIgnoreAttribute>());
-			
+				.Where(prop => !prop.HasAttr<PropertyIgnoreAttribute>());
+
 			foreach (var prop in props)
 			{
+				if (prop.GetCustomAttribute<PropertyCustomAttribute>() is { } custom)
+				{
+					var obj = prop.GetValue(data)!;
+					custom.RenderGui(ref obj);
+					prop.SetValue(data, obj);
+
+					continue;
+				}
+
 				switch (prop.GetValue(data))
 				{
 					case Vec3 v:
@@ -29,7 +38,7 @@ public class TestWindow : EditorWindow
 							data.Dirty = true;
 						}
 						break;
-					
+
 					default:
 						ImGui.Text($" - {prop.Name}: {prop.GetValue(data)}");
 						break;

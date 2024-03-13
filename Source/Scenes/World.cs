@@ -10,7 +10,7 @@ public class World : Scene
 {
 	public enum EntryReasons { Entered, Returned, Respawned }
 	public readonly record struct EntryInfo(string Map, string CheckPoint, bool Submap, EntryReasons Reason);
-	
+
 	public enum WorldType { Game, Editor }
 	public readonly WorldType Type;
 
@@ -69,7 +69,7 @@ public class World : Scene
 	protected readonly Stopwatch debugFpsTimer = new();
 	protected TimeSpan lastDebugRndTime;
 	protected int debugUpdateCount;
-	
+
 	public static bool DebugDraw { get; protected set; } = false;
 
 	public Map? Map { get; private set; }
@@ -106,7 +106,7 @@ public class World : Scene
 		})));
 
 		Entry = entry;
-		Type = this is EditorScene ? WorldType.Editor : WorldType.Game;
+		Type = this is EditorWorld ? WorldType.Editor : WorldType.Game;
 
 		var stopwatch = Stopwatch.StartNew();
 
@@ -210,7 +210,7 @@ public class World : Scene
 				Ambience = $"event:/sfx/ambience/{map.Ambience}";
 			}
 		}
-		
+
 		// But still show the skybox
 		if (!string.IsNullOrEmpty(map.Skybox))
 		{
@@ -398,17 +398,17 @@ public class World : Scene
 				pauseMenu.Update();
 			}
 		}
-		
+
 		// Toggle to editor
 		if (Input.Keyboard.Pressed(Keys.F3))
 		{
 			Game.Scene!.Exited();
 			Game.Instance.scenes.Pop();
-			Game.Instance.scenes.Push(new EditorScene(Entry));
+			Game.Instance.scenes.Push(new EditorWorld(Entry));
 			Game.Scene!.Entered();
 			return;
 		}
-	
+
 		if(Panicked) {
 			return;
 		} // don't pour salt in wounds
@@ -915,7 +915,6 @@ public class World : Scene
 		}
 
 		// ui
-		if (Type == WorldType.Game) // Don't render UI in editor
 		{
 			batch.SetSampler(new TextureSampler(TextureFilter.Linear, TextureWrap.ClampToEdge, TextureWrap.ClampToEdge));
 			var bounds = new Rect(0, 0, target.Width, target.Height);

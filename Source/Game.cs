@@ -371,12 +371,12 @@ public class Game : Module
 				PerformAssetReload = true
 			});
 		}
-		else if (scene is EditorScene editor)
+		else if (scene is EditorWorld editor)
 		{
 			Goto(new Transition()
 			{
 				Mode = Transition.Modes.Replace,
-				Scene = () => new EditorScene(editor.Entry),
+				Scene = () => new EditorWorld(editor.Entry),
 				ToPause = true,
 				ToBlack = new AngledWipe(),
 				PerformAssetReload = true

@@ -3,30 +3,30 @@ using Celeste64.Mod.Helpers;
 
 namespace Celeste64.Mod.Editor;
 
-public class EditorScene : World
+public class EditorWorld : World
 {
-	private const float EditorResolutionScale = 3.0f; 
-	
+	private const float EditorResolutionScale = 3.0f;
+
 	internal readonly ImGuiHandler[] Handlers = [
 		new TestWindow(),
 	];
-	
+
 	public Actor? Selected { internal set; get; } = null;
-	
+
 	private Vec3 cameraPos = new(0, -10, 0);
 	private Vec2 cameraRot = new(0, 0);
-	
+
 	// private readonly WorldRenderer worldRenderer = new();
 	private readonly Batcher3D batch3D = new();
-	
-	internal EditorScene(EntryInfo entry) : base(entry)
+
+	internal EditorWorld(EntryInfo entry) : base(entry)
 	{
 		Camera.NearPlane = 0.1f;
 		Camera.FarPlane = 4000; // Increase render distance
 		Camera.FOVMultiplier = 1.25f;
-		
+
 		//Definitions.Add(new TestEditorDefinition());
-		
+
 		// Load the map
 		// if (Assets.Maps[entry.Map] is not FujiMap map)
 		// {
@@ -67,7 +67,7 @@ public class EditorScene : World
 			Game.Scene.Entered();
 			return;
 		}
-		
+
 		if (Input.Keyboard.Ctrl && Input.Keyboard.Pressed(Keys.S))
 		{
 			// TODO: Dont actually hardcode this lol
@@ -76,10 +76,10 @@ public class EditorScene : World
 
 			using var fs = File.Open(path, FileMode.Create);
 			FujiMapWriter.WriteTo(this, fs);
-			
+
 			return;
 		}
-		
+
 		// Camera movement
 		var cameraForward = new Vec3(
 			MathF.Sin(cameraRot.X),
@@ -89,9 +89,9 @@ public class EditorScene : World
 			MathF.Sin(cameraRot.X - Calc.HalfPI),
 			MathF.Cos(cameraRot.X - Calc.HalfPI),
 			0.0f);
-		
+
 		float moveSpeed = 250.0f;
-		
+
 		if (Input.Keyboard.Down(Keys.W))
 			cameraPos += cameraForward * moveSpeed * Time.Delta;
 		if (Input.Keyboard.Down(Keys.S))
@@ -104,7 +104,7 @@ public class EditorScene : World
 			cameraPos.Z += moveSpeed * Time.Delta;
 		if (Input.Keyboard.Down(Keys.LeftShift))
 			cameraPos.Z -= moveSpeed * Time.Delta;
-	
+
 		// Camera rotation
 		float rotateSpeed = 16.5f * Calc.DegToRad;
 		if (Input.Mouse.Down(MouseButtons.Right) && !ImGuiManager.WantCaptureMouse)
@@ -114,7 +114,7 @@ public class EditorScene : World
 			cameraRot.X %= 360.0f * Calc.DegToRad;
 			cameraRot.Y = Math.Clamp(cameraRot.Y, -89.9f * Calc.DegToRad, 89.9f * Calc.DegToRad);
 		}
-		
+
 		// Update camera
 		var forward = new Vec3(
 			MathF.Sin(cameraRot.X) * MathF.Cos(cameraRot.Y),
@@ -122,12 +122,12 @@ public class EditorScene : World
 			MathF.Sin(-cameraRot.Y));
 		Camera.Position = cameraPos;
 		Camera.LookAt = cameraPos + forward;
-		
+
 		// Shoot ray cast for selection
 		if (Input.Mouse.LeftPressed && !ImGuiManager.WantCaptureMouse)
 		{
 			if (Camera.Target != null &&
-				Matrix.Invert(Camera.Projection, out var inverseProj) && 
+				Matrix.Invert(Camera.Projection, out var inverseProj) &&
 			    Matrix.Invert(Camera.View, out var inverseView))
 			{
 				// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
@@ -144,29 +144,29 @@ public class EditorScene : World
 				eyePos.W = 0.0f;
 				var worldPos = Vec4.Transform(eyePos, inverseView);
 				var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
-				
+
 				if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
 					Selected = hit.Actor;
 				else
 					Selected = null;
 			}
 		}
-		
+
 		// Don't call base.Update, since we don't want the actors to update
 		// Instead we manually call only the things which we want for the editor
 
 		// toggle debug draw
 		if (Input.Keyboard.Pressed(Keys.F1))
 			DebugDraw = !DebugDraw;
-		
+
 		// add / remove actors
 		ResolveChanges();
 	}
-	
+
 	public override void Render(Target target)
 	{
 		// We copy and modify World.Render, since thats easier
-		
+
 		debugRndTimer.Restart();
 		Camera.Target = target;
 		target.Clear(0x444c83, 1, 0, ClearMask.All);
@@ -192,7 +192,7 @@ public class EditorScene : World
 			foreach (var actor in All<ICastPointShadow>())
 			{
 				var alpha = (actor as ICastPointShadow)!.PointShadowAlpha;
-				if (alpha > 0 && 
+				if (alpha > 0 &&
 					Camera.Frustum.Contains(actor.WorldBounds.Conflate(actor.WorldBounds - Vec3.UnitZ * 1000)))
 					sprites.Add(Sprite.CreateShadowSprite(this, actor.Position + Vec3.UnitZ, alpha));
 			}
@@ -222,7 +222,7 @@ public class EditorScene : World
 			var shift = new Vec3(Camera.Position.X, Camera.Position.Y, Camera.Position.Z);
 			for (int i = 0; i < skyboxes.Count; i++)
 			{
-				skyboxes[i].Render(Camera, 
+				skyboxes[i].Render(Camera,
 				Matrix.CreateRotationZ(i * GeneralTimer * 0.01f) *
 				Matrix.CreateScale(1, 1, 0.5f) *
 				Matrix.CreateTranslation(shift), 300);
@@ -245,10 +245,10 @@ public class EditorScene : World
 
 		// render main models
 		RenderModels(ref state, models, ModelFlags.Default);
-		
+
 		// perform post processing effects
 		ApplyPostEffects();
-		
+
 		// render alpha threshold transparent stuff
 		{
 			state.CutoutMode = true;
@@ -268,14 +268,14 @@ public class EditorScene : World
 			RenderModels(ref state, models, ModelFlags.Transparent);
 			state.DepthMask = true;
 		}
-		
+
 		// Render selected actor bounding box on-top of everything else
 		if (Selected is { } selected)
 		{
 			var lineColor = Color.Green;
 			var innerColor = Color.Green * 0.4f;
 			var inflate = 0.25f;
-			
+
 			var matrix = selected.Matrix;
 			var bounds = selected.LocalBounds.Inflate(inflate);
 			var v000 = bounds.Min;
@@ -286,17 +286,17 @@ public class EditorScene : World
 			var v101 = bounds.Max with { Y = bounds.Min.Y };
 			var v110 = bounds.Max with { Z = bounds.Min.Z };
 			var v111 = bounds.Max;
-			
+
 			// Scale thickness based on distance
 			var lineThickness = Vec3.Distance(Camera.Position, bounds.Center) * 0.0003f;
-			
+
 			batch3D.Box(v000, v111, innerColor, matrix);
 			batch3D.Render(ref state);
 			batch3D.Clear();
-			
+
 			// Ignore depth for outline
 			target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
-			
+
 			batch3D.Line(v000, v100, lineColor, matrix, lineThickness);
 			batch3D.Line(v000, v010, lineColor, matrix, lineThickness);
 			batch3D.Line(v000, v001, lineColor, matrix, lineThickness);
@@ -313,7 +313,7 @@ public class EditorScene : World
 
 			batch3D.Line(v100, v110, lineColor, matrix, lineThickness);
 			batch3D.Line(v001, v011, lineColor, matrix, lineThickness);
-			
+
 			batch3D.Render(ref state);
 			batch3D.Clear();
 		}
@@ -345,7 +345,7 @@ public class EditorScene : World
 		lastDebugRndTime = debugRndTimer.Elapsed;
 		debugRndTimer.Stop();
 	}
-	
+
 	public bool ActorRayCast(in Vec3 point, in Vec3 direction, float distance, out RayHit hit, bool ignoreBackfaces = true, bool ignoreTransparent = false)
 	{
 		hit = default;
@@ -359,15 +359,15 @@ public class EditorScene : World
 		{
 			if (!actor.WorldBounds.Intersects(box))
 				continue;
-			
+
 			// Don't re-select an actor
 			if (actor == Selected)
 				continue;
-			
+
 			// TODO: Allow selecting decorations, since they're currently one giant object
 			if (actor is Decoration or FloatingDecoration)
 				continue;
-			
+
 			if (actor is not Solid solid)
 			{
 				if (ModUtils.RayIntersectOBB(point, direction, actor.LocalBounds, actor.Matrix, out float dist))
@@ -375,30 +375,30 @@ public class EditorScene : World
 					// too far away
 					if (dist > distance)
 						continue;
-					
+
 					hit.Intersections++;
 
 					// we have a closer value
 					if (closest.HasValue && dist > closest.Value)
 						continue;
-					
+
 					// store as closest
 					hit.Point = point + direction * dist;
 					hit.Distance = dist;
 					hit.Actor = actor;
 					closest = dist;
 				}
-				
+
 				continue;
 			}
-			
+
 			// Special handling for solid to properly check against mesh
 			if (!solid.Collidable || solid.Destroying)
 				continue;
 
 			if (solid.Transparent && ignoreTransparent)
 				continue;
-			
+
 			var verts = solid.WorldVertices;
 			var faces = solid.WorldFaces;
 
@@ -415,7 +415,7 @@ public class EditorScene : World
 				// check against each triangle in the face
 				for (int i = 0; i < face.VertexCount - 2; i ++)
 				{
-					if (Utils.RayIntersectsTriangle(point, direction, 
+					if (Utils.RayIntersectsTriangle(point, direction,
 						    verts[face.VertexStart + 0],
 						    verts[face.VertexStart + i + 1],
 						    verts[face.VertexStart + i + 2], out float dist))
@@ -448,5 +448,5 @@ public class EditorScene : World
 
 internal class EditorHandler : ImGuiHandler
 {
-	
+
 }

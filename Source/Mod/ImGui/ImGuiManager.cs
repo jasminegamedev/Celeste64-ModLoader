@@ -32,7 +32,7 @@ public class ImGuiManager
 		if (debugMenu.Active)
 			debugMenu.Update();
         
-        if (Game.Scene is EditorScene editor)
+        if (Game.Scene is EditorWorld editor)
         {
 	        foreach (var handler in editor.Handlers)
 	        {
@@ -53,7 +53,7 @@ public class ImGuiManager
 		if (debugMenu.Visible)
 			debugMenu.Render();
 		
-		if (Game.Scene is EditorScene editor)
+		if (Game.Scene is EditorWorld editor)
 		{
 			foreach (var handler in editor.Handlers)
 			{

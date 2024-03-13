@@ -6,11 +6,11 @@ public abstract class EditorWindow : ImGuiHandler
 {
 	protected abstract string Title { get; }
 
-	protected abstract void RenderWindow(EditorScene editor);
+	protected abstract void RenderWindow(EditorWorld editor);
 	public sealed override void Render()
 	{
 		ImGui.Begin(Title);
-		RenderWindow((Game.Scene as EditorScene)!);
+		RenderWindow((Game.Scene as EditorWorld)!);
 		ImGui.End();
 	}
 }

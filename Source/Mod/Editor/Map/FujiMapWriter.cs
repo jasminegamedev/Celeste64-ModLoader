@@ -17,16 +17,16 @@ public static class FujiMapWriter
 	/// Current version of the map format. Needs to be incremented with every change to it.
 	/// </summary>
 	public const byte FormatVersion = 1;
-	
-	public static void WriteTo(EditorScene editor, Stream stream)
+
+	public static void WriteTo(EditorWorld editor, Stream stream)
 	{
 		using var writer = new BinaryWriter(stream);
-		
+
 		// Header
 		writer.Write(FormatMagic);
 		writer.Write(FormatVersion);
 
-		// Metadata		
+		// Metadata
 		// Skybox
 		writer.Write("city");
 		// Snow amount
@@ -37,18 +37,18 @@ public static class FujiMapWriter
 		writer.Write("mountain");
 		// Music
 		writer.Write("mus_lvl1");
-		
+
 		// Definitions
 		// writer.Write(editor.Definitions.Count);
 		// foreach (var def in editor.Definitions)
 		// {
 		// 	Log.Info($"Def: {def}");
 		// 	writer.Write(def.DataType.FullName!);
-		// 	
+		//
 		// 	var props = def.DataType
 		// 		.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
 		// 		.Where(prop => !prop.HasAttr<SerializeIgnoreAttribute>());
-		// 	
+		//
 		// 	foreach (var prop in props)
 		// 	{
 		// 		if (prop.GetCustomAttribute<SerializeCustomAttribute>() is { } custom)
@@ -56,7 +56,7 @@ public static class FujiMapWriter
 		// 			custom.Serialize(prop.GetValue(def._Data)!, writer);
 		// 			continue;
 		// 		}
-		// 		
+		//
 		// 		switch (prop.GetValue(def._Data))
 		// 		{
 		// 			// Primitives
@@ -104,7 +104,7 @@ public static class FujiMapWriter
 		// 			case string v:
 		// 				writer.Write(v);
 		// 				break;
-		// 			 
+		//
 		// 			// Special support
 		// 			case Vec2 v:
 		// 				writer.Write(v);
@@ -115,16 +115,16 @@ public static class FujiMapWriter
 		// 			case Color v:
 		// 				writer.Write(v);
 		// 				break;
-		// 			
+		//
 		// 			default:
 		// 				throw new Exception($"Property '{prop.Name}' of type {prop.PropertyType} from definition '{def._Data}' cannot be serialized");
 		// 		}
-		// 		
+		//
 		// 		Log.Info($" - {prop.Name}: {prop.GetValue(def._Data)}");
 		// 	}
 		// }
 	}
-	
+
 	public static void Write(this BinaryWriter writer, Vec2 value)
 	{
 		writer.Write(value.X);
@@ -143,7 +143,7 @@ public static class FujiMapWriter
 		writer.Write(value.B);
 		writer.Write(value.A);
 	}
-	
+
 	public static Vec2 ReadVec2(this BinaryReader reader) => new(reader.ReadSingle(), reader.ReadSingle());
 	public static Vec3 ReadVec3(this BinaryReader reader) => new(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
 	public static Color ReadColor(this BinaryReader reader) => new(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte());
