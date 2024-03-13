@@ -1,4 +1,3 @@
-
 namespace Celeste64;
 
 public class Strawberry : Actor, IHaveModels, IHaveSprites, IPickup, ICastPointShadow

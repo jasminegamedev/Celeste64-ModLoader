@@ -1,5 +1,4 @@
-﻿
-namespace Celeste64;
+﻿namespace Celeste64;
 
 public sealed unsafe class StateMachine<TIndex, TEvent>
 	where TIndex : unmanaged, Enum

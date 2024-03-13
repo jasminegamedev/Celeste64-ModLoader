@@ -1,6 +1,3 @@
-
-using SharpGLTF.Runtime;
-
 namespace Celeste64;
 
 public class SolidMesh : Solid

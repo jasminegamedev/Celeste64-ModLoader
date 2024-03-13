@@ -1,5 +1,4 @@
-﻿using SharpGLTF.Runtime;
-using SharpGLTF.Transforms;
+﻿using SharpGLTF.Transforms;
 using System.Runtime.InteropServices;
 
 namespace Celeste64;

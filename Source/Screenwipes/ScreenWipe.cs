@@ -1,4 +1,3 @@
-
 namespace Celeste64;
 
 public abstract class ScreenWipe(float duration)

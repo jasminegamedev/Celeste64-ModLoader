@@ -1,4 +1,3 @@
-
 namespace Celeste64;
 
 public class Cassette : Actor, IHaveModels, IPickup, IHaveSprites, ICastPointShadow

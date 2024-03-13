@@ -1,4 +1,3 @@
-
 using SharpGLTF.Runtime;
 
 namespace Celeste64;
