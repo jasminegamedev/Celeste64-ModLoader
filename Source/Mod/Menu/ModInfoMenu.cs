@@ -18,7 +18,7 @@ public class ModInfoMenu : Menu
 	{
 		Target = new Target(Overworld.CardWidth, Overworld.CardHeight);
 		Game.OnResolutionChanged += () => Target = new Target(Overworld.CardWidth, Overworld.CardHeight);
-
+		
 		RootMenu = rootMenu;
 		postcardImage = new(Assets.Textures["postcards/back-empty"]);
 		stampImage = Assets.Subtextures["stamp"];
@@ -34,8 +34,7 @@ public class ModInfoMenu : Menu
 		items.Clear();
 		Add(new Toggle(
 			"ModEnabled",
-			() =>
-			{
+			() => {
 				//If we are trying to disable the current mod, don't
 				if (Mod != null && Mod != ModManager.Instance.CurrentLevelMod)
 				{
@@ -53,8 +52,7 @@ public class ModInfoMenu : Menu
 
 							safeDisableErrorMenu.Title = Loc.Str("ModSafeDisableErrorMessage");
 
-							safeDisableErrorMenu.Add(new Option("Exit", () =>
-							{
+							safeDisableErrorMenu.Add(new Option("Exit", () => {
 								Save.Instance.GetOrMakeMod(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation can't be done.
 
 								PopRootSubMenu();
@@ -71,14 +69,12 @@ public class ModInfoMenu : Menu
 							depWarningMenu = new Menu();
 
 							depWarningMenu.Title = $"Warning, this mod is depended on by {Mod.GetDependents().Count} other mod(s).\nIf you disable this mod, those mods will also be disabled.";
-							depWarningMenu.Add(new Option("ConfirmDisableMod", () =>
-							{
+							depWarningMenu.Add(new Option("ConfirmDisableMod", () => {
 								Mod.DisableSafe(false);
 
 								RootMenu?.PopSubMenu();
 							}));
-							depWarningMenu.Add(new Option("Exit", () =>
-							{
+							depWarningMenu.Add(new Option("Exit", () => {
 								Save.Instance.GetOrMakeMod(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation was cancelled.
 
 								RootMenu?.PopSubMenu();
@@ -96,8 +92,7 @@ public class ModInfoMenu : Menu
 
 					safeDisableErrorMenu.Title = Loc.Str("ModSafeDisableErrorMessage");
 
-					safeDisableErrorMenu.Add(new Option("Exit", () =>
-					{
+					safeDisableErrorMenu.Add(new Option("Exit", () => {
 						if (Mod != null)
 						{
 							Save.Instance.GetOrMakeMod(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation can't be done.

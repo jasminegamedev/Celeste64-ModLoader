@@ -1,4 +1,5 @@
-﻿using MonoMod.RuntimeDetour;
+﻿using System.Collections.Generic;
+using MonoMod.RuntimeDetour;
 
 namespace Celeste64.Mod;
 
@@ -46,11 +47,11 @@ public sealed class HookManager
 
 	internal void ClearHooks()
 	{
-		foreach (var hook in hooks)
+		foreach(var hook in hooks)
 		{
 			hook.Dispose();
 		}
-		foreach (var hook in ilHooks)
+		foreach(var hook in ilHooks)
 		{
 			hook.Dispose();
 		}

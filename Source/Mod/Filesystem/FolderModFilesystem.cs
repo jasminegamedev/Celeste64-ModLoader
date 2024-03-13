@@ -3,144 +3,136 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Celeste64.Mod;
 
-public sealed class FolderModFilesystem : IModFilesystem
-{
-	public event Action<ModFileChangedCtx>? OnFileChanged;
+public sealed class FolderModFilesystem : IModFilesystem {
+    public event Action<ModFileChangedCtx>? OnFileChanged;
+    
+    public string Root { get; }
+    
+    internal GameMod? Mod { get; set; }
 
-	public string Root { get; }
+    private readonly FileSystemWatcher watcher;
+    // keeps track of whether a file is known to exist or known not to exist in the directory.
+    private readonly ConcurrentDictionary<string, bool> _knownExistingFiles = new();
 
-	internal GameMod? Mod { get; set; }
+    public string VirtToRealPath(string virtPath) => $"{Root}/{virtPath}";
 
-	private readonly FileSystemWatcher watcher;
-	// keeps track of whether a file is known to exist or known not to exist in the directory.
-	private readonly ConcurrentDictionary<string, bool> _knownExistingFiles = new();
+    public FolderModFilesystem(string dirName) {
+        Root = dirName;
 
-	public string VirtToRealPath(string virtPath) => $"{Root}/{virtPath}";
+        watcher = new FileSystemWatcher(dirName.CorrectSlashes());
+        watcher.Changed += (s, e) => {
+            if (e.Name is null)
+                return;
+            
+            _knownExistingFiles.Clear();
 
-	public FolderModFilesystem(string dirName)
-	{
-		Root = dirName;
+            var path = e.Name.Unbackslash();
+            
+            if (Mod is {} mod)
+                OnFileChanged?.Invoke(new(mod, path));
+        };
+        watcher.IncludeSubdirectories = true;
+        watcher.EnableRaisingEvents = true;
+    }
 
-		watcher = new FileSystemWatcher(dirName.CorrectSlashes());
-		watcher.Changed += (s, e) =>
-		{
-			if (e.Name is null)
-				return;
+    public void AssociateWithMod(GameMod mod)
+    {
+        Mod = mod;
+    }
 
-			_knownExistingFiles.Clear();
+    public bool FileExists(string path) {
+        if (string.IsNullOrWhiteSpace(path))
+            return false;
+        
+        if (_knownExistingFiles.TryGetValue(path, out var knownResult))
+            return knownResult;
 
-			var path = e.Name.Unbackslash();
+        var realPath = VirtToRealPath(path);
 
-			if (Mod is { } mod)
-				OnFileChanged?.Invoke(new(mod, path));
-		};
-		watcher.IncludeSubdirectories = true;
-		watcher.EnableRaisingEvents = true;
-	}
+        var exists = File.Exists(realPath);
+        _knownExistingFiles[path] = exists;
 
-	public void AssociateWithMod(GameMod mod)
-	{
-		Mod = mod;
-	}
+        return exists;
+    }
 
-	public bool FileExists(string path)
-	{
-		if (string.IsNullOrWhiteSpace(path))
-			return false;
+    public Stream OpenFile(string path) {
+        var realPath = VirtToRealPath(path);
+        var realCasePath = GetActualCaseForFileName(realPath);
 
-		if (_knownExistingFiles.TryGetValue(path, out var knownResult))
-			return knownResult;
+        return File.OpenRead(realCasePath);
+    }
 
-		var realPath = VirtToRealPath(path);
+    private static string GetActualCaseForFileName(string pathAndFileName)
+    {
+        string? directory = Path.GetDirectoryName(pathAndFileName);
+        string? pattern = Path.GetFileName(pathAndFileName);
+        if(directory == null || pattern == null)
+            return pathAndFileName;
 
-		var exists = File.Exists(realPath);
-		_knownExistingFiles[path] = exists;
+        string resultFileName;
 
-		return exists;
-	}
+        // Enumerate all files in the directory, using the file name as a pattern
+        // This will list all case variants of the filename even on file systems that
+        // are case sensitive
+        IEnumerable<string> foundFiles = Directory.EnumerateFiles(directory, pattern);
 
-	public Stream OpenFile(string path)
-	{
-		var realPath = VirtToRealPath(path);
-		var realCasePath = GetActualCaseForFileName(realPath);
+        if (foundFiles.Any())
+        {
+            if (foundFiles.Count() > 1)
+            {
+                // More than two files with the same name but different case spelling found
+                throw new Exception("Ambiguous File reference for " + pathAndFileName);
+            }
+            else
+            {
+                resultFileName = foundFiles.First();
+            }
+        }
+        else
+        {
+            throw new FileNotFoundException("File not found" + pathAndFileName, pathAndFileName);
+        }
 
-		return File.OpenRead(realCasePath);
-	}
+        return resultFileName;
+    }
 
-	private static string GetActualCaseForFileName(string pathAndFileName)
-	{
-		string? directory = Path.GetDirectoryName(pathAndFileName);
-		string? pattern = Path.GetFileName(pathAndFileName);
-		if (directory == null || pattern == null)
-			return pathAndFileName;
+    public bool TryOpenFile<T>(string path, Func<Stream, T> callback, [NotNullWhen(true)] out T? value) {
+        ArgumentNullException.ThrowIfNull(callback);
 
-		string resultFileName;
+        try
+        {
+            using var stream = OpenFile(path);
+            value = callback(stream)!;
+            return true;
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
 
-		// Enumerate all files in the directory, using the file name as a pattern
-		// This will list all case variants of the filename even on file systems that
-		// are case sensitive
-		IEnumerable<string> foundFiles = Directory.EnumerateFiles(directory, pattern);
+        value = default;
+        return false;
+    }
 
-		if (foundFiles.Any())
-		{
-			if (foundFiles.Count() > 1)
-			{
-				// More than two files with the same name but different case spelling found
-				throw new Exception("Ambiguous File reference for " + pathAndFileName);
-			}
-			else
-			{
-				resultFileName = foundFiles.First();
-			}
-		}
-		else
-		{
-			throw new FileNotFoundException("File not found" + pathAndFileName, pathAndFileName);
-		}
+    public IEnumerable<string> FindFilesInDirectoryRecursive(string directory, string extension) {
+        var realPath = VirtToRealPath(directory);
+        if (!Directory.Exists(realPath)) {
+            return Array.Empty<string>();
+        }
 
-		return resultFileName;
-	}
+        var searchFilter = string.IsNullOrWhiteSpace(extension) ? "*" : $"*.{extension}";
 
-	public bool TryOpenFile<T>(string path, Func<Stream, T> callback, [NotNullWhen(true)] out T? value)
-	{
-		ArgumentNullException.ThrowIfNull(callback);
+        return Directory.EnumerateFiles(realPath, searchFilter, SearchOption.AllDirectories)
+            .Select(f => Path.GetRelativePath(Root, f).Unbackslash());
+    }
 
-		try
-		{
-			using var stream = OpenFile(path);
-			value = callback(stream)!;
-			return true;
-		}
-		catch (Exception)
-		{
-			// ignored
-		}
+    public void BackgroundCleanup()
+    {
+        
+    }
 
-		value = default;
-		return false;
-	}
-
-	public IEnumerable<string> FindFilesInDirectoryRecursive(string directory, string extension)
-	{
-		var realPath = VirtToRealPath(directory);
-		if (!Directory.Exists(realPath))
-		{
-			return Array.Empty<string>();
-		}
-
-		var searchFilter = string.IsNullOrWhiteSpace(extension) ? "*" : $"*.{extension}";
-
-		return Directory.EnumerateFiles(realPath, searchFilter, SearchOption.AllDirectories)
-			.Select(f => Path.GetRelativePath(Root, f).Unbackslash());
-	}
-
-	public void BackgroundCleanup()
-	{
-
-	}
-
-	public void Dispose()
-	{
-		watcher.Dispose();
-	}
+    public void Dispose()
+    {
+        watcher.Dispose();
+    }
 }
