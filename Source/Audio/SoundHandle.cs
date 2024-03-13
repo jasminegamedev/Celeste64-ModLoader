@@ -6,16 +6,10 @@ namespace Celeste64;
 /// Wrapper around an FMOD Sound Object
 /// Fuji Custom Struct
 /// </summary>
-public readonly struct SoundHandle
+public readonly struct SoundHandle(in Channel channel, in FMOD.Sound sound)
 {
-	private readonly Channel channel;
-	private readonly FMOD.Sound sound;
-
-	public SoundHandle(in Channel channel, in FMOD.Sound sound)
-	{
-		this.channel = channel;
-		this.sound = sound;
-	}
+	private readonly Channel channel = channel;
+	private readonly FMOD.Sound sound = sound;
 
 	public bool IsLooping => channel.getLoopCount(out int loopcount) == FMOD.RESULT.OK && loopcount != 0;
 	public bool IsOneshot => !IsLooping;

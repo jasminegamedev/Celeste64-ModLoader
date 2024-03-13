@@ -191,7 +191,9 @@ public class Menu
 		}
 	}
 
-	public class MultiSelect<T> : MultiSelect where T : struct, Enum
+	public class MultiSelect<T>(Loc.Localized locString, Action<T> set, Func<T> get)
+		: MultiSelect(locString, GetEnumOptions(), () => (int)(object)get(), i => set((T)(object)i))
+		where T : struct, Enum
 	{
 		private static List<string> GetEnumOptions()
 		{
@@ -199,12 +201,6 @@ public class Menu
 			foreach (var it in Enum.GetNames<T>())
 				list.Add(it);
 			return list;
-		}
-
-		public MultiSelect(Loc.Localized locString, Action<T> set, Func<T> get)
-			: base(locString, GetEnumOptions(), () => (int)(object)get(), i => set((T)(object)i))
-		{
-
 		}
 	}
 

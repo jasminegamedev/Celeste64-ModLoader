@@ -749,39 +749,35 @@ namespace FMOD
 
 #pragma warning disable 414
 	[StructLayout(LayoutKind.Sequential)]
-	public struct REVERB_PROPERTIES
+	public struct REVERB_PROPERTIES(
+		float decayTime,
+		float earlyDelay,
+		float lateDelay,
+		float hfReference,
+		float hfDecayRatio,
+		float diffusion,
+		float density,
+		float lowShelfFrequency,
+		float lowShelfGain,
+		float highCut,
+		float earlyLateMix,
+		float wetLevel)
 	{
-		public float DecayTime;
-		public float EarlyDelay;
-		public float LateDelay;
-		public float HFReference;
-		public float HFDecayRatio;
-		public float Diffusion;
-		public float Density;
-		public float LowShelfFrequency;
-		public float LowShelfGain;
-		public float HighCut;
-		public float EarlyLateMix;
-		public float WetLevel;
+		public float DecayTime = decayTime;
+		public float EarlyDelay = earlyDelay;
+		public float LateDelay = lateDelay;
+		public float HFReference = hfReference;
+		public float HFDecayRatio = hfDecayRatio;
+		public float Diffusion = diffusion;
+		public float Density = density;
+		public float LowShelfFrequency = lowShelfFrequency;
+		public float LowShelfGain = lowShelfGain;
+		public float HighCut = highCut;
+		public float EarlyLateMix = earlyLateMix;
+		public float WetLevel = wetLevel;
 
 		#region wrapperinternal
-		public REVERB_PROPERTIES(float decayTime, float earlyDelay, float lateDelay, float hfReference,
-			float hfDecayRatio, float diffusion, float density, float lowShelfFrequency, float lowShelfGain,
-			float highCut, float earlyLateMix, float wetLevel)
-		{
-			DecayTime = decayTime;
-			EarlyDelay = earlyDelay;
-			LateDelay = lateDelay;
-			HFReference = hfReference;
-			HFDecayRatio = hfDecayRatio;
-			Diffusion = diffusion;
-			Density = density;
-			LowShelfFrequency = lowShelfFrequency;
-			LowShelfGain = lowShelfGain;
-			HighCut = highCut;
-			EarlyLateMix = earlyLateMix;
-			WetLevel = wetLevel;
-		}
+
 		#endregion
 	}
 #pragma warning restore 414
@@ -1035,7 +1031,7 @@ namespace FMOD
 	/*
 		'System' API.
 	*/
-	public struct System
+	public struct System(IntPtr ptr)
 	{
 		public RESULT release()
 		{
@@ -1721,9 +1717,8 @@ namespace FMOD
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public System(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -1734,7 +1729,7 @@ namespace FMOD
 	/*
 		'Sound' API.
 	*/
-	public struct Sound
+	public struct Sound(IntPtr ptr)
 	{
 		public RESULT release()
 		{
@@ -2052,9 +2047,8 @@ namespace FMOD
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public Sound(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -2145,7 +2139,7 @@ namespace FMOD
 	/*
 		'Channel' API
 	*/
-	public struct Channel : IChannelControl
+	public struct Channel(IntPtr ptr) : IChannelControl
 	{
 		// Channel specific control functionality.
 		public RESULT setFrequency(float frequency)
@@ -2631,9 +2625,8 @@ namespace FMOD
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public Channel(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -2643,7 +2636,7 @@ namespace FMOD
 	/*
 		'ChannelGroup' API
 	*/
-	public struct ChannelGroup : IChannelControl
+	public struct ChannelGroup(IntPtr ptr) : IChannelControl
 	{
 		public RESULT release()
 		{
@@ -3103,9 +3096,8 @@ namespace FMOD
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public ChannelGroup(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -3115,7 +3107,7 @@ namespace FMOD
 	/*
 		'SoundGroup' API
 	*/
-	public struct SoundGroup
+	public struct SoundGroup(IntPtr ptr)
 	{
 		public RESULT release()
 		{
@@ -3241,9 +3233,8 @@ namespace FMOD
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public SoundGroup(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -3253,7 +3244,7 @@ namespace FMOD
 	/*
 		'DSP' API
 	*/
-	public struct DSP
+	public struct DSP(IntPtr ptr)
 	{
 		public RESULT release()
 		{
@@ -3554,9 +3545,8 @@ namespace FMOD
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public DSP(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -3566,7 +3556,7 @@ namespace FMOD
 	/*
 		'DSPConnection' API
 	*/
-	public struct DSPConnection
+	public struct DSPConnection(IntPtr ptr)
 	{
 		public RESULT getInput(out DSP input)
 		{
@@ -3630,9 +3620,8 @@ namespace FMOD
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public DSPConnection(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -3642,7 +3631,7 @@ namespace FMOD
 	/*
 		'Geometry' API
 	*/
-	public struct Geometry
+	public struct Geometry(IntPtr ptr)
 	{
 		public RESULT release()
 		{
@@ -3776,9 +3765,8 @@ namespace FMOD
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public Geometry(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -3788,7 +3776,7 @@ namespace FMOD
 	/*
         'Reverb3D' API
     */
-	public struct Reverb3D
+	public struct Reverb3D(IntPtr ptr)
 	{
 		public RESULT release()
 		{
@@ -3854,9 +3842,8 @@ namespace FMOD
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public Reverb3D(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -3865,14 +3852,9 @@ namespace FMOD
 
 	#region Helper Functions
 	[StructLayout(LayoutKind.Sequential)]
-	public struct StringWrapper
+	public struct StringWrapper(IntPtr ptr)
 	{
-		IntPtr nativeUtf8Ptr;
-
-		public StringWrapper(IntPtr ptr)
-		{
-			nativeUtf8Ptr = ptr;
-		}
+		IntPtr nativeUtf8Ptr = ptr;
 
 		public static implicit operator string(StringWrapper fstring)
 		{

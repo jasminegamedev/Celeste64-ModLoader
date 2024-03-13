@@ -4,16 +4,9 @@ using Path = System.IO.Path;
 
 namespace Celeste64.Mod;
 
-public class ModAssetDictionary<V> : IEnumerable<KeyValuePair<string, V>>
+public class ModAssetDictionary<V>(ModAssetDictionary<V>.GetDictionary getDictionary) : IEnumerable<KeyValuePair<string, V>>
 {
 	public delegate Dictionary<string, V> GetDictionary(GameMod mod);
-
-	private GetDictionary getDictionary;
-
-	public ModAssetDictionary(GetDictionary getDictionary)
-	{
-		this.getDictionary = getDictionary;
-	}
 
 	/// <summary>
 	/// Clear out all the assets of this type for every mod.

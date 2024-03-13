@@ -386,7 +386,7 @@ namespace FMOD.Studio
 		#endregion
 	}
 
-	public struct System
+	public struct System(IntPtr ptr)
 	{
 		// Initialization / system functions.
 		public static RESULT create(out System system)
@@ -942,9 +942,8 @@ namespace FMOD.Studio
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public System(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -956,7 +955,7 @@ namespace FMOD.Studio
 		#endregion
 	}
 
-	public struct EventDescription
+	public struct EventDescription(IntPtr ptr)
 	{
 		public RESULT getID(out GUID id)
 		{
@@ -1292,9 +1291,8 @@ namespace FMOD.Studio
 		#endregion
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public EventDescription(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -1306,7 +1304,7 @@ namespace FMOD.Studio
 		#endregion
 	}
 
-	public struct EventInstance
+	public struct EventInstance(IntPtr ptr)
 	{
 		public RESULT getDescription(out EventDescription description)
 		{
@@ -1572,9 +1570,8 @@ namespace FMOD.Studio
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public EventInstance(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -1586,7 +1583,7 @@ namespace FMOD.Studio
 		#endregion
 	}
 
-	public struct Bus
+	public struct Bus(IntPtr ptr)
 	{
 		public RESULT getID(out GUID id)
 		{
@@ -1719,9 +1716,8 @@ namespace FMOD.Studio
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public Bus(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -1733,7 +1729,7 @@ namespace FMOD.Studio
 		#endregion
 	}
 
-	public struct VCA
+	public struct VCA(IntPtr ptr)
 	{
 		public RESULT getID(out GUID id)
 		{
@@ -1793,9 +1789,8 @@ namespace FMOD.Studio
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public VCA(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -1807,7 +1802,7 @@ namespace FMOD.Studio
 		#endregion
 	}
 
-	public struct Bank
+	public struct Bank(IntPtr ptr)
 	{
 		// Property access
 
@@ -2062,9 +2057,8 @@ namespace FMOD.Studio
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public Bank(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
@@ -2076,7 +2070,7 @@ namespace FMOD.Studio
 		#endregion
 	}
 
-	public struct CommandReplay
+	public struct CommandReplay(IntPtr ptr)
 	{
 		// Information query
 		public RESULT getSystem(out System system)
@@ -2242,9 +2236,8 @@ namespace FMOD.Studio
 
 		#region wrapperinternal
 
-		public IntPtr handle;
+		public IntPtr handle = ptr;
 
-		public CommandReplay(IntPtr ptr) { this.handle = ptr; }
 		public bool hasHandle() { return this.handle != IntPtr.Zero; }
 		public void clearHandle() { this.handle = IntPtr.Zero; }
 
