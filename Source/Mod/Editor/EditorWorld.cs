@@ -34,24 +34,11 @@ public class EditorWorld : World
 		Camera.FarPlane = 4000; // Increase render distance
 		Camera.FOVMultiplier = 1.25f;
 
-		//Definitions.Add(new TestEditorDefinition());
+		if (Map is not FujiMap fujiMap)
+			return; // We can't load sledge map (for now at least)
 
-		// Load the map
-		// if (Assets.Maps[entry.Map] is not FujiMap map)
-		// {
-		// 	// Not a Fuji map, return to level
-		// 	Game.Instance.scenes.Pop();
-		// 	Game.Instance.scenes.Push(new World(Entry));
-		// 	return;
-		// }
-		//
-		// foreach (var defData in map.DefinitionData)
-		// {
-		// 	var defType = Assembly.GetExecutingAssembly().GetType(defData.DefinitionFullName)!;
-		// 	var def = (EditorDefinition)Activator.CreateInstance(defType)!;
-		// 	def._Data = defData;
-		// 	Definitions.Add(def);
-		// }
+		// Load map
+		Definitions.AddRange(fujiMap.Definitions);
 	}
 
 	private float previousScale = 1.0f;
@@ -162,14 +149,8 @@ public class EditorWorld : World
 		}
 
 		// Update actors of definitions
-		foreach (var def in Definitions)
-		{
-			Log.Info($"{def} {def.Dirty} {(def as SpikeBlock.Definition).Position}");
-		}
 		foreach (var def in Definitions.Where(def => def.Dirty))
 		{
-			Log.Info($"Recreating {def}");
-
 			if (actorsFromDefinition.Remove(def, out var actors))
 			{
 				foreach (var actor in actors)

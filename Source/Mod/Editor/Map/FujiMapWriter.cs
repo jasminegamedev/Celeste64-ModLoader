@@ -40,89 +40,89 @@ public static class FujiMapWriter
 
 		// Definitions
 		writer.Write(editor.Definitions.Count);
-		// foreach (var def in editor.Definitions)
-		// {
-		// 	Log.Info($"Def: {def}");
-		// 	writer.Write(def.DataType.FullName!);
-		//
-		// 	var props = def.DataType
-		// 		.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
-		// 		.Where(prop => !prop.HasAttr<SerializeIgnoreAttribute>());
-		//
-		// 	foreach (var prop in props)
-		// 	{
-		// 		if (prop.GetCustomAttribute<SerializeCustomAttribute>() is { } custom)
-		// 		{
-		// 			custom.Serialize(prop.GetValue(def._Data)!, writer);
-		// 			continue;
-		// 		}
-		//
-		// 		switch (prop.GetValue(def._Data))
-		// 		{
-		// 			// Primitives
-		// 			case bool v:
-		// 				writer.Write(v);
-		// 				break;
-		// 			case byte v:
-		// 				writer.Write(v);
-		// 				break;
-		// 			case byte[] v:
-		// 				writer.Write7BitEncodedInt(v.Length);
-		// 				writer.Write(v);
-		// 				break;
-		// 			case char v:
-		// 				writer.Write(v);
-		// 				break;
-		// 			case char[] v:
-		// 				writer.Write7BitEncodedInt(v.Length);
-		// 				writer.Write(v);
-		// 				break;
-		// 			case decimal v:
-		// 				writer.Write(v);
-		// 				break;
-		// 			case double v:
-		// 				writer.Write(v);
-		// 				break;
-		// 			case float v:
-		// 				writer.Write(v);
-		// 				break;
-		// 			case int v:
-		// 				writer.Write(v);
-		// 				break;
-		// 			case long v:
-		// 				writer.Write(v);
-		// 				break;
-		// 			case sbyte v:
-		// 				writer.Write(v);
-		// 				break;
-		// 			case short v:
-		// 				writer.Write(v);
-		// 				break;
-		// 			case Half v:
-		// 				writer.Write(v);
-		// 				break;
-		// 			case string v:
-		// 				writer.Write(v);
-		// 				break;
-		//
-		// 			// Special support
-		// 			case Vec2 v:
-		// 				writer.Write(v);
-		// 				break;
-		// 			case Vec3 v:
-		// 				writer.Write(v);
-		// 				break;
-		// 			case Color v:
-		// 				writer.Write(v);
-		// 				break;
-		//
-		// 			default:
-		// 				throw new Exception($"Property '{prop.Name}' of type {prop.PropertyType} from definition '{def._Data}' cannot be serialized");
-		// 		}
-		//
-		// 		Log.Info($" - {prop.Name}: {prop.GetValue(def._Data)}");
-		// 	}
-		// }
+		foreach (var def in editor.Definitions)
+		{
+			Log.Info($"Writing def: {def}");
+			writer.Write(def.GetType().FullName!);
+
+			var props = def.GetType()
+				.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
+				.Where(prop => !prop.HasAttr<PropertyIgnoreAttribute>());
+
+			foreach (var prop in props)
+			{
+				if (prop.GetCustomAttribute<PropertyCustomAttribute>() is { } custom)
+				{
+					custom.Serialize(prop.GetValue(def)!, writer);
+					continue;
+				}
+
+				switch (prop.GetValue(def))
+				{
+					// Primitives
+					case bool v:
+						writer.Write(v);
+						break;
+					case byte v:
+						writer.Write(v);
+						break;
+					case byte[] v:
+						writer.Write7BitEncodedInt(v.Length);
+						writer.Write(v);
+						break;
+					case char v:
+						writer.Write(v);
+						break;
+					case char[] v:
+						writer.Write7BitEncodedInt(v.Length);
+						writer.Write(v);
+						break;
+					case decimal v:
+						writer.Write(v);
+						break;
+					case double v:
+						writer.Write(v);
+						break;
+					case float v:
+						writer.Write(v);
+						break;
+					case int v:
+						writer.Write(v);
+						break;
+					case long v:
+						writer.Write(v);
+						break;
+					case sbyte v:
+						writer.Write(v);
+						break;
+					case short v:
+						writer.Write(v);
+						break;
+					case Half v:
+						writer.Write(v);
+						break;
+					case string v:
+						writer.Write(v);
+						break;
+
+					// Special support
+					case Vec2 v:
+						writer.Write(v);
+						break;
+					case Vec3 v:
+						writer.Write(v);
+						break;
+					case Color v:
+						writer.Write(v);
+						break;
+
+					default:
+						throw new Exception($"Property '{prop.Name}' of type {prop.PropertyType} from definition '{def}' cannot be serialized");
+				}
+
+				Log.Info($" * {prop.Name}: {prop.GetValue(def)}");
+			}
+		}
 	}
 
 	public static void Write(this BinaryWriter writer, Vec2 value)

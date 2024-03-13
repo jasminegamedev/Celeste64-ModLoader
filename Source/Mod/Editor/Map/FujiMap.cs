@@ -43,64 +43,64 @@ public class FujiMap : Map
 			{
 				// Get the definition data type, by the full name
 				var fullName = reader.ReadString();
-				var defDataType = Assembly.GetExecutingAssembly().GetType(fullName)!;
-				var defData = Activator.CreateInstance(defDataType);
+				var defType = Assembly.GetExecutingAssembly().GetType(fullName)!;
+				var def = Activator.CreateInstance(defType);
 
-				Log.Info($"Def: {defData}");
+				Log.Info($"Reading def: {def}");
 
-                var props = defDataType
-                	.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
+                var props = defType
+                	.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 	.Where(prop => !prop.HasAttr<PropertyIgnoreAttribute>());
 
                 foreach (var prop in props)
                 {
                 	if (prop.GetCustomAttribute<PropertyCustomAttribute>() is { } custom)
                 	{
-                		prop.SetValue(defData, custom.Deserialize(reader));
+                		prop.SetValue(def, custom.Deserialize(reader));
                 		continue;
                 	}
 
 	                // Primitives
 	                if (prop.PropertyType == typeof(bool))
-		                prop.SetValue(defData, reader.ReadBoolean());
+		                prop.SetValue(def, reader.ReadBoolean());
 					else if (prop.PropertyType == typeof(byte))
-						prop.SetValue(defData, reader.ReadByte());
+						prop.SetValue(def, reader.ReadByte());
 					else if (prop.PropertyType == typeof(byte[]))
-						prop.SetValue(defData, reader.ReadBytes(reader.Read7BitEncodedInt()));
+						prop.SetValue(def, reader.ReadBytes(reader.Read7BitEncodedInt()));
 					else if (prop.PropertyType == typeof(char))
-						prop.SetValue(defData, reader.ReadChar());
+						prop.SetValue(def, reader.ReadChar());
 					else if (prop.PropertyType == typeof(char[]))
-						prop.SetValue(defData, reader.ReadChars(reader.Read7BitEncodedInt()));
+						prop.SetValue(def, reader.ReadChars(reader.Read7BitEncodedInt()));
 					else if (prop.PropertyType == typeof(decimal))
-						prop.SetValue(defData, reader.ReadDecimal());
+						prop.SetValue(def, reader.ReadDecimal());
 					else if (prop.PropertyType == typeof(double))
-		                prop.SetValue(defData, reader.ReadDouble());
+		                prop.SetValue(def, reader.ReadDouble());
 					else if (prop.PropertyType == typeof(float))
-		                prop.SetValue(defData, reader.ReadSingle());
+		                prop.SetValue(def, reader.ReadSingle());
 					else if (prop.PropertyType == typeof(int))
-		                prop.SetValue(defData, reader.ReadInt32());
+		                prop.SetValue(def, reader.ReadInt32());
 					else if (prop.PropertyType == typeof(long))
-		                prop.SetValue(defData, reader.ReadInt64());
+		                prop.SetValue(def, reader.ReadInt64());
 					else if (prop.PropertyType == typeof(sbyte))
-		                prop.SetValue(defData, reader.ReadSByte());
+		                prop.SetValue(def, reader.ReadSByte());
 					else if (prop.PropertyType == typeof(short))
-		                prop.SetValue(defData, reader.ReadInt16());
+		                prop.SetValue(def, reader.ReadInt16());
 					else if (prop.PropertyType == typeof(Half))
-		                prop.SetValue(defData, reader.ReadHalf());
+		                prop.SetValue(def, reader.ReadHalf());
 	                else if (prop.PropertyType == typeof(string))
-		                prop.SetValue(defData, reader.ReadString());
+		                prop.SetValue(def, reader.ReadString());
 	                // Special support
 	                else if (prop.PropertyType == typeof(Vec2))
-		                prop.SetValue(defData, reader.ReadVec2());
+		                prop.SetValue(def, reader.ReadVec2());
 	                else if (prop.PropertyType == typeof(Vec3))
-		                prop.SetValue(defData, reader.ReadVec3());
+		                prop.SetValue(def, reader.ReadVec3());
 	                else if (prop.PropertyType == typeof(Color))
-		                prop.SetValue(defData, reader.ReadColor());
+		                prop.SetValue(def, reader.ReadColor());
 
-                	Log.Info($" - {prop.Name}: {prop.GetValue(defData)}");
+                	Log.Info($" - {prop.Name}: {prop.GetValue(def)}");
                 }
 
-                Definitions.Add((ActorDefinition)defData!);
+                Definitions.Add((ActorDefinition)def!);
 			}
 		}
 		catch (Exception ex)
@@ -117,50 +117,11 @@ public class FujiMap : Map
 	{
 		foreach (var def in Definitions)
 		{
-			// TODO: Probably move this into the definition data itself?
-			// if (def is TestEditorDefinition.DefinitionData test)
-			// {
-			// 	var matrix = Matrix.Identity;
-			// 	Vec3[] verts = [
-			// 		Vec3.Zero,
-			// 		Vec3.UnitX * test.Scale.X,
-			// 		Vec3.UnitX * test.Scale.X + Vec3.UnitY * test.Scale.Y,
-			// 		Vec3.UnitY * test.Scale.Y,
-			// 	];
-			//
-			// 	Log.Info(test.Color);
-			//
-			// 	var solid = new Solid
-			// 	{
-			// 		LocalBounds = new BoundingBox(
-			// 			verts.Aggregate(Vec3.Min),
-			// 			verts.Aggregate(Vec3.Max)
-			// 		),
-			// 		LocalVertices = verts,
-			// 		LocalFaces =
-			// 		[
-			// 			new Solid.Face
-			// 			{
-			// 				Plane = new Plane(Vec3.UnitZ, 0.001f),
-			// 				VertexStart = 0,
-			// 				VertexCount = 4,
-			// 			},
-			// 		],
-			// 		Position = test.Position + test.Scale / 2.0f,
-			// 	};
-			//
-			// 	solid.Model.Materials.Add(new DefaultMaterial(Assets.Textures["white"]));
-			// 	solid.Model.Parts.Add(new SimpleModel.Part(0, 0, 6));
-			// 	solid.Model.Mesh.SetVertices<Vertex>([
-			// 		new Vertex(verts[0], Vec2.Zero, test.Color.ToVector3(), Vec3.UnitZ),
-			// 		new Vertex(verts[1], Vec2.UnitX, test.Color.ToVector3(), Vec3.UnitZ),
-			// 		new Vertex(verts[2], Vec2.One, test.Color.ToVector3(), Vec3.UnitZ),
-			// 		new Vertex(verts[3], Vec2.UnitY, test.Color.ToVector3(), Vec3.UnitZ),
-			// 	]);
-			// 	solid.Model.Mesh.SetIndices<int>([0, 1, 2, 0, 2, 3]);
-			//
-			// 	world.Add(solid);
-			// }
+			var newActors = def.Load(world.Type);
+			foreach (var actor in newActors)
+			{
+				world.Add(actor);
+			}
 		}
 		world.Add(new Player { Position = new Vec3(0, 0, 100) });
 	}
