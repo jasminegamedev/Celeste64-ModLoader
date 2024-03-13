@@ -585,7 +585,7 @@ public class World : Scene
 					continue;
 
 				// ignore faces that are definitely too far away
-				if (Utils.DistanceToPlane(point, face.Plane) > distance)
+				if (point.DistanceToPlane(face.Plane) > distance)
 					continue;
 
 				// check against each triangle in the face
@@ -650,7 +650,7 @@ public class World : Scene
 					continue;
 
 				// igore planes that are definitely too far away
-				var distanceToPlane = Utils.DistanceToPlane(point, face.Plane);
+				var distanceToPlane = point.DistanceToPlane(face.Plane);
 				if (distanceToPlane < 0 || distanceToPlane > radius)
 					continue;
 
@@ -691,7 +691,7 @@ public class World : Scene
 			}
 		}
 
-	RESULT:
+		RESULT:
 		Pool.Return(solids);
 		return hits;
 	}

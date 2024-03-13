@@ -37,7 +37,7 @@ public sealed class FloatyBlock : Solid
 		// friction
 		Friction = 200;
 		FrictionThreshold = 1;
-		if (Friction > 0 && Velocity.LengthSquared() > Calc.Squared(FrictionThreshold))
+		if (Friction > 0 && Velocity.LengthSquared() > FrictionThreshold.Squared())
 			Velocity = Utils.Approach(Velocity, Velocity.Normalized() * FrictionThreshold, Friction * Time.Delta);
 
 		// spring!
