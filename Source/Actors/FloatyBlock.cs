@@ -29,7 +29,7 @@ public sealed class FloatyBlock : Solid
 		}
 		else if (HasPlayerRiderLocal && !HasPlayerRider())
 		{
-			if (World.Get<Player>() is Player player)
+			if (World.Get<Player>() is { } player)
 				Velocity -= player.Velocity * .8f;
 			HasPlayerRiderLocal = false;
 		}

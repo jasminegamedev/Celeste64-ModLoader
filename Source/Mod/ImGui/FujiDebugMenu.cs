@@ -45,7 +45,7 @@ internal class FujiDebugMenu : ImGuiHandler
 			}
 		}
 
-		if (Game.Instance.Scene is World world && world.Get<Player>() is Player player)
+		if (Game.Instance.Scene is World world && world.Get<Player>() is { } player)
 		{
 			if (world.All<Checkpoint>().Any() && ImGui.BeginMenu("Go to Checkpoint"))
 			{

@@ -54,7 +54,7 @@ public class World : Scene
 		get
 		{
 			if (Game.Instance.IsMidTransition) return false;
-			if (Get<Player>() is not Player player) return true;
+			if (Get<Player>() is not { } player) return true;
 			return player.IsAbleToPause;
 		}
 	}
@@ -367,7 +367,7 @@ public class World : Scene
 
 	public override void Entered()
 	{
-		if (Get<Player>() is Player player)
+		if (Get<Player>() is { } player)
 		{
 			player.SetSkin(Save.Instance.GetSkin());
 		}
@@ -452,7 +452,7 @@ public class World : Scene
 				}
 
 				// ONLY update the player when dead
-				if (Get<Player>() is Player player && player.Dead)
+				if (Get<Player>() is { } player && player.Dead)
 				{
 					player.Update();
 					player.LateUpdate();
@@ -461,7 +461,7 @@ public class World : Scene
 				}
 
 				// ONLY update single cutscene object
-				if (Get<Cutscene>(it => it.FreezeGame) is Cutscene cs)
+				if (Get<Cutscene>(it => it.FreezeGame) is { } cs)
 				{
 					cs.Update();
 					cs.LateUpdate();
