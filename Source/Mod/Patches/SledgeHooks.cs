@@ -1,10 +1,4 @@
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MonoMod.Cil;
-using MonoMod.Core;
 using MonoMod.RuntimeDetour;
-using Sledge;
-using System.Diagnostics;
 using System.Reflection;
 
 namespace Celeste64.Mod.Patches;

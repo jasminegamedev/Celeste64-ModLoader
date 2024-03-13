@@ -1,5 +1,3 @@
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MonoMod.Cil;
 using MonoMod.Core;
 using MonoMod.RuntimeDetour;

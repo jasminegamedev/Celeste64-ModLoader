@@ -9,10 +9,7 @@
 #pragma warning disable CS8603
 #pragma warning disable CS8625
 
-using System;
-using System.Collections;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace FMOD.Studio
 {

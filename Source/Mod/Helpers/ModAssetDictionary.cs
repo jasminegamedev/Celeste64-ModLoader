@@ -1,5 +1,4 @@
-﻿using Sledge.Formats.Map.Objects;
-using System.Collections;
+﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using Path = System.IO.Path;
 

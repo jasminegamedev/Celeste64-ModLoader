@@ -1,5 +1,4 @@
 ﻿using MonoMod.RuntimeDetour;
-using System.Collections.Generic;
 
 namespace Celeste64.Mod;
 

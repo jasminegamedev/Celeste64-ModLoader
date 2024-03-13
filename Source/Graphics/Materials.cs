@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace Celeste64;
 
 public class DefaultMaterial : Material
