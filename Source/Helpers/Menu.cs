@@ -202,7 +202,7 @@ public class Menu
 		}
 
 		public MultiSelect(Loc.Localized locString, Action<T> set, Func<T> get)
-			: base(locString, GetEnumOptions(), () => (int)(object)get(), (i) => set((T)(object)i))
+			: base(locString, GetEnumOptions(), () => (int)(object)get(), i => set((T)(object)i))
 		{
 
 		}

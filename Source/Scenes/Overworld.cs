@@ -186,7 +186,7 @@ public class Overworld : Scene
 
 		if (startOnLastSelected)
 		{
-			var exitedFrom = entries.FindIndex((e) => e.Level.ID == Save.Instance.LevelID);
+			var exitedFrom = entries.FindIndex(e => e.Level.ID == Save.Instance.LevelID);
 			if (exitedFrom >= 0)
 			{
 				index = exitedFrom;

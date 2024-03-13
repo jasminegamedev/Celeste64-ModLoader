@@ -461,7 +461,7 @@ public class World : Scene
 				}
 
 				// ONLY update single cutscene object
-				if (Get<Cutscene>((it) => it.FreezeGame) is Cutscene cs)
+				if (Get<Cutscene>(it => it.FreezeGame) is Cutscene cs)
 				{
 					cs.Update();
 					cs.LateUpdate();
@@ -878,7 +878,7 @@ public class World : Scene
 		}
 
 		// strawberry collect effect
-		if (Camera.Target != null && models.Any((it) => it.Model.Flags.Has(ModelFlags.StrawberryGetEffect)))
+		if (Camera.Target != null && models.Any(it => it.Model.Flags.Has(ModelFlags.StrawberryGetEffect)))
 		{
 			var img = Assets.Subtextures["splash"];
 			var orig = new Vec2(img.Width, img.Height) / 2;

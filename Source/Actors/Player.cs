@@ -374,10 +374,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 		}
 		StateMachine.OnStateChanged += HandleStateChange;
 
-		SpikeBlockCheck = (spike) =>
-		{
-			return Vec3.Dot(velocity.Normalized(), spike.Direction) < 0.5f;
-		};
+		SpikeBlockCheck = spike => Vec3.Dot(velocity.Normalized(), spike.Direction) < 0.5f;
 
 		SetHairColor(0xdb2c00);
 	}
