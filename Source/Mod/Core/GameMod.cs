@@ -362,8 +362,7 @@ public abstract class GameMod
 				object? value = prop.GetValue(instance);
 				if (value != null)
 				{
-					Menu subMenu = new Menu(menu.RootMenu);
-					subMenu.Title = propName;
+					Menu subMenu = new Menu(menu.RootMenu) { Title = propName };
 					AddMenuSettingsForType(subMenu, prop.PropertyType, value);
 					subMenu.Add(new Menu.Option((Loc.Unlocalized)"Back", () =>
 						{

@@ -13,9 +13,11 @@ public class StaticProp : Actor, IHaveModels, IHavePushout, IListenToAudioCallba
 
 	public StaticProp(SkinnedTemplate model, float radius, float height)
 	{
-		Model = new(model);
-		Model.Flags = ModelFlags.Terrain;
-		Model.Transform = Matrix.CreateScale(0.2f);
+		Model = new(model)
+		{
+			Flags = ModelFlags.Terrain, 
+			Transform = Matrix.CreateScale(0.2f),
+		};
 		LocalBounds = new BoundingBox(new Vec3(-10, -10, 0), new Vec3(10, 10, 80));
 		PushoutHeight = height;
 		PushoutRadius = radius;

@@ -205,8 +205,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 
 		public Trail(string model = "player")
 		{
-			Model = new(Assets.Models[model]);
-			Model.Flags = ModelFlags.Transparent;
+			Model = new(Assets.Models[model]) { Flags = ModelFlags.Transparent };
 			Model.MakeMaterialsUnique();
 			foreach (var mat in Model.Materials)
 			{

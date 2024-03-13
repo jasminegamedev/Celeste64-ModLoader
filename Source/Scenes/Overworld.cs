@@ -39,9 +39,11 @@ public class Overworld : Scene
 				Image = new(Assets.Textures[level.Preview]);
 			}
 
-			Menu = new();
-			Menu.UpSound = Sfx.main_menu_roll_up;
-			Menu.DownSound = Sfx.main_menu_roll_down;
+			Menu = new()
+			{
+				UpSound = Sfx.main_menu_roll_up, 
+				DownSound = Sfx.main_menu_roll_down,
+			};
 
 			if (Save.Instance.TryGetRecord(Level.ID) is { } record)
 			{
@@ -272,8 +274,7 @@ public class Overworld : Scene
 
 				if (Paused)
 				{
-					pauseMenu = new();
-					pauseMenu.Title = Loc.Str("PauseOptions");
+					pauseMenu = new() { Title = Loc.Str("PauseOptions") };
 
 					Menu optionsMenu = new GameOptionsMenu(pauseMenu);
 					ModSelectionMenu modMenu = new ModSelectionMenu(pauseMenu)

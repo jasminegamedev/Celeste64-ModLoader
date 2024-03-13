@@ -49,10 +49,7 @@ public class ModInfoMenu : Menu
 					{
 						if (Mod.DisableSafe(true)) // If it is not safe to disable the mod
 						{
-							safeDisableErrorMenu = new Menu();
-
-							safeDisableErrorMenu.Title = Loc.Str("ModSafeDisableErrorMessage");
-
+							safeDisableErrorMenu = new Menu { Title = Loc.Str("ModSafeDisableErrorMessage") };
 							safeDisableErrorMenu.Add(new Option("Exit", () =>
 							{
 								Save.Instance.GetOrMakeMod(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation can't be done.
@@ -68,9 +65,8 @@ public class ModInfoMenu : Menu
 
 						if (Mod.GetDependents().Count > 0)
 						{
-							depWarningMenu = new Menu();
+							depWarningMenu = new Menu { Title = $"Warning, this mod is depended on by {Mod.GetDependents().Count} other mod(s).\nIf you disable this mod, those mods will also be disabled." };
 
-							depWarningMenu.Title = $"Warning, this mod is depended on by {Mod.GetDependents().Count} other mod(s).\nIf you disable this mod, those mods will also be disabled.";
 							depWarningMenu.Add(new Option("ConfirmDisableMod", () =>
 							{
 								Mod.DisableSafe(false);
@@ -92,9 +88,7 @@ public class ModInfoMenu : Menu
 				}
 				else
 				{
-					safeDisableErrorMenu = new Menu();
-
-					safeDisableErrorMenu.Title = Loc.Str("ModSafeDisableErrorMessage");
+					safeDisableErrorMenu = new Menu { Title = Loc.Str("ModSafeDisableErrorMessage") };
 
 					safeDisableErrorMenu.Add(new Option("Exit", () =>
 					{

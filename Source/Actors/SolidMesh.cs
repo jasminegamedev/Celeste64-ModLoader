@@ -11,9 +11,11 @@ public class SolidMesh : Solid
 	{
 		Scale = scale * 0.2f;
 
-		ObjectModel = new(model);
-		ObjectModel.Flags = ModelFlags.Terrain;
-		ObjectModel.Transform = Matrix.CreateScale(0.2f);
+		ObjectModel = new(model)
+		{
+			Flags = ModelFlags.Terrain, 
+			Transform = Matrix.CreateScale(0.2f),
+		};
 
 		// create solids out of mesh ....?
 		{

@@ -12,8 +12,7 @@ public class Feather : Actor, IHaveModels, IHaveSprites, IPickup, ICastPointShad
 
 	public Feather()
 	{
-		Model = new(Assets.Models["feather"]);
-		Model.Flags = ModelFlags.Default;
+		Model = new(Assets.Models["feather"]) { Flags = ModelFlags.Default, };
 		Particles = new(32, new ParticleTheme()
 		{
 			Rate = 10.0f,

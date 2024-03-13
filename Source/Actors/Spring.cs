@@ -11,8 +11,7 @@ public class Spring : Attacher, IHaveModels, IPickup
 
 	public Spring()
 	{
-		Model = new SkinnedModel(Assets.Models["spring_board"]);
-		Model.Transform = Matrix.CreateScale(8.0f);
+		Model = new SkinnedModel(Assets.Models["spring_board"]) { Transform = Matrix.CreateScale(8.0f) };
 		Model.SetLooping("Spring", false);
 		Model.Play("Idle");
 

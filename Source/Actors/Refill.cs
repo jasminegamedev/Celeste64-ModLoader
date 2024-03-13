@@ -12,8 +12,7 @@ public class Refill : Actor, IHaveSprites, IPickup, IHaveModels, ICastPointShado
 	{
 		IsDouble = isDouble;
 		LocalBounds = new BoundingBox(Vec3.Zero, 3);
-		Model = new(Assets.Models[isDouble ? "refill_gem_double" : "refill_gem"]);
-		Model.Flags = ModelFlags.Default;
+		Model = new(Assets.Models[isDouble ? "refill_gem_double" : "refill_gem"]) { Flags = ModelFlags.Default };
 		Particles = new(32, new ParticleTheme()
 		{
 			Rate = 10.0f,
