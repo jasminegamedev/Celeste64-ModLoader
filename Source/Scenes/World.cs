@@ -649,7 +649,7 @@ public class World : Scene
 				if (face.Plane.Normal.Z <= -1 || face.Plane.Normal.Z >= 1)
 					continue;
 
-				// igore planes that are definitely too far away
+				// ignore planes that are definitely too far away
 				var distanceToPlane = point.DistanceToPlane(face.Plane);
 				if (distanceToPlane < 0 || distanceToPlane > radius)
 					continue;

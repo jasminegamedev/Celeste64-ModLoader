@@ -53,9 +53,9 @@ public abstract class GameMod
 	// This is here to give mods easier access to these objects, so they don't have to get them themselves
 	// Warning, these may be null if they haven't been initialized yet, so you should always do a null check before using them.
 	public Game? Game => Game.Instance;
-	public World? World => Game != null ? Game.World : null;
-	public Map? Map => World != null ? World.Map : null;
-	public Player? Player => World != null ? World.Get<Player>() : null;
+	public World? World => Game?.World;
+	public Map? Map => World?.Map;
+	public Player? Player => World?.Get<Player>();
 
 	// Common Metadata about this mod.
 	public bool Enabled => this is VanillaGameMod || ModSaveData.Enabled;
