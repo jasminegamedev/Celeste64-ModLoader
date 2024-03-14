@@ -238,6 +238,18 @@ public class Overworld : Scene
 		return entriesTemp;
 	}
 
+	// reference taken from Menu.OptionList
+	// this function also takes care of resetting the entries for convenience
+	public void SlideSelectedMod(int dir)
+	{
+		if(modsWithLevels.Count > 1)
+		{
+			selectedModIdx = (selectedModIdx += dir) % modsWithLevels.Count;
+		}
+
+		entries = GetCurrentModEntries();
+	}
+
 	public override void Update()
 	{
 		slide += (index - slide) * (1 - MathF.Pow(.001f, Time.Delta));
@@ -275,12 +287,12 @@ public class Overworld : Scene
 			if (Controls.Menu.Vertical.Positive.Pressed)
 			{
 				Controls.Menu.ConsumePress();
-				index = entries.Count - 1;
+				SlideSelectedMod(1);
 			}
 			if (Controls.Menu.Vertical.Negative.Pressed)
 			{
 				Controls.Menu.ConsumePress();
-				index = 0;
+				SlideSelectedMod(-1);
 			}
 			index = Calc.Clamp(index, 0, entries.Count - 1);
 
