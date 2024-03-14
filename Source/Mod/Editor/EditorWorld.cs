@@ -114,7 +114,7 @@ public class EditorWorld : World
 		{
 			if (Camera.Target != null &&
 				Matrix.Invert(Camera.Projection, out var inverseProj) &&
-			    Matrix.Invert(Camera.View, out var inverseView))
+				Matrix.Invert(Camera.View, out var inverseView))
 			{
 				// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
 				var scale = Math.Min(App.WidthInPixels / (float)Camera.Target.Width, App.HeightInPixels / (float)Camera.Target.Height);
@@ -375,7 +375,7 @@ public class EditorWorld : World
 				var updateMs = debugUpdTimer.Elapsed.TotalMilliseconds;
 				var renderMs = lastDebugRndTime.TotalMilliseconds;
 				var frameMs = debugFpsTimer.Elapsed.TotalMilliseconds;
-				var fps = (int)(1000/frameMs);
+				var fps = (int)(1000 / frameMs);
 				debugFpsTimer.Restart();
 
 				batch.Text(font, $"Draws: {state.Calls}, Tris: {state.Triangles}, Upd: {debugUpdateCount}", bounds.BottomLeft, new Vec2(0, 1), Color.Red);
@@ -458,12 +458,12 @@ public class EditorWorld : World
 					continue;
 
 				// check against each triangle in the face
-				for (int i = 0; i < face.VertexCount - 2; i ++)
+				for (int i = 0; i < face.VertexCount - 2; i++)
 				{
 					if (Utils.RayIntersectsTriangle(point, direction,
-						    verts[face.VertexStart + 0],
-						    verts[face.VertexStart + i + 1],
-						    verts[face.VertexStart + i + 2], out float dist))
+							verts[face.VertexStart + 0],
+							verts[face.VertexStart + i + 1],
+							verts[face.VertexStart + i + 2], out float dist))
 					{
 						// too far away
 						if (dist > distance)

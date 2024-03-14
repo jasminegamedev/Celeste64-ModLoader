@@ -31,14 +31,14 @@ public class ImGuiManager
 
 		if (debugMenu.Active)
 			debugMenu.Update();
-        
-        if (Game.Scene is EditorWorld editor)
-        {
-	        foreach (var handler in editor.Handlers)
-	        {
-		        if (handler.Active) handler.Update();
-	        }			
-        }
+
+		if (Game.Scene is EditorWorld editor)
+		{
+			foreach (var handler in editor.Handlers)
+			{
+				if (handler.Active) handler.Update();
+			}
+		}
 
 		foreach (var handler in Handlers)
 		{
@@ -49,16 +49,16 @@ public class ImGuiManager
 	internal void RenderHandlers()
 	{
 		renderer.BeforeRender();
-        
+
 		if (debugMenu.Visible)
 			debugMenu.Render();
-		
+
 		if (Game.Scene is EditorWorld editor)
 		{
 			foreach (var handler in editor.Handlers)
 			{
 				if (handler.Visible) handler.Render();
-			}			
+			}
 		}
 
 		foreach (var handler in Handlers)

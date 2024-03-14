@@ -1,5 +1,5 @@
-using System.Reflection;
 using ImGuiNET;
+using System.Reflection;
 
 namespace Celeste64.Mod.Editor;
 

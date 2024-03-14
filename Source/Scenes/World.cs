@@ -1,8 +1,8 @@
 using Celeste64.Mod;
-using System.Diagnostics;
-using ModelEntry = (Celeste64.Actor Actor, Celeste64.Model Model);
 using Celeste64.Mod;
 using Celeste64.Mod.Editor;
+using System.Diagnostics;
+using ModelEntry = (Celeste64.Actor Actor, Celeste64.Model Model);
 
 namespace Celeste64;
 
@@ -410,7 +410,8 @@ public class World : Scene
 			return;
 		}
 
-		if(Panicked) {
+		if (Panicked)
+		{
 			return;
 		} // don't pour salt in wounds
 

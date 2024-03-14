@@ -60,21 +60,21 @@ public class FujiMap : Map
 
 				Log.Info($"Reading def: {def}");
 
-                var props = defType
-                	.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                	.Where(prop => !prop.HasAttr<PropertyIgnoreAttribute>());
+				var props = defType
+					.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+					.Where(prop => !prop.HasAttr<PropertyIgnoreAttribute>());
 
-                foreach (var prop in props)
-                {
-                	if (prop.GetCustomAttribute<PropertyCustomAttribute>() is { } custom)
-                	{
-                		prop.SetValue(def, custom.Deserialize(reader));
-                		continue;
-                	}
+				foreach (var prop in props)
+				{
+					if (prop.GetCustomAttribute<PropertyCustomAttribute>() is { } custom)
+					{
+						prop.SetValue(def, custom.Deserialize(reader));
+						continue;
+					}
 
-	                // Primitives
-	                if (prop.PropertyType == typeof(bool))
-		                prop.SetValue(def, reader.ReadBoolean());
+					// Primitives
+					if (prop.PropertyType == typeof(bool))
+						prop.SetValue(def, reader.ReadBoolean());
 					else if (prop.PropertyType == typeof(byte))
 						prop.SetValue(def, reader.ReadByte());
 					else if (prop.PropertyType == typeof(byte[]))
@@ -86,33 +86,33 @@ public class FujiMap : Map
 					else if (prop.PropertyType == typeof(decimal))
 						prop.SetValue(def, reader.ReadDecimal());
 					else if (prop.PropertyType == typeof(double))
-		                prop.SetValue(def, reader.ReadDouble());
+						prop.SetValue(def, reader.ReadDouble());
 					else if (prop.PropertyType == typeof(float))
-		                prop.SetValue(def, reader.ReadSingle());
+						prop.SetValue(def, reader.ReadSingle());
 					else if (prop.PropertyType == typeof(int))
-		                prop.SetValue(def, reader.ReadInt32());
+						prop.SetValue(def, reader.ReadInt32());
 					else if (prop.PropertyType == typeof(long))
-		                prop.SetValue(def, reader.ReadInt64());
+						prop.SetValue(def, reader.ReadInt64());
 					else if (prop.PropertyType == typeof(sbyte))
-		                prop.SetValue(def, reader.ReadSByte());
+						prop.SetValue(def, reader.ReadSByte());
 					else if (prop.PropertyType == typeof(short))
-		                prop.SetValue(def, reader.ReadInt16());
+						prop.SetValue(def, reader.ReadInt16());
 					else if (prop.PropertyType == typeof(Half))
-		                prop.SetValue(def, reader.ReadHalf());
-	                else if (prop.PropertyType == typeof(string))
-		                prop.SetValue(def, reader.ReadString());
-	                // Special support
-	                else if (prop.PropertyType == typeof(Vec2))
-		                prop.SetValue(def, reader.ReadVec2());
-	                else if (prop.PropertyType == typeof(Vec3))
-		                prop.SetValue(def, reader.ReadVec3());
-	                else if (prop.PropertyType == typeof(Color))
-		                prop.SetValue(def, reader.ReadColor());
+						prop.SetValue(def, reader.ReadHalf());
+					else if (prop.PropertyType == typeof(string))
+						prop.SetValue(def, reader.ReadString());
+					// Special support
+					else if (prop.PropertyType == typeof(Vec2))
+						prop.SetValue(def, reader.ReadVec2());
+					else if (prop.PropertyType == typeof(Vec3))
+						prop.SetValue(def, reader.ReadVec3());
+					else if (prop.PropertyType == typeof(Color))
+						prop.SetValue(def, reader.ReadColor());
 
-                	Log.Info($" - {prop.Name}: {prop.GetValue(def)}");
-                }
+					Log.Info($" - {prop.Name}: {prop.GetValue(def)}");
+				}
 
-                Definitions.Add((ActorDefinition)def!);
+				Definitions.Add((ActorDefinition)def!);
 			}
 		}
 		catch (Exception ex)

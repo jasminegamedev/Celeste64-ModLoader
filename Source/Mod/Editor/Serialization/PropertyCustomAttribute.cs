@@ -13,13 +13,13 @@ public interface ICustomProperty<T>
 public class PropertyCustomAttribute(Type type) : Attribute
 {
 	private readonly MethodInfo m_Serialize = type.GetMethod(nameof(ICustomProperty<object>.Serialize), BindingFlags.Public | BindingFlags.Static)
-	                                       ?? throw new Exception($"Custom property definition {type} does not inherit from ICustomProperty");
+										   ?? throw new Exception($"Custom property definition {type} does not inherit from ICustomProperty");
 
 	private readonly MethodInfo m_Deserialize = type.GetMethod(nameof(ICustomProperty<object>.Deserialize), BindingFlags.Public | BindingFlags.Static)
-	                                         ?? throw new Exception($"Custom property definition {type} does not inherit from ICustomProperty");
+											 ?? throw new Exception($"Custom property definition {type} does not inherit from ICustomProperty");
 
 	private readonly MethodInfo m_RenderGui = type.GetMethod(nameof(ICustomProperty<object>.Deserialize), BindingFlags.Public | BindingFlags.Static)
-	                                       ?? throw new Exception($"Custom property definition {type} does not inherit from ICustomProperty");
+										   ?? throw new Exception($"Custom property definition {type} does not inherit from ICustomProperty");
 
 	internal void Serialize(object value, BinaryWriter writer) => m_Serialize.Invoke(null, [value, writer]);
 	internal object Deserialize(BinaryReader reader) => m_Deserialize.Invoke(null, [reader])!;

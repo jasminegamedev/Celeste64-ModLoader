@@ -1,10 +1,10 @@
 ﻿using Celeste64.Mod;
+using Celeste64.Mod;
+using Celeste64.Mod.Editor;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using Celeste64.Mod;
-using Celeste64.Mod.Editor;
 
 namespace Celeste64;
 
@@ -154,7 +154,7 @@ public static class Assets
 			{
 				var fullPath = mod.Filesystem is FolderModFilesystem fs ? fs.VirtToRealPath(file) : null;
 				if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file,
-					    stream => new FujiMap(GetResourceNameFromVirt(file, MapsFolder), file, stream, fullPath), out var map))
+						stream => new FujiMap(GetResourceNameFromVirt(file, MapsFolder), file, stream, fullPath), out var map))
 				{
 					maps.Add((map, mod));
 				}

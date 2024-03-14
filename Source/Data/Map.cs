@@ -8,7 +8,7 @@ public abstract class Map
 {
 	public bool isMalformed { get; init; } = false;
 	public string? readExceptionMessage { get; init; } = null;
-	
+
 	public string Name { get; init; }
 	public string Filename { get; init; }
 	public string Folder { get; init; }
@@ -18,6 +18,6 @@ public abstract class Map
 	public Vec3 SnowWind { get; init; }
 	public string? Music { get; init; }
 	public string? Ambience { get; init; }
-	
+
 	public abstract void Load(World world);
 }
