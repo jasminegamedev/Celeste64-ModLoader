@@ -32,8 +32,10 @@ public class EditorWorld : World
 	internal EditorWorld(EntryInfo entry) : base(entry)
 	{
 		Camera.NearPlane = 0.1f; // Allow getting closer to objects
-		Camera.FarPlane = 4000; // Increase render distance
 		Camera.FOVMultiplier = 1.25f; // Higher FOV feels better in the editor
+		
+		// Store previous game resolution to restore it when exiting
+		previousScale = Game.ResolutionScale;
 		
 		// Load environment
 		RefreshEnvironment();
@@ -43,6 +45,15 @@ public class EditorWorld : World
 	
 	internal void RefreshEnvironment()
 	{
+		Camera.FarPlane = Save.Instance.Editor.RenderDistance;
+		Game.ResolutionScale = Save.Instance.Editor.ResolutionType switch
+		{
+			Save.EditorSettings.Resolution.Game => 1.0f,
+			Save.EditorSettings.Resolution.HD => 3.0f,
+			Save.EditorSettings.Resolution.Native => Math.Max(App.Width / (float)Game.DefaultWidth, App.Height / (float)Game.DefaultHeight),
+			_ => throw new ArgumentOutOfRangeException(),
+		};
+		
 		if (Map == null)
 			return;
 		
@@ -102,7 +113,7 @@ public class EditorWorld : World
 		Game.Instance.AmbienceWav = Audio.PlayMusic(AmbienceWav);
 		
 		skyboxes.Clear();
-		if (!string.IsNullOrEmpty(Map.Skybox))
+		if (!string.IsNullOrEmpty(Map.Skybox) && Save.Instance.Editor.RenderSkybox)
 		{
 			// single skybox
 			if (Assets.Textures.TryGetValue($"skyboxes/{Map.Skybox}", out var skybox))
@@ -121,8 +132,7 @@ public class EditorWorld : World
 	private float previousScale = 1.0f;
 	public override void Entered()
 	{
-		previousScale = Game.ResolutionScale;
-		Game.ResolutionScale = EditorResolutionScale;
+		// Game.ResolutionScale = Save.;
 	}
 	public override void Exited()
 	{

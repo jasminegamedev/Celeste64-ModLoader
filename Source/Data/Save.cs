@@ -107,9 +107,25 @@ public class Save
 	
 	public class EditorSettings
 	{
-		public bool RenderSnow { get; set; } = false;
+		// Settings
 		public bool PlayMusic { get; set; } = false;
 		public bool PlayAmbience { get; set; } = false;
+		
+		// View
+		public bool RenderSnow { get; set; } = false;
+		public bool RenderSkybox { get; set; } = true;
+
+		public const float MinRenderDistance = 500.0f;
+		public const float MaxRenderDistance = 5000.0f;
+		private float renderDistance = 4000.0f;
+		public float RenderDistance
+		{
+			get => renderDistance;
+			set => renderDistance = Math.Clamp(value, MinRenderDistance, MaxRenderDistance);
+		}
+		
+		public enum Resolution { Game = 0, HD = 1, Native = 2 }
+		public Resolution ResolutionType { get; set; } = Resolution.HD;
 	}
 
 	public static Save Instance = new();
