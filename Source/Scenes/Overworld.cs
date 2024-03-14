@@ -234,6 +234,10 @@ public class Overworld : Scene
 		if(modsWithLevels.Count > 1)
 		{
 			selectedModIdx = (selectedModIdx += dir) % modsWithLevels.Count;
+			if(selectedModIdx < 0)
+			{
+				selectedModIdx = modsWithLevels.Count - (-selectedModIdx);
+			} // wraparound if lower than zero
 		}
 
 		entries = GetCurrentModEntries();
