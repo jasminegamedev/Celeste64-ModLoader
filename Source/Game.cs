@@ -93,7 +93,7 @@ public class Game : Module
 	public SoundHandle? MusicWav;
 
 	public static Scene? Scene => Instance.scenes.TryPeek(out var scene) ? scene : null;
-	public World? World => Scene is World world ? world : null;
+	public World? World => Scene as World;
 
 	internal bool NeedsReload = false;
 
@@ -265,7 +265,7 @@ public class Game : Module
 						Music.SetCallback(audioEventCallback);
 				}
 
-				string lastWav = MusicWav != null && MusicWav.Value.IsPlaying && lastScene != null ? lastScene.MusicWav : string.Empty;
+				string lastWav = MusicWav is { IsPlaying: true } && lastScene != null ? lastScene.MusicWav : string.Empty;
 				string nextWav = nextScene?.MusicWav ?? string.Empty;
 				if (lastWav != nextWav)
 				{
@@ -290,7 +290,7 @@ public class Game : Module
 					}
 				}
 
-				string lastWav = AmbienceWav != null && AmbienceWav.Value.IsPlaying && lastScene != null ? lastScene.AmbienceWav : string.Empty;
+				string lastWav = AmbienceWav is { IsPlaying: true } && lastScene != null ? lastScene.AmbienceWav : string.Empty;
 				string nextWav = nextScene?.AmbienceWav ?? string.Empty;
 				if (lastWav != nextWav)
 				{

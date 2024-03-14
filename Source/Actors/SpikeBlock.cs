@@ -1,4 +1,3 @@
-﻿
 using Celeste64.Mod.Editor;
 
 namespace Celeste64;

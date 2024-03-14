@@ -59,7 +59,7 @@ public class World : Scene
 		get
 		{
 			if (Game.Instance.IsMidTransition) return false;
-			if (Get<Player>() is not Player player) return true;
+			if (Get<Player>() is not { } player) return true;
 			return player.IsAbleToPause;
 		}
 	}
@@ -141,7 +141,7 @@ public class World : Scene
 		{
 			Menu optionsMenu = new GameOptionsMenu(pauseMenu);
 
-			ModSelectionMenu modMenu = new ModSelectionMenu(pauseMenu)
+			var modMenu = new ModSelectionMenu(pauseMenu)
 			{
 				Title = "Mods Menu"
 			};
@@ -349,9 +349,8 @@ public class World : Scene
 			}
 			adding.RemoveRange(0, addCount);
 
-			for (int i = 0; i < destroying.Count; i++)
+			foreach (var it in destroying)
 			{
-				var it = destroying[i];
 				it.Destroyed();
 				ModManager.Instance.OnActorDestroyed(it);
 
@@ -379,7 +378,7 @@ public class World : Scene
 
 	public override void Entered()
 	{
-		if (Get<Player>() is Player player)
+		if (Get<Player>() is { } player)
 		{
 			player.SetSkin(Save.Instance.GetSkin());
 		}
@@ -473,7 +472,7 @@ public class World : Scene
 				}
 
 				// ONLY update the player when dead
-				if (Get<Player>() is Player player && player.Dead)
+				if (Get<Player>() is { Dead: true } player)
 				{
 					player.Update();
 					player.LateUpdate();
@@ -482,7 +481,7 @@ public class World : Scene
 				}
 
 				// ONLY update single cutscene object
-				if (Get<Cutscene>((it) => it.FreezeGame) is Cutscene cs)
+				if (Get<Cutscene>(it => it.FreezeGame) is { } cs)
 				{
 					cs.Update();
 					cs.LateUpdate();
@@ -543,7 +542,7 @@ public class World : Scene
 				Game.Instance.ReloadAssets();
 			}
 
-			Player? ply = Get<Player>();
+			var ply = Get<Player>();
 			if (ply != null)
 			{
 				if (ply.Skin != Save.Instance.GetSkin())
@@ -607,7 +606,7 @@ public class World : Scene
 					continue;
 
 				// ignore faces that are definitely too far away
-				if (Utils.DistanceToPlane(point, face.Plane) > distance)
+				if (point.DistanceToPlane(face.Plane) > distance)
 					continue;
 
 				// check against each triangle in the face
@@ -671,8 +670,8 @@ public class World : Scene
 				if (face.Plane.Normal.Z <= -1 || face.Plane.Normal.Z >= 1)
 					continue;
 
-				// igore planes that are definitely too far away
-				var distanceToPlane = Utils.DistanceToPlane(point, face.Plane);
+				// ignore planes that are definitely too far away
+				var distanceToPlane = point.DistanceToPlane(face.Plane);
 				if (distanceToPlane < 0 || distanceToPlane > radius)
 					continue;
 
@@ -713,7 +712,7 @@ public class World : Scene
 			}
 		}
 
-		RESULT:
+	RESULT:
 		Pool.Return(solids);
 		return hits;
 	}
@@ -899,7 +898,7 @@ public class World : Scene
 		}
 
 		// strawberry collect effect
-		if (Camera.Target != null && models.Any((it) => it.Model.Flags.Has(ModelFlags.StrawberryGetEffect)))
+		if (Camera.Target != null && models.Any(it => it.Model.Flags.Has(ModelFlags.StrawberryGetEffect)))
 		{
 			var img = Assets.Subtextures["splash"];
 			var orig = new Vec2(img.Width, img.Height) / 2;

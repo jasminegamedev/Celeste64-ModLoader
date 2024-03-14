@@ -1,6 +1,3 @@
-
-using Celeste64.Mod;
-
 namespace Celeste64;
 
 public abstract class Scene
