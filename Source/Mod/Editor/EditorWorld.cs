@@ -524,6 +524,9 @@ public class EditorWorld : World
 			// TODO: Allow selecting decorations, since they're currently one giant object
 			if (actor is Decoration or FloatingDecoration)
 				continue;
+			// Snow is not edited as an actor, but rather through the environment settings
+			if (actor is Snow)
+				continue;
 
 			if (actor is not Solid solid)
 			{
