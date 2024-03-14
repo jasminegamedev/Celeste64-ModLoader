@@ -1,5 +1,4 @@
 using Celeste64.Mod;
-using Celeste64.Mod;
 using Celeste64.Mod.Editor;
 using System.Diagnostics;
 using ModelEntry = (Celeste64.Actor Actor, Celeste64.Model Model);

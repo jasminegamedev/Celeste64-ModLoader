@@ -1,5 +1,4 @@
 ﻿using Celeste64.Mod;
-using Celeste64.Mod;
 using Celeste64.Mod.Editor;
 using System.Collections.Concurrent;
 using System.Diagnostics;
