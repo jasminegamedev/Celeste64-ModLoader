@@ -375,6 +375,8 @@ public class Overworld : Scene
 	{
 		target.Clear(0x0b090d, 1, 0, ClearMask.All);
 
+		var bounds = new Rect(0, 0, target.Width, target.Height);
+
 		// update entry textures
 		foreach (var entry in entries)
 		{
@@ -394,81 +396,70 @@ public class Overworld : Scene
 			FarPlane = 1000
 		};
 
-		if (Paused && pauseMenu != null)
+		for (int i = 0; i < entries.Count; i++)
 		{
-			pauseMenu.Update();
+			var it = entries[i];
+			var shift = Ease.Cube.In(1.0f - it.HighlightEase) * 30 - Ease.Cube.In(it.SelectionEase) * 20;
+			if (i != index)
+				shift += Ease.Cube.InOut(selectedEase) * 50;
+			var position = new Vec3((i - slide) * 60, shift, 0);
+			var rotation = Ease.Cube.InOut(it.SelectionEase);
+			var matrix =
+				Matrix.CreateScale(new Vec3(it.SelectionEase >= 0.50f ? -1 : 1, 1, 1)) *
+				Matrix.CreateRotationX(wobble.Y * it.HighlightEase) *
+				Matrix.CreateRotationZ(wobble.X * it.HighlightEase) *
+				Matrix.CreateRotationZ((state == States.Entering ? -1 : 1) * rotation * MathF.PI) *
+				Matrix.CreateTranslation(position);
 
-			var bounds = new Rect(0, 0, target.Width, target.Height);
+			if (material.Shader?.Has("u_matrix") ?? false)
+				material.Set("u_matrix", matrix * camera.ViewProjection);
+			if (material.Shader?.Has("u_near") ?? false)
+				material.Set("u_near", camera.NearPlane);
+			if (material.Shader?.Has("u_far") ?? false)
+				material.Set("u_far", camera.FarPlane);
+			if (material.Shader?.Has("u_texture") ?? false)
+				material.Set("u_texture", it.Target);
+			if (material.Shader?.Has("u_texture_sampler") ?? false)
+				material.Set("u_texture_sampler", new TextureSampler(TextureFilter.Linear, TextureWrap.ClampToEdge, TextureWrap.ClampToEdge));
 
-			pauseMenu.Render(batch, bounds.Center);
-			batch.Render(target);
-			batch.Clear();
-		}
-		else
-		{
-			for (int i = 0; i < entries.Count; i++)
+			var cmd = new DrawCommand(target, mesh, material)
 			{
-				var it = entries[i];
-				var shift = Ease.Cube.In(1.0f - it.HighlightEase) * 30 - Ease.Cube.In(it.SelectionEase) * 20;
-				if (i != index)
-					shift += Ease.Cube.InOut(selectedEase) * 50;
-				var position = new Vec3((i - slide) * 60, shift, 0);
-				var rotation = Ease.Cube.InOut(it.SelectionEase);
-				var matrix =
-					Matrix.CreateScale(new Vec3(it.SelectionEase >= 0.50f ? -1 : 1, 1, 1)) *
-					Matrix.CreateRotationX(wobble.Y * it.HighlightEase) *
-					Matrix.CreateRotationZ(wobble.X * it.HighlightEase) *
-					Matrix.CreateRotationZ((state == States.Entering ? -1 : 1) * rotation * MathF.PI) *
-					Matrix.CreateTranslation(position);
+				DepthMask = true,
+				DepthCompare = DepthCompare.Less,
+				CullMode = CullMode.None
+			};
+			cmd.Submit();
+		}
 
-				if (material.Shader?.Has("u_matrix") ?? false)
-					material.Set("u_matrix", matrix * camera.ViewProjection);
-				if (material.Shader?.Has("u_near") ?? false)
-					material.Set("u_near", camera.NearPlane);
-				if (material.Shader?.Has("u_far") ?? false)
-					material.Set("u_far", camera.FarPlane);
-				if (material.Shader?.Has("u_texture") ?? false)
-					material.Set("u_texture", it.Target);
-				if (material.Shader?.Has("u_texture_sampler") ?? false)
-					material.Set("u_texture_sampler", new TextureSampler(TextureFilter.Linear, TextureWrap.ClampToEdge, TextureWrap.ClampToEdge));
+		// overlay
+		{
+			batch.SetSampler(new TextureSampler(TextureFilter.Linear, TextureWrap.ClampToEdge, TextureWrap.ClampToEdge));
+			var scroll = -new Vec2(1.25f, 0.9f) * (float)(Time.Duration.TotalSeconds) * 0.05f;
 
-				var cmd = new DrawCommand(target, mesh, material)
-				{
-					DepthMask = true,
-					DepthCompare = DepthCompare.Less,
-					CullMode = CullMode.None
-				};
-				cmd.Submit();
+			// confirmation
+			if (state == States.Restarting)
+			{
+				batch.Rect(bounds, Color.Black * 0.90f);
+				restartConfirmMenu.Render(batch, bounds.Center);
 			}
 
-			// overlay
+			batch.PushBlend(BlendMode.Add);
+			batch.PushSampler(new TextureSampler(TextureFilter.Linear, TextureWrap.Repeat, TextureWrap.Repeat));
+			batch.Image(Assets.Textures["overworld/overlay"],
+				bounds.TopLeft, bounds.TopRight, bounds.BottomRight, bounds.BottomLeft,
+				scroll + new Vec2(0, 0), scroll + new Vec2(1, 0), scroll + new Vec2(1, 1), scroll + new Vec2(0, 1),
+				Color.White * 0.10f);
+			batch.PopBlend();
+			batch.PopSampler();
+			batch.Image(Assets.Textures["overworld/vignette"],
+				bounds.TopLeft, bounds.TopRight, bounds.BottomRight, bounds.BottomLeft,
+				new Vec2(0, 0), new Vec2(1, 0), new Vec2(1, 1), new Vec2(0, 1),
+				Color.White * 0.30f);
+
+			// button prompts
+			if (state != States.Entering)
 			{
-				batch.SetSampler(new TextureSampler(TextureFilter.Linear, TextureWrap.ClampToEdge, TextureWrap.ClampToEdge));
-				var bounds = new Rect(0, 0, target.Width, target.Height);
-				var scroll = -new Vec2(1.25f, 0.9f) * (float)(Time.Duration.TotalSeconds) * 0.05f;
-
-				// confirmation
-				if (state == States.Restarting)
-				{
-					batch.Rect(bounds, Color.Black * 0.90f);
-					restartConfirmMenu.Render(batch, bounds.Center);
-				}
-
-				batch.PushBlend(BlendMode.Add);
-				batch.PushSampler(new TextureSampler(TextureFilter.Linear, TextureWrap.Repeat, TextureWrap.Repeat));
-				batch.Image(Assets.Textures["overworld/overlay"],
-					bounds.TopLeft, bounds.TopRight, bounds.BottomRight, bounds.BottomLeft,
-					scroll + new Vec2(0, 0), scroll + new Vec2(1, 0), scroll + new Vec2(1, 1), scroll + new Vec2(0, 1),
-					Color.White * 0.10f);
-				batch.PopBlend();
-				batch.PopSampler();
-				batch.Image(Assets.Textures["overworld/vignette"],
-					bounds.TopLeft, bounds.TopRight, bounds.BottomRight, bounds.BottomLeft,
-					new Vec2(0, 0), new Vec2(1, 0), new Vec2(1, 1), new Vec2(0, 1),
-					Color.White * 0.30f);
-
-				// button prompts
-				if (state != States.Entering)
+				if (!Paused)
 				{
 					var cancelPrompt = Loc.Str(state == States.Selecting ? "Back" : "Cancel");
 					var at = bounds.BottomRight + new Vec2(-16, -4) * Game.RelativeScale + new Vec2(0, -UI.PromptSize);
@@ -483,25 +474,44 @@ public class Overworld : Scene
 						at.X -= width2 + 8 * Game.RelativeScale;
 						UI.Prompt(batch, Controls.Pause, Loc.Str("OptionsTitle"), at, out _, 1.0f);
 					}
-
-					// show version number on Overworld as well
-					UI.Text(batch, Game.VersionString, bounds.BottomLeft + new Vec2(4, -4) * Game.RelativeScale, new Vec2(0, 1), Color.CornflowerBlue * 0.75f);
-					UI.Text(batch, Game.LoaderVersion, bounds.BottomLeft + new Vec2(4, -24) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
-					if (ModLoader.FailedToLoadMods.Any())
-					{
-						UI.Text(batch, string.Format(Loc.Str("FailedToLoadMods"), ModLoader.FailedToLoadMods.Count), bounds.BottomLeft + new Vec2(4, -44) * Game.RelativeScale, new Vec2(0, 1), Color.Red * 0.75f);
-					}
 				}
 
-				if (cameraCloseUpEase > 0)
+				if (ModLoader.FailedToLoadMods.Any())
 				{
-					batch.PushBlend(BlendMode.Subtract);
-					batch.Rect(bounds, Color.White * Ease.Cube.In(cameraCloseUpEase));
-					batch.PopBlend();
+					UI.Text(batch, string.Format(Loc.Str("FailedToLoadMods"), ModLoader.FailedToLoadMods.Count), bounds.BottomLeft + new Vec2(4, -44) * Game.RelativeScale, new Vec2(0, 1), Color.Red * 0.75f);
 				}
-				batch.Render(target);
-				batch.Clear();
+			}
+
+			if (cameraCloseUpEase > 0)
+			{
+				batch.PushBlend(BlendMode.Subtract);
+				batch.Rect(bounds, Color.White * Ease.Cube.In(cameraCloseUpEase));
+				batch.PopBlend();
 			}
 		}
+
+		if (Paused && pauseMenu != null)
+		{
+			pauseMenu.Update();
+
+			batch.Rect(bounds, Color.Black * 0.70f);
+
+			pauseMenu.Render(batch, bounds.Center);
+		}
+
+		// show version number on Overworld as well
+		// Logic breakdown:
+		// If paused
+		//  -> Display if the pause menu is in the top-level.
+		// Else
+		//  -> Display if no level is selected.
+		if((Paused ? (pauseMenu?.IsInMainMenu) : (state == States.Selecting)) == true)
+		{
+			UI.Text(batch, Game.VersionString, bounds.BottomLeft + new Vec2(4, -4) * Game.RelativeScale, new Vec2(0, 1), Color.CornflowerBlue * 0.75f);
+			UI.Text(batch, Game.LoaderVersion, bounds.BottomLeft + new Vec2(4, -24) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
+		}
+
+		batch.Render(target);
+		batch.Clear();
 	}
 }
