@@ -512,15 +512,6 @@ public class Overworld : Scene
 					UI.Prompt(batch, Controls.Cancel, cancelPrompt, at, out width, 1.0f);
 					at.X -= width + 8 * Game.RelativeScale;
 					UI.Prompt(batch, Controls.Confirm, Loc.Str("Confirm"), at, out width2, 1.0f);
-					
-					if(selectedModIdx == 0)
-					{
-						UI.Text(batch, new Loc.Localized("FujiOverworldModSlideNote"), bounds.TopCenter, new Vec2(0.5f, 0), Color.Gray);
-					}
-					else
-					{
-						UI.Text(batch, modsWithLevels[selectedModIdx].ModInfo.Name, bounds.TopCenter, new Vec2(0.5f, 0), Color.White);
-					}
 
 					if (state == States.Selecting)
 					{
@@ -540,6 +531,17 @@ public class Overworld : Scene
 				batch.PushBlend(BlendMode.Subtract);
 				batch.Rect(bounds, Color.White * Ease.Cube.In(cameraCloseUpEase));
 				batch.PopBlend();
+			}
+
+			var titlePos = bounds.TopCenter + new Vec2(1, 16) * Game.RelativeScale;
+
+			if(selectedModIdx == 0)
+			{
+				UI.Text(batch, new Loc.Localized("FujiOverworldModSlideNote"), titlePos, new Vec2(0.5f, 0), Color.Gray);
+			}
+			else
+			{
+				UI.Text(batch, modsWithLevels[selectedModIdx].ModInfo.Name, titlePos, new Vec2(0.5f, 0), Color.White);
 			}
 		}
 
