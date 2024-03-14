@@ -180,7 +180,7 @@ public class World : Scene
 		}
 
 		// environment
-		if (Type == WorldType.Game) // Don't create environment effects in the editor
+		if (Type == WorldType.Game) // Editor will create environment effects by itself
 		{
 			if (map.SnowAmount > 0)
 				Add(new Snow(map.SnowAmount, map.SnowWind));
@@ -208,26 +208,24 @@ public class World : Scene
 				AmbienceWav = "";
 				Ambience = $"event:/sfx/ambience/{map.Ambience}";
 			}
-		}
-
-		// But still show the skybox
-		if (!string.IsNullOrEmpty(map.Skybox))
-		{
-			// single skybox
-			if (Assets.Textures.TryGetValue($"skyboxes/{map.Skybox}", out var skybox))
+			
+			if (!string.IsNullOrEmpty(map.Skybox))
 			{
-				skyboxes.Add(new(skybox));
-			}
-			// group
-			else
-			{
-				while (Assets.Textures.TryGetValue($"skyboxes/{map.Skybox}_{skyboxes.Count}", out var nextSkybox))
-					skyboxes.Add(new(nextSkybox));
+				// single skybox
+				if (Assets.Textures.TryGetValue($"skyboxes/{map.Skybox}", out var skybox))
+				{
+					skyboxes.Add(new(skybox));
+				}
+				// group
+				else
+				{
+					while (Assets.Textures.TryGetValue($"skyboxes/{map.Skybox}_{skyboxes.Count}", out var nextSkybox))
+						skyboxes.Add(new(nextSkybox));
+				}
 			}
 		}
-
-		// The editor handles loading itself
-		if (Type == WorldType.Game)
+		
+		if (Type == WorldType.Game) // The editor handles loading itself
 		{
 			ModManager.Instance.OnPreMapLoaded(this, map);
 			// load content

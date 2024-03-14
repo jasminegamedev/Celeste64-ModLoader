@@ -8,6 +8,8 @@ public class EditorWorld : World
 	private const float EditorResolutionScale = 3.0f;
 
 	internal readonly ImGuiHandler[] Handlers = [
+		new EditorMenuBar(),	
+			
 		new TestWindow(),
 		new EnvironmentSettings(),
 	];
@@ -32,6 +34,9 @@ public class EditorWorld : World
 		Camera.NearPlane = 0.1f; // Allow getting closer to objects
 		Camera.FarPlane = 4000; // Increase render distance
 		Camera.FOVMultiplier = 1.25f; // Higher FOV feels better in the editor
+		
+		// Load environment
+		RefreshEnvironment();
 
 		// Map gets implicitly loaded, since our Definitions are taken directly from it
 	}
@@ -41,34 +46,35 @@ public class EditorWorld : World
 		if (Map == null)
 			return;
 		
-		// Taken from World constructor
-		// NOTE: Even tho it's currently disabled, it's here for completeness
-		if (Type == WorldType.Game)
+		// Taken from World constructor with added cleanup of previously created stuff
+		
+		if (Get<Snow>() is { } snow)
+			Destroy(snow);
+		if (Map.SnowAmount > 0 && Save.Instance.Editor.RenderSnow)
 		{
-			if (Map.SnowAmount > 0)
-				Add(new Snow(Map.SnowAmount, Map.SnowWind));
+			Add(new Snow(Map.SnowAmount, Map.SnowWind));
+		}
 
-			if (Map.Music != null && Assets.Music.ContainsKey(Map.Music))
-			{
-				MusicWav = Map.Music;
-				Music = $"event:/music/";
-			}
-			else
-			{
-				MusicWav = "";
-				Music = $"event:/music/{Map.Music}";
-			}
+		if (Map.Music != null && Assets.Music.ContainsKey(Map.Music) && Save.Instance.Editor.PlayMusic)
+		{
+			MusicWav = Map.Music;
+			Music = $"event:/music/";
+		}
+		else
+		{
+			MusicWav = "";
+			Music = $"event:/music/{Map.Music}";
+		}
 
-			if (Map.Ambience != null && Assets.Music.ContainsKey(Map.Ambience))
-			{
-				AmbienceWav = Map.Ambience;
-				Ambience = $"event:/sfx/ambience/";
-			}
-			else
-			{
-				AmbienceWav = "";
-				Ambience = $"event:/sfx/ambience/{Map.Ambience}";
-			}
+		if (Map.Ambience != null && Assets.Music.ContainsKey(Map.Ambience) && Save.Instance.Editor.PlayAmbience)
+		{
+			AmbienceWav = Map.Ambience;
+			Ambience = $"event:/sfx/ambience/";
+		}
+		else
+		{
+			AmbienceWav = "";
+			Ambience = $"event:/sfx/ambience/{Map.Ambience}";
 		}
 		
 		skyboxes.Clear();

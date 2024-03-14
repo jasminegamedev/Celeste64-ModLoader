@@ -104,6 +104,13 @@ public class Save
 		public bool SettingsSetBool(string name, bool value = false)
 			=> SettingsBoolData[name] = value;
 	}
+	
+	public class EditorSettings
+	{
+		public bool RenderSnow { get; set; } = false;
+		public bool PlayMusic { get; set; } = false;
+		public bool PlayAmbience { get; set; } = false;
+	}
 
 	public static Save Instance = new();
 
@@ -163,7 +170,7 @@ public class Save
 	public string SkinName { get; set; } = "Madeline";
 
 	/// <summary>
-	/// Fuji Custom - Whether we should write to the log file or not.
+	/// Fuji Custom - Whether we should write to the log file or not
 	/// </summary>
 	public bool WriteLog { get; set; } = true;
 
@@ -171,6 +178,11 @@ public class Save
 	/// Fuji Custom - Whether The debug menu should be enabled
 	/// </summary>
 	public bool EnableDebugMenu { get; set; } = false;
+	
+	/// <summary>
+	/// Fuji Custom - Settings for the in-game editor
+	/// </summary>
+	public EditorSettings Editor { get; set; } = new();
 
 	/// <summary>
 	/// Fuji Custom - Records for each mod
