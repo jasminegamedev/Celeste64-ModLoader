@@ -360,23 +360,23 @@ public class Game : Module
 		if (IsMidTransition)
 			return;
 
-		if (scene is World world)
-		{
-			Goto(new Transition()
-			{
-				Mode = Transition.Modes.Replace,
-				Scene = () => new World(world.Entry),
-				ToPause = true,
-				ToBlack = new AngledWipe(),
-				PerformAssetReload = true
-			});
-		}
-		else if (scene is EditorWorld editor)
+		if (scene is EditorWorld editor)
 		{
 			Goto(new Transition()
 			{
 				Mode = Transition.Modes.Replace,
 				Scene = () => new EditorWorld(editor.Entry),
+				ToPause = true,
+				ToBlack = new AngledWipe(),
+				PerformAssetReload = true
+			});
+		}
+		else if (scene is World world)
+		{
+			Goto(new Transition()
+			{
+				Mode = Transition.Modes.Replace,
+				Scene = () => new World(world.Entry),
 				ToPause = true,
 				ToBlack = new AngledWipe(),
 				PerformAssetReload = true
