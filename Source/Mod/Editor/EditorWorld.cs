@@ -86,8 +86,10 @@ public class EditorWorld : World
 			MusicWav = string.Empty;
 			Music = string.Empty;
 		}
-		Game.Instance.Music = Audio.Play(Music);
-		Game.Instance.MusicWav = Audio.PlayMusic(MusicWav);
+		if (!string.IsNullOrWhiteSpace(Music))
+			Game.Instance.Music = Audio.Play(Music);
+		if (!string.IsNullOrWhiteSpace(MusicWav))
+			Game.Instance.MusicWav = Audio.PlayMusic(MusicWav);
 
 		Game.Instance.Ambience.Stop();
 		Game.Instance.AmbienceWav?.Stop();
@@ -109,8 +111,10 @@ public class EditorWorld : World
 			AmbienceWav = string.Empty;
 			Ambience = string.Empty;
 		}
-		Game.Instance.Ambience = Audio.Play(Ambience);
-		Game.Instance.AmbienceWav = Audio.PlayMusic(AmbienceWav);
+		if (!string.IsNullOrWhiteSpace(Ambience))
+			Game.Instance.Ambience = Audio.Play(Ambience);
+		if (!string.IsNullOrWhiteSpace(AmbienceWav))
+			Game.Instance.AmbienceWav = Audio.PlayMusic(AmbienceWav);
 		
 		skyboxes.Clear();
 		if (!string.IsNullOrEmpty(Map.Skybox) && Save.Instance.Editor.RenderSkybox)
