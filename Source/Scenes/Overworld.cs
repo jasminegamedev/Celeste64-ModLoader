@@ -517,6 +517,10 @@ public class Overworld : Scene
 					{
 						UI.Text(batch, new Loc.Localized("FujiOverworldModSlideNote"), bounds.TopCenter, new Vec2(0.5f, 0), Color.Gray);
 					}
+					else
+					{
+						UI.Text(batch, modsWithLevels[selectedModIdx].ModInfo.Name, bounds.TopCenter, new Vec2(0.5f, 0), Color.White);
+					}
 
 					if (state == States.Selecting)
 					{
