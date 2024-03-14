@@ -533,15 +533,16 @@ public class Overworld : Scene
 				batch.PopBlend();
 			}
 
-			var titlePos = bounds.TopCenter + new Vec2(1, 16) * Game.RelativeScale;
+			var staticPromptPos = bounds.TopCenter + new Vec2(1, 16) * Game.RelativeScale;
+			var modTitlePos = bounds.TopCenter + new Vec2(-8 + (-slide * 160), 32) * Game.RelativeScale;
 
 			if(selectedModIdx == 0)
 			{
-				UI.Text(batch, new Loc.Localized("FujiOverworldModSlideNote"), titlePos, new Vec2(0.5f, 0), Color.Gray);
+				UI.Text(batch, new Loc.Localized("FujiOverworldModSlideNote"), staticPromptPos, new Vec2(0.5f, 0), Color.Gray);
 			}
 			else
 			{
-				UI.Text(batch, modsWithLevels[selectedModIdx].ModInfo.Name, titlePos, new Vec2(0.5f, 0), Color.White);
+				UI.Text(batch, modsWithLevels[selectedModIdx].ModInfo.Name, modTitlePos, new Vec2(0.5f, 0), Color.White);
 			}
 		}
 
