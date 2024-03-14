@@ -512,6 +512,11 @@ public class Overworld : Scene
 					UI.Prompt(batch, Controls.Cancel, cancelPrompt, at, out width, 1.0f);
 					at.X -= width + 8 * Game.RelativeScale;
 					UI.Prompt(batch, Controls.Confirm, Loc.Str("Confirm"), at, out width2, 1.0f);
+					
+					if(selectedModIdx == 0)
+					{
+						UI.Text(batch, new Loc.Localized("FujiOverworldModSlideNote"), bounds.TopCenter, new Vec2(0.5f, 0), Color.Gray);
+					}
 
 					if (state == States.Selecting)
 					{
