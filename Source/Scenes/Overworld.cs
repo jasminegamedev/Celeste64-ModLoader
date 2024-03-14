@@ -151,7 +151,11 @@ public class Overworld : Scene
 	private float selectedEase = 0;
 	private float cameraCloseUpEase = 0;
 	private Vec2 wobble = new Vec2(0, -1);
-	private readonly List<Entry> entries = [];
+	private List<GameMod> modsWithLevels = ModManager.Instance.EnabledModsWithLevels.ToList();
+	// Entries must be cached. Getting them every frame is not only a stutterfest,
+	// but also introduces bugs.
+	private List<Entry> entries = [];
+	private int selectedModIdx = 0;
 	private readonly Batcher batch = new();
 	private readonly Mesh mesh = new();
 	private readonly Material material = new(Assets.Shaders["Sprite"]);
@@ -161,6 +165,7 @@ public class Overworld : Scene
 	{
 		Music = "event:/music/mus_title";
 
+		/*
 		foreach (var level in Assets.Levels)
 		{
 			var mod = ModManager.Instance.Mods.FirstOrDefault(mod => mod.Levels.Contains(level));
@@ -169,6 +174,7 @@ public class Overworld : Scene
 				entries.Add(new(level, mod));
 			}
 		}
+		*/
 
 		var cardWidth = DefaultCardWidth / 6.0f;
 		var cardHeight = DefaultCardHeight / 6.0f;
@@ -199,6 +205,37 @@ public class Overworld : Scene
 		}
 
 		cameraCloseUpEase = 1.0f;
+
+		entries = GetCurrentModEntries();
+	}
+
+	public List<Entry> GetCurrentModEntries()
+	{
+		GameMod currentMod = modsWithLevels[selectedModIdx];
+		List<Entry> entriesTemp = [];
+
+		// We treat the vanilla "mod" as a catch-all option (because it only has one level anyway). 
+		// It will return every available item.
+		if(currentMod is VanillaGameMod)
+		{
+			foreach (var level in Assets.Levels)
+			{
+				var mod = ModManager.Instance.Mods.FirstOrDefault(mod => mod.Levels.Contains(level));
+				if (mod is { Enabled: true })
+				{
+					entriesTemp.Add(new(level, mod));
+				}
+			}
+		} 
+		else 
+		{
+			foreach(var level in currentMod.Levels)
+			{
+				entriesTemp.Add(new(level, currentMod));
+			}
+		}
+
+		return entriesTemp;
 	}
 
 	public override void Update()
