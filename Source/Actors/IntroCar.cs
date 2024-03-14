@@ -1,5 +1,3 @@
-using SharpGLTF.Runtime;
-
 namespace Celeste64;
 
 public class IntroCar : Solid
