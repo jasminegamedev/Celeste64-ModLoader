@@ -2,9 +2,10 @@ using ImGuiNET;
 
 namespace Celeste64.Mod.Editor;
 
-public class EnvironmentSettings : EditorWindow
+public class EnvironmentSettingsWindow() : EditorWindow("EnvironmentSettings")
 {
 	protected override string Title => "Environment Settings";
+	
 	protected override void RenderWindow(EditorWorld editor)
 	{
 		if (editor.Map == null)

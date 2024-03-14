@@ -3,20 +3,20 @@ using System.Reflection;
 
 namespace Celeste64.Mod.Editor;
 
-public class TestWindow : EditorWindow
+public class EditActorWindow() : EditorWindow("EditActor")
 {
-	protected override string Title => "Test";
+	// TODO: Properly display selected name
+	protected override string Title => EditorWorld.Current.Selected is { } selected
+		? $"Edit Actor - {selected}"
+		: "Edit Actor - Nothing selected";
 
 	protected override void RenderWindow(EditorWorld editor)
 	{
-		ImGui.Text("Testing");
-
-		if (ImGui.Button("Add Spikes"))
+		// TODO: Add some actor picker
+		if (ImGui.Button("DEBUG: Add Spikes"))
 		{
 			editor.Definitions.Add(new SpikeBlock.Definition());
 		}
-
-		ImGui.Text($"Selected: {editor.Selected}");
 
 		if (editor.Selected is { } selected)
 		{
@@ -50,6 +50,10 @@ public class TestWindow : EditorWindow
 						break;
 				}
 			}
+		}
+		else
+		{
+			ImGui.Text("Nothing selected");
 		}
 	}
 }

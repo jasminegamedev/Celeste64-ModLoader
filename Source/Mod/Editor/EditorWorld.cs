@@ -10,9 +10,11 @@ public class EditorWorld : World
 	internal readonly ImGuiHandler[] Handlers = [
 		new EditorMenuBar(),	
 			
-		new TestWindow(),
-		new EnvironmentSettings(),
+		new EditActorWindow(),
+		new EnvironmentSettingsWindow(),
 	];
+	
+	public static EditorWorld Current => (Game.Scene as EditorWorld)!;
 
 	public List<ActorDefinition> Definitions => Map is FujiMap fujiMap ? fujiMap.Definitions : [];
 	public ReadOnlyDictionary<ActorDefinition, Actor[]> ActorsFromDefinition => actorsFromDefinition.AsReadOnly();

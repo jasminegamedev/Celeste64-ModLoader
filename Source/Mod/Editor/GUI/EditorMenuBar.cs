@@ -71,6 +71,6 @@ public class EditorMenuBar : ImGuiHandler
 		ImGui.EndMainMenuBar();
 		
 		if (changed)
-			(Game.Scene as EditorWorld)!.RefreshEnvironment();
+			EditorWorld.Current.RefreshEnvironment();
 	}
 }
