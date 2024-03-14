@@ -164,7 +164,16 @@ public class Overworld : Scene
 	public Overworld(bool startOnLastSelected)
 	{
 		Music = "event:/music/mus_title";
-
+    
+		foreach (var level in Assets.Levels)
+		{
+			var mod = ModManager.Instance.Mods.FirstOrDefault(mod => mod.Levels.Contains(level));
+			if (mod is { Enabled: true })
+			{
+				entries.Add(new(level, mod));
+			}
+		}
+    
 		var cardWidth = DefaultCardWidth / 6.0f;
 		var cardHeight = DefaultCardHeight / 6.0f;
 

@@ -15,7 +15,7 @@ public sealed class ModManager
 
 	internal IEnumerable<GameMod> EnabledMods => Mods.Where(mod => mod.Enabled);
 
-	internal IEnumerable<GameMod> EnabledModsWithLevels => Mods.Where(mod => mod.ModLevels.Count > 0 && mod.Enabled);
+  internal IEnumerable<GameMod> EnabledModsWithLevels => Mods.Where(mod => mod.ModLevels.Count > 0 && mod.Enabled);
 
 	internal VanillaGameMod? VanillaGameMod { get; set; }
 
