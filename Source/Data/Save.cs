@@ -124,8 +124,8 @@ public class Save
 			set => renderDistance = Math.Clamp(value, MinRenderDistance, MaxRenderDistance);
 		}
 		
-		public enum Resolution { Game = 0, HD = 1, Native = 2 }
-		public Resolution ResolutionType { get; set; } = Resolution.HD;
+		public enum Resolution { Game = 0, Double = 1, HD = 2, Native = 3 }
+		public Resolution ResolutionType { get; set; } = Resolution.Double;
 	}
 
 	public static Save Instance = new();

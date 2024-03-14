@@ -51,6 +51,7 @@ public class EditorWorld : World
 		Game.ResolutionScale = Save.Instance.Editor.ResolutionType switch
 		{
 			Save.EditorSettings.Resolution.Game => 1.0f,
+			Save.EditorSettings.Resolution.Double => 2.0f,
 			Save.EditorSettings.Resolution.HD => 3.0f,
 			Save.EditorSettings.Resolution.Native => Math.Max(App.Width / (float)Game.DefaultWidth, App.Height / (float)Game.DefaultHeight),
 			_ => throw new ArgumentOutOfRangeException(),

@@ -39,6 +39,7 @@ public class EditorMenuBar : ImGuiHandler
 
 			string[] displayStrings = [
 				"Game (640x360)",
+				"720p (1280x720)",
 				"HD (1920x1080)",
 				$"Native ({App.Width}x{App.Height})",
 			];
@@ -49,6 +50,11 @@ public class EditorMenuBar : ImGuiHandler
 				if (ImGui.Selectable(displayStrings[(int)Save.EditorSettings.Resolution.Game], resolutionType == Save.EditorSettings.Resolution.Game))
 				{
 					Save.Instance.Editor.ResolutionType = Save.EditorSettings.Resolution.Game;
+					changed = true;
+				}
+				if (ImGui.Selectable(displayStrings[(int)Save.EditorSettings.Resolution.Double], resolutionType == Save.EditorSettings.Resolution.Double))
+				{
+					Save.Instance.Editor.ResolutionType = Save.EditorSettings.Resolution.Double;
 					changed = true;
 				}
 				if (ImGui.Selectable(displayStrings[(int)Save.EditorSettings.Resolution.HD], resolutionType == Save.EditorSettings.Resolution.HD))
