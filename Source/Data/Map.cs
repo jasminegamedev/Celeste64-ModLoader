@@ -13,11 +13,11 @@ public abstract class Map
 	public string Filename { get; init; }
 	public string Folder { get; init; }
 
-	public string? Skybox { get; init; }
-	public float SnowAmount { get; init; }
-	public Vec3 SnowWind { get; init; }
-	public string? Music { get; init; }
-	public string? Ambience { get; init; }
+	public string? Skybox { get; internal set; }
+	public float SnowAmount { get; internal set; }
+	public Vec3 SnowWind { get; internal set; }
+	public string? Music { get; internal set; }
+	public string? Ambience { get; internal set; }
 
 	public abstract void Load(World world);
 }

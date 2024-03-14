@@ -11,12 +11,12 @@ public class FujiMap : Map
 	/// <summary>
 	/// Magic 4 bytes at the start of the file, to indicate the format.
 	/// </summary>
-	public static readonly byte[] FormatMagic = [(byte)'F', (byte)'U', (byte)'J', (byte)'I'];
+	private static readonly byte[] FormatMagic = [(byte)'F', (byte)'U', (byte)'J', (byte)'I'];
 
 	/// <summary>
 	/// Current version of the map format. Needs to be incremented with every change to it.
 	/// </summary>
-	public const byte FormatVersion = 1;
+	private const byte FormatVersion = 1;
 
 	public readonly string? FullPath;
 	public readonly List<ActorDefinition> Definitions = [];

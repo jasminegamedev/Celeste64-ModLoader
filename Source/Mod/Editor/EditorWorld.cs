@@ -9,6 +9,7 @@ public class EditorWorld : World
 
 	internal readonly ImGuiHandler[] Handlers = [
 		new TestWindow(),
+		new EnvironmentSettings(),
 	];
 
 	public List<ActorDefinition> Definitions => Map is FujiMap fujiMap ? fujiMap.Definitions : [];
@@ -33,6 +34,58 @@ public class EditorWorld : World
 		Camera.FOVMultiplier = 1.25f; // Higher FOV feels better in the editor
 
 		// Map gets implicitly loaded, since our Definitions are taken directly from it
+	}
+	
+	internal void RefreshEnvironment()
+	{
+		if (Map == null)
+			return;
+		
+		// Taken from World constructor
+		// NOTE: Even tho it's currently disabled, it's here for completeness
+		if (Type == WorldType.Game)
+		{
+			if (Map.SnowAmount > 0)
+				Add(new Snow(Map.SnowAmount, Map.SnowWind));
+
+			if (Map.Music != null && Assets.Music.ContainsKey(Map.Music))
+			{
+				MusicWav = Map.Music;
+				Music = $"event:/music/";
+			}
+			else
+			{
+				MusicWav = "";
+				Music = $"event:/music/{Map.Music}";
+			}
+
+			if (Map.Ambience != null && Assets.Music.ContainsKey(Map.Ambience))
+			{
+				AmbienceWav = Map.Ambience;
+				Ambience = $"event:/sfx/ambience/";
+			}
+			else
+			{
+				AmbienceWav = "";
+				Ambience = $"event:/sfx/ambience/{Map.Ambience}";
+			}
+		}
+		
+		skyboxes.Clear();
+		if (!string.IsNullOrEmpty(Map.Skybox))
+		{
+			// single skybox
+			if (Assets.Textures.TryGetValue($"skyboxes/{Map.Skybox}", out var skybox))
+			{
+				skyboxes.Add(new(skybox));
+			}
+			// group
+			else
+			{
+				while (Assets.Textures.TryGetValue($"skyboxes/{Map.Skybox}_{skyboxes.Count}", out var nextSkybox))
+					skyboxes.Add(new(nextSkybox));
+			}
+		}
 	}
 
 	private float previousScale = 1.0f;
