@@ -144,6 +144,19 @@ public class EditorWorld : World
 	{
 		Game.ResolutionScale = previousScale;
 	}
+	
+	public void RemoveDefinition(ActorDefinition definition)
+	{
+		Definitions.Remove(definition);
+		if (actorsFromDefinition.Remove(definition, out var actors))
+		{
+			foreach (var actor in actors)
+			{
+				definitionFromActors.Remove(actor);
+				Destroy(actor);
+			}
+		}
+	}
 
 	public override void Update()
 	{
