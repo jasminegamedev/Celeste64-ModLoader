@@ -55,27 +55,51 @@ public class EditorWorld : World
 			Add(new Snow(Map.SnowAmount, Map.SnowWind));
 		}
 
-		if (Map.Music != null && Assets.Music.ContainsKey(Map.Music) && Save.Instance.Editor.PlayMusic)
+		Game.Instance.Music.Stop();
+		Game.Instance.MusicWav?.Stop();
+		if (Save.Instance.Editor.PlayMusic)
 		{
-			MusicWav = Map.Music;
-			Music = $"event:/music/";
+			if (Map.Music != null && Assets.Music.ContainsKey(Map.Music))
+			{
+				MusicWav = Map.Music;
+				Music = $"event:/music/";
+			}
+			else
+			{
+				MusicWav = "";
+				Music = $"event:/music/{Map.Music}";
+			}
 		}
 		else
 		{
-			MusicWav = "";
-			Music = $"event:/music/{Map.Music}";
+			MusicWav = string.Empty;
+			Music = string.Empty;
 		}
+		Game.Instance.Music = Audio.Play(Music);
+		Game.Instance.MusicWav = Audio.PlayMusic(MusicWav);
 
-		if (Map.Ambience != null && Assets.Music.ContainsKey(Map.Ambience) && Save.Instance.Editor.PlayAmbience)
+		Game.Instance.Ambience.Stop();
+		Game.Instance.AmbienceWav?.Stop();
+		if (Save.Instance.Editor.PlayAmbience)
 		{
-			AmbienceWav = Map.Ambience;
-			Ambience = $"event:/sfx/ambience/";
+			if (Map.Ambience != null && Assets.Music.ContainsKey(Map.Ambience))
+			{
+				AmbienceWav = Map.Ambience;
+				Ambience = $"event:/sfx/ambience/";
+			}
+			else
+			{
+				AmbienceWav = "";
+				Ambience = $"event:/sfx/ambience/{Map.Ambience}";
+			}
 		}
 		else
 		{
-			AmbienceWav = "";
-			Ambience = $"event:/sfx/ambience/{Map.Ambience}";
+			AmbienceWav = string.Empty;
+			Ambience = string.Empty;
 		}
+		Game.Instance.Ambience = Audio.Play(Ambience);
+		Game.Instance.AmbienceWav = Audio.PlayMusic(AmbienceWav);
 		
 		skyboxes.Clear();
 		if (!string.IsNullOrEmpty(Map.Skybox))
