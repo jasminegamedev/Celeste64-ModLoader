@@ -151,7 +151,7 @@ public class Overworld : Scene
 	private float selectedEase = 0;
 	private float cameraCloseUpEase = 0;
 	private Vec2 wobble = new Vec2(0, -1);
-	private List<GameMod> modsWithLevels = ModManager.Instance.EnabledModsWithLevels.ToList();
+	private readonly List<GameMod> modsWithLevels = ModManager.Instance.EnabledModsWithLevels.ToList();
 	// Entries must be cached. Getting them every frame is not only a stutterfest,
 	// but also introduces bugs.
 	private List<Entry> entries = [];
