@@ -165,17 +165,6 @@ public class Overworld : Scene
 	{
 		Music = "event:/music/mus_title";
 
-		/*
-		foreach (var level in Assets.Levels)
-		{
-			var mod = ModManager.Instance.Mods.FirstOrDefault(mod => mod.Levels.Contains(level));
-			if (mod is { Enabled: true })
-			{
-				entries.Add(new(level, mod));
-			}
-		}
-		*/
-
 		var cardWidth = DefaultCardWidth / 6.0f;
 		var cardHeight = DefaultCardHeight / 6.0f;
 
@@ -273,6 +262,8 @@ public class Overworld : Scene
 
 		if (state == States.Selecting && !Paused)
 		{
+			// Currently, the QOL feature that lets you skip to the first/last item no longer exists :(
+			// Todo: reimplement it. (Home/End keys? Bumpers on controller?)
 			var was = index;
 			if (Controls.Menu.Horizontal.Negative.Pressed)
 			{
