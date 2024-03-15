@@ -16,9 +16,11 @@ public class PositionGizmo : Gizmo
 			return;
 		
 		const float minScale = 10.0f;
-		float scale = Math.Max(minScale, Vec3.Distance(EditorWorld.Current.Camera.Position, selected.Position) / 50.0f);
+		float scale = Math.Max(minScale, Vec3.Distance(EditorWorld.Current.Camera.Position, selected.Position) / 20.0f);
 		
-		float axisLen = 2.5f * scale;
+		float cubeSize = 0.15f * scale;
+		float padding = 0.15f * scale;
+		float axisLen = 1.5f * scale;
 		float axisRadius = axisLen / 35.0f;
 		float coneLen = axisLen / 2.5f;
 		float coneRadius = coneLen / 3.0f;
@@ -40,14 +42,17 @@ public class PositionGizmo : Gizmo
 		var zColor = false ? zColorSelected : zColorDeselected;
 		
 		// X
-		batch3D.Line(selected.Position, selected.Position + Vec3.UnitX * axisLen, xColor, axisRadius);
+		batch3D.Line(selected.Position + Vec3.UnitX * (cubeSize + padding), selected.Position + Vec3.UnitX * axisLen, xColor, axisRadius);
 		batch3D.Cone(selected.Position + Vec3.UnitX * axisLen, Batcher3D.Direction.X, coneLen, coneRadius, 12, xColor);
 		// Y
-		batch3D.Line(selected.Position, selected.Position + Vec3.UnitY * axisLen, yColor, axisRadius);
+		batch3D.Line(selected.Position + Vec3.UnitY * (cubeSize + padding), selected.Position + Vec3.UnitY * axisLen, yColor, axisRadius);
 		batch3D.Cone(selected.Position + Vec3.UnitY * axisLen, Batcher3D.Direction.Y, coneLen, coneRadius, 12, yColor);
 		// Z
-		batch3D.Line(selected.Position, selected.Position + Vec3.UnitZ * axisLen, zColor, axisRadius);
+		batch3D.Line(selected.Position + Vec3.UnitZ * (cubeSize + padding), selected.Position + Vec3.UnitZ * axisLen, zColor, axisRadius);
 		batch3D.Cone(selected.Position + Vec3.UnitZ * axisLen, Batcher3D.Direction.Z, coneLen, coneRadius, 12, zColor);
+		
+		// XYZ
+		batch3D.Cube(selected.Position, Color.White, cubeSize);
 	}
 }
 
