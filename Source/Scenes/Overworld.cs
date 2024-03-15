@@ -164,7 +164,7 @@ public class Overworld : Scene
 	public Overworld(bool startOnLastSelected)
 	{
 		Music = "event:/music/mus_title";
-    
+
 		var cardWidth = DefaultCardWidth / 6.0f;
 		var cardHeight = DefaultCardHeight / 6.0f;
 
@@ -205,7 +205,7 @@ public class Overworld : Scene
 
 		// We treat the vanilla "mod" as a catch-all option (because it only has one level anyway). 
 		// It will return every available item.
-		if(currentMod is VanillaGameMod)
+		if (currentMod is VanillaGameMod)
 		{
 			foreach (var level in Assets.Levels)
 			{
@@ -215,10 +215,10 @@ public class Overworld : Scene
 					entriesTemp.Add(new(level, mod));
 				}
 			}
-		} 
-		else 
+		}
+		else
 		{
-			foreach(var level in currentMod.Levels)
+			foreach (var level in currentMod.Levels)
 			{
 				entriesTemp.Add(new(level, currentMod));
 			}
@@ -233,9 +233,9 @@ public class Overworld : Scene
 	{
 		dir = Calc.Clamp(dir, -1, 1);
 
-		if(modsWithLevels.Count > 1) selectedModIdx = (selectedModIdx + dir) % modsWithLevels.Count;
+		if (modsWithLevels.Count > 1) selectedModIdx = (selectedModIdx + dir) % modsWithLevels.Count;
 
-		if(selectedModIdx < 0) selectedModIdx = modsWithLevels.Count - 1;
+		if (selectedModIdx < 0) selectedModIdx = modsWithLevels.Count - 1;
 
 		entries = GetCurrentModEntries();
 
@@ -532,11 +532,11 @@ public class Overworld : Scene
 			var staticPromptPos = bounds.TopCenter + new Vec2(1, 16) * Game.RelativeScale;
 			var modTitlePos = bounds.TopCenter + new Vec2(-8 + (-slide * 160), 32) * Game.RelativeScale;
 
-			if(selectedModIdx == 0 && state == States.Selecting)
+			if (selectedModIdx == 0 && state == States.Selecting)
 			{
 				UI.Text(batch, new Loc.Localized("FujiOverworldModSlideNote"), staticPromptPos, new Vec2(0.5f, 0), Color.Gray);
 			}
-			else if(state == States.Selecting)
+			else if (state == States.Selecting)
 			{
 				UI.Text(batch, modsWithLevels[selectedModIdx].ModInfo.Name, modTitlePos, new Vec2(0.5f, 0), Color.White);
 			}
@@ -557,7 +557,7 @@ public class Overworld : Scene
 		//  -> Display if the pause menu is in the top-level.
 		// Else
 		//  -> Display if no level is selected.
-		if((Paused ? (pauseMenu?.IsInMainMenu) : (state == States.Selecting)) == true)
+		if ((Paused ? (pauseMenu?.IsInMainMenu) : (state == States.Selecting)) == true)
 		{
 			UI.Text(batch, Game.VersionString, bounds.BottomLeft + new Vec2(4, -4) * Game.RelativeScale, new Vec2(0, 1), Color.CornflowerBlue * 0.75f);
 			UI.Text(batch, Game.LoaderVersion, bounds.BottomLeft + new Vec2(4, -24) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
