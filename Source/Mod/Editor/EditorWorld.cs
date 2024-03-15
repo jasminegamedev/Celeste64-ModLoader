@@ -33,6 +33,8 @@ public class EditorWorld : World
 	
 	// TODO: Temporary!
 	private PositionGizmo posGizmo = new();
+	private Vec2 dragStart;
+	private Vec3 dragStartPosition;
 
 	internal EditorWorld(EntryInfo entry) : base(entry)
 	{
@@ -274,7 +276,15 @@ public class EditorWorld : World
 					closestGizmo = dist;
 				}
 				
-				if (!foundGizmo)
+				if (foundGizmo)
+				{
+					if (Selected is SpikeBlock.Definition def)
+					{
+						dragStart = Input.Mouse.Position;
+						dragStartPosition = def.Position;
+					}
+				}
+				else
 				{
 					posGizmo.Target = GizmoTarget.None;
 					
@@ -285,8 +295,99 @@ public class EditorWorld : World
 					else
 						Selected = null;
 				}
+			}
+		}
+		
+		// Drag position gizmo
+		if (Input.Mouse.LeftDown && !ImGuiManager.WantCaptureMouse)
+		{
+			if (Camera.Target != null &&
+			    Matrix.Invert(Camera.Projection, out var inverseProj) &&
+			    Matrix.Invert(Camera.View, out var inverseView))
+			{
+				// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
+				var scale = Math.Min(App.WidthInPixels / (float)Camera.Target.Width, App.HeightInPixels / (float)Camera.Target.Height);
+				var imageRelativePos = Input.Mouse.Position - (App.SizeInPixels / 2 - Camera.Target.Bounds.Size / 2 * scale);
+				// Convert into normalized-device-coordinates
+				var ndcPos = imageRelativePos / (Camera.Target.Bounds.Size / 2 * scale) - Vec2.One;
+				// Flip Y, since up is negative in NDC coords
+				ndcPos.Y *= -1.0f;
+				var clipPos = new Vec4(ndcPos, -1.0f, 1.0f);
+				var eyePos = Vec4.Transform(clipPos, inverseProj);
+				// We only care about XY, so we set ZW to "forward"
+				eyePos.Z = -1.0f;
+				eyePos.W = 0.0f;
+				var worldPos = Vec4.Transform(eyePos, inverseView);
+				var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
 				
-				Log.Info(posGizmo.Target);
+				var axisMatrix = posGizmo.Transform * Camera.ViewProjection;
+				var screenXAxis = Vec3.TransformNormal(Vec3.UnitX, axisMatrix).XY();
+				var screenYAxis = Vec3.TransformNormal(Vec3.UnitY, axisMatrix).XY();
+				var screenZAxis = Vec3.TransformNormal(Vec3.UnitZ, axisMatrix).XY();
+				// Flip Y, since down is positive in screen coords
+				screenXAxis.Y *= -1.0f;
+				screenYAxis.Y *= -1.0f;
+				screenZAxis.Y *= -1.0f;
+				
+				// Linear scalar for the movement. Chosen on what felt best.
+				const float dotScale = 1.0f / 50.0f;
+				float dotX = Vec2.Dot(Input.Mouse.Position - dragStart, screenXAxis) * dotScale;
+				float dotY = Vec2.Dot(Input.Mouse.Position - dragStart, screenYAxis) * dotScale;
+				float dotZ = Vec2.Dot(Input.Mouse.Position - dragStart, screenZAxis) * dotScale;
+				
+				Vec3 newPosition = Vec3.Zero;
+				if (Selected is SpikeBlock.Definition def)
+					newPosition = def.Position;
+				
+				var xzPlaneDelta = Vec3.Transform(posGizmo.xzPlaneBounds.Center, posGizmo.Transform) - newPosition;
+				var yzPlaneDelta = Vec3.Transform(posGizmo.yzPlaneBounds.Center, posGizmo.Transform) - newPosition;
+				var xyPlaneDelta = Vec3.Transform(posGizmo.xyPlaneBounds.Center, posGizmo.Transform) - newPosition;
+				
+				var cameraPlaneNormal = (Camera.Position - dragStartPosition).Normalized();
+				var cameraPlane = new Plane(cameraPlaneNormal, Vec3.Dot(cameraPlaneNormal, dragStartPosition));
+				
+				switch (posGizmo.Target)
+				{
+					case GizmoTarget.AxisX:
+						newPosition = dragStartPosition + Vec3.UnitX * dotX;
+						break;
+					case GizmoTarget.AxisY:
+						newPosition = dragStartPosition + Vec3.UnitY * dotY;
+						break;
+					case GizmoTarget.AxisZ:
+						newPosition = dragStartPosition + Vec3.UnitZ * dotZ;
+						break;
+					
+					case GizmoTarget.PlaneXZ:
+						float tY = (dragStartPosition.Y - Camera.Position.Y) / direction.Y;
+						newPosition = Camera.Position + direction * tY - xzPlaneDelta;
+						break;
+					case GizmoTarget.PlaneYZ:
+						float tX = (dragStartPosition.X - Camera.Position.X) / direction.X;
+						newPosition = Camera.Position + direction * tX - yzPlaneDelta;
+						break;
+					case GizmoTarget.PlaneXY:
+						float tZ = (dragStartPosition.Z - Camera.Position.Z) / direction.Z;
+						newPosition = Camera.Position + direction * tZ - xyPlaneDelta;
+						break;
+
+					case GizmoTarget.CubeXYZ:
+						if (ModUtils.RayIntersectsPlane(Camera.Position, direction, cameraPlane, out var hit))
+						{
+							newPosition = hit;
+						}
+						break;
+
+					case GizmoTarget.None:
+					default:
+						break;
+				}
+				
+				if (Selected is SpikeBlock.Definition def2)
+				{
+					def2.Position = newPosition;
+					def2.Dirty = true;
+				}
 			}
 		}
 

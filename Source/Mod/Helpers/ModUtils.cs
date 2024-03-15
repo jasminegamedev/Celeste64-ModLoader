@@ -80,4 +80,31 @@ public static class ModUtils
 
 		return true;
 	}
+	
+	// From "GamePhysicsCookbook"
+	// See: https://github.com/gszauer/GamePhysicsCookbook/blob/a0b8ee0c39fed6d4b90bb6d2195004dfcf5a1115/Code/Geometry3D.cpp#L769-L796
+	public static bool RayIntersectsPlane(Vec3 origin, Vec3 direction, Plane plane, out Vec3 hitPoint)
+	{
+		hitPoint = default;
+		
+		float nd = Vec3.Dot(direction, plane.Normal);
+		float pn = Vec3.Dot(origin, plane.Normal);
+
+		// nd must be negative, and not 0
+		// if nd is positive, the ray and plane normals
+		// point in the same direction. No intersection.
+		if (nd >= 0.0f)
+			return false;
+
+		float t = (plane.D - pn) / nd;
+
+		// t must be positive
+		if (t >= 0.0f) 
+		{
+			hitPoint = origin + direction * t;
+			return true;
+		}
+
+		return false;
+	}
 }
