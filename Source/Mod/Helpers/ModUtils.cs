@@ -37,115 +37,47 @@ public static class ModUtils
 		return tEnter < tExit;
 	}
 
-	// Intersection method from "Real-Time Rendering and Essential Mathematics for Games"
-	// Reference Implementation: https://github.com/opengl-tutorials/ogl/blob/15e57f6cccef388915e565d8322b8442049e1bd8/misc05_picking/misc05_picking_custom.cpp#L83-L197 
+	// "Box Intersection Generic" from https://iquilezles.org/articles/boxfunctions
 	public static bool RayIntersectOBB(Vec3 origin, Vec3 direction, BoundingBox box, Matrix transform, out float t)
 	{
 		t = 0.0f;
-		float tMin = 0.0f, tMax = 100000.0f;
+		if (!Matrix.Invert(transform, out var inverse))
+			return false;
+		
+		// The center of the bounding box needs to be at <0,0,0>
+		inverse *= Matrix.CreateTranslation(-box.Center);
+		
+		// convert from world to box space
+		var ro = Vec3.Transform(origin, inverse);
+		var rd = Vec3.TransformNormal(direction, inverse);
 
-		var oobWorldPos = new Vec3(transform.M41, transform.M42, transform.M43);
-		var delta = oobWorldPos - origin;
+		var rad = box.Size / 2.0f;
+			
+		// ray-box intersection in box space
+		var m = Vec3.One / rd;
+		var s = new Vec3(
+			(rd.X<0.0f)?1.0f:-1.0f,
+			(rd.Y<0.0f)?1.0f:-1.0f,
+			(rd.Z<0.0f)?1.0f:-1.0f);
+		var t1 = m*(-ro + s*rad);
+		var t2 = m*(-ro - s*rad);
 
-		// Test intersection with the 2 planes perpendicular to the OBB's X axis
-		{
-			var xAxis = new Vec3(transform.M11, transform.M12, transform.M13);
-			float e = Vec3.Dot(xAxis, delta);
-			float f = Vec3.Dot(direction, xAxis);
+		float tN = Math.Max( Math.Max( t1.X, t1.Y ), t1.Z );
+		float tF = Math.Min( Math.Min( t2.X, t2.Y ), t2.Z );
+	
+		if( tN>tF || tF<0.0) 
+			return false;
 
-			if (Math.Abs(f) > 0.001f) // Standard case
-			{
-				float t1 = (e + box.Min.X) / f; // Intersection with the "left" plane
-				float t2 = (e + box.Max.X) / f; // Intersection with the "right" plane
-												// t1 and t2 now contain distances between ray origin and ray-plane intersections
+		// compute normal (in world space), face and UV
+		// currently not required
+		// if( t1.x>t1.y && t1.x>t1.z ) { oN=txi[0].xyz*s.x; oU=ro.yz+rd.yz*t1.x; oF=([1+int(s.x))/[2];
+		// else if( t1.y>t1.z   )       { oN=txi[1].xyz*s.y; oU=ro.zx+rd.zx*t1.y; oF=([5+int(s.y))/[2];
+		// else                         { oN=txi[2].xyz*s.z; oU=ro.xy+rd.xy*t1.z; oF=([9+int(s.z))/[2];
 
-				// We want t1 to represent the nearest intersection, 
-				// so if it's not the case, invert t1 and t2
-				if (t1 > t2)
-					(t1, t2) = (t2, t1);
+		// exit point currently not required
+		// oT = vec2(tN,tF);
+		t = tN;
 
-				// tMax is the nearest "far" intersection (amongst the X,Y and Z planes pairs)
-				if (t2 < tMax)
-					tMax = t2;
-				// tMin is the farthest "near" intersection (amongst the X,Y and Z planes pairs)
-				if (t1 > tMin)
-					tMin = t1;
-
-				// And here's the trick :
-				// If "far" is closer than "near", then there is NO intersection.
-				// See the images in the tutorials for the visual explanation.
-				if (tMax < tMin)
-					return false;
-			}
-			else // Rare case: The ray is almost parallel to the planes, so they don't have any "intersection"
-			{
-				if (-e + box.Min.X > 0.0f || -e + box.Max.X < 0.0f)
-					return false;
-			}
-		}
-
-		// Test intersection with the 2 planes perpendicular to the OBB's Y axis
-		// Exactly the same thing than above.
-		{
-			var yAxis = new Vec3(transform.M21, transform.M22, transform.M23);
-			float e = Vec3.Dot(yAxis, delta);
-			float f = Vec3.Dot(direction, yAxis);
-
-			if (Math.Abs(f) > 0.001f)
-			{
-				float t1 = (e + box.Min.Y) / f;
-				float t2 = (e + box.Max.Y) / f;
-
-				if (t1 > t2)
-					(t1, t2) = (t2, t1);
-
-				if (t2 < tMax)
-					tMax = t2;
-				if (t1 > tMin)
-					tMin = t1;
-
-				if (tMax < tMin)
-					return false;
-			}
-			else
-			{
-				if (-e + box.Min.Y > 0.0f || -e + box.Max.Y < 0.0f)
-					return false;
-			}
-		}
-
-
-		// Test intersection with the 2 planes perpendicular to the OBB's Z axis
-		// Exactly the same thing than above.
-		{
-			var zAxis = new Vec3(transform.M31, transform.M32, transform.M33);
-			float e = Vec3.Dot(zAxis, delta);
-			float f = Vec3.Dot(direction, zAxis);
-
-			if (Math.Abs(f) > 0.001f)
-			{
-				float t1 = (e + box.Min.Z) / f;
-				float t2 = (e + box.Max.Z) / f;
-
-				if (t1 > t2)
-					(t1, t2) = (t2, t1);
-
-				if (t2 < tMax)
-					tMax = t2;
-				if (t1 > tMin)
-					tMin = t1;
-
-				if (tMax < tMin)
-					return false;
-			}
-			else
-			{
-				if (-e + box.Min.Z > 0.0f || -e + box.Max.Z < 0.0f)
-					return false;
-			}
-		}
-
-		t = tMin;
 		return true;
 	}
 }
