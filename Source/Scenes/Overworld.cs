@@ -557,7 +557,7 @@ public class Overworld : Scene
 		//  -> Display if the pause menu is in the top-level.
 		// Else
 		//  -> Display if no level is selected.
-		if ((Paused ? (pauseMenu?.IsInMainMenu) : (state == States.Selecting)) == true)
+		if (Paused ? (pauseMenu is { IsInMainMenu: true }) : (state == States.Selecting))
 		{
 			UI.Text(batch, Game.VersionString, bounds.BottomLeft + new Vec2(4, -4) * Game.RelativeScale, new Vec2(0, 1), Color.CornflowerBlue * 0.75f);
 			UI.Text(batch, Game.LoaderVersion, bounds.BottomLeft + new Vec2(4, -24) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
