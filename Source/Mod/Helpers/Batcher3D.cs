@@ -29,6 +29,8 @@ public class Batcher3D
 
 		public readonly VertexFormat Format => VertexFormat;
 	}
+	
+	public enum Direction { X, Y, Z }
 
 	~Batcher3D()
 	{
@@ -216,6 +218,78 @@ public class Batcher3D
 			}
 		}
 
+		vertexCount += vtxCount;
+		indexCount += idxCount;
+		dirty = true;
+	}
+	
+	public void Cone(Vec3 position, Direction direction, float length, float radius, int resolution, Color color) => Cone(position, direction, length, radius, resolution, color, Matrix.Identity);
+	public void Cone(Vec3 position, Direction direction, float length, float radius, int resolution, Color color, Matrix transform)
+	{
+		var points = new Vec3[resolution];
+
+		float angleStep = Calc.TAU / resolution;
+		
+		for (int i = 0; i < resolution; i++)
+		{
+			var vec = Calc.AngleToVector(i * angleStep, radius);
+			points[i] = direction switch
+			{
+				Direction.X => new Vec3(0.0f, vec.X, vec.Y),
+				Direction.Y => new Vec3(vec.X, 0.0f, vec.Y),
+				Direction.Z => new Vec3(vec.X, vec.Y, 0.0f),
+				_ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+			};
+		}
+		
+		int vtxCount = resolution * 2 + 1 + 1; // 2 vertices each + 1 in the base center + 1 at the tip
+		int idxCount = resolution * 2 * 3; // 2 triangles on top/bottom * 3 vertices each
+		
+		EnsureVertexCapacity(vertexCount + vtxCount);
+		EnsureIndexCapacity(indexCount + idxCount);
+		
+		unsafe
+		{
+			var vertices = new Span<Vertex>((Vertex*)vertexPtr + vertexCount, vtxCount);
+			var indices = new Span<int>((int*)indexPtr + indexCount, idxCount);
+
+			var dir = direction switch
+			{
+				Direction.X => Vec3.UnitX,
+				Direction.Y => Vec3.UnitY,
+				Direction.Z => Vec3.UnitZ,
+				_ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+			};
+
+			// Base center
+			vertices[0].Pos = position;
+			vertices[0].Col = color;
+			// Tip
+			vertices[1].Pos = position + dir * length;
+			vertices[1].Col = color;
+
+			for (int i = 0; i < resolution; i++)
+			{
+				vertices[i + 2].Pos = Vec3.Transform(position + points[i], transform);
+				vertices[i + 2].Col = color;
+			}
+
+			for (int i = 0; i < resolution; i++)
+			{
+				int curr = i;
+				int prev = i == 0 ? resolution - 1 : i - 1; // Wrap around to the end
+				
+				// Bottom
+				indices[i * (2 * 3) + 0] = vertexCount + (prev + 2);
+				indices[i * (2 * 3) + 1] = vertexCount + (curr + 2);
+				indices[i * (2 * 3) + 2] = vertexCount + 0;
+				// Top
+				indices[i * (2 * 3) + 3] = vertexCount + (curr + 2);
+				indices[i * (2 * 3) + 4] = vertexCount + (prev + 2);
+				indices[i * (2 * 3) + 5] = vertexCount + 1;
+			}
+		}
+		
 		vertexCount += vtxCount;
 		indexCount += idxCount;
 		dirty = true;
