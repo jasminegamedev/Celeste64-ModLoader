@@ -30,6 +30,9 @@ public class EditorWorld : World
 	private Vec2 cameraRot = new(0, 0);
 
 	private readonly Batcher3D batch3D = new();
+	
+	// TODO: Temporary!
+	private PositionGizmo posGizmo = new();
 
 	internal EditorWorld(EntryInfo entry) : base(entry)
 	{
@@ -192,9 +195,11 @@ public class EditorWorld : World
 		float moveSpeed = 250.0f;
 
 		if (Input.Keyboard.Down(Keys.W))
-			cameraPos += cameraForward * moveSpeed * Time.Delta;
+			// cameraPos += cameraForward * moveSpeed * Time.Delta;
+			cameraPos += Camera.Forward * moveSpeed * Time.Delta;
 		if (Input.Keyboard.Down(Keys.S))
-			cameraPos -= cameraForward * moveSpeed * Time.Delta;
+			// cameraPos -= cameraForward * moveSpeed * Time.Delta;
+			cameraPos -= Camera.Forward * moveSpeed * Time.Delta;
 		if (Input.Keyboard.Down(Keys.A))
 			cameraPos += cameraRight * moveSpeed * Time.Delta;
 		if (Input.Keyboard.Down(Keys.D))
@@ -244,10 +249,44 @@ public class EditorWorld : World
 				var worldPos = Vec4.Transform(eyePos, inverseView);
 				var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
 
-				if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
-					Selected = hit.Actor is not null && definitionFromActors.TryGetValue(hit.Actor, out var def) ? def : null;
-				else
-					Selected = null;
+				// First check if we hit a gizmo
+				(BoundingBox Bounds, GizmoTarget Target)[] gizmoTargets = [
+					(posGizmo.xAxisBounds, GizmoTarget.AxisX),
+					(posGizmo.yAxisBounds, GizmoTarget.AxisY),
+					(posGizmo.zAxisBounds, GizmoTarget.AxisZ),
+					
+					(posGizmo.xzPlaneBounds, GizmoTarget.PlaneXZ),
+					(posGizmo.yzPlaneBounds, GizmoTarget.PlaneYZ),
+					(posGizmo.xyPlaneBounds, GizmoTarget.PlaneXY),
+					
+					(posGizmo.xyzCubeBounds, GizmoTarget.CubeXYZ),
+				];
+				
+				bool foundGizmo = false;
+				float closestGizmo = float.PositiveInfinity;
+				foreach (var (bounds, target) in gizmoTargets)
+				{
+					if (!ModUtils.RayIntersectOBB(Camera.Position, direction, bounds, posGizmo.Transform, out float dist) || dist >= closestGizmo) 
+						continue;
+
+					posGizmo.Target = target;
+					foundGizmo = true;
+					closestGizmo = dist;
+				}
+				
+				if (!foundGizmo)
+				{
+					posGizmo.Target = GizmoTarget.None;
+					
+					// Then check for actors
+					if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
+						Selected = hit.Actor is not null && definitionFromActors.TryGetValue(hit.Actor, out var def) ? def : null;
+					// Otherwise we clicked into nothing
+					else
+						Selected = null;
+				}
+				
+				Log.Info(posGizmo.Target);
 			}
 		}
 
@@ -479,7 +518,7 @@ public class EditorWorld : World
 		// Render gizmos on-top
 		target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
 		{
-			(new PositionGizmo()).Render2(ref state, batch3D);
+			posGizmo.Render2(ref state, batch3D);
 		}
 		batch3D.Render(ref state);
 		batch3D.Clear();

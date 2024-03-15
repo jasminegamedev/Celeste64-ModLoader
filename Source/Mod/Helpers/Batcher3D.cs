@@ -277,10 +277,10 @@ public class Batcher3D
 			};
 
 			// Base center
-			vertices[0].Pos = position;
+			vertices[0].Pos = Vec3.Transform(position, transform);
 			vertices[0].Col = color;
 			// Tip
-			vertices[1].Pos = position + dir * length;
+			vertices[1].Pos = Vec3.Transform(position + dir * length, transform);
 			vertices[1].Col = color;
 
 			for (int i = 0; i < resolution; i++)
