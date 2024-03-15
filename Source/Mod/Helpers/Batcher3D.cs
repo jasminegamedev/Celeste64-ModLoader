@@ -50,14 +50,12 @@ public class Batcher3D
 	private readonly Material material = new(Assets.Shaders["Sprite"]);
 	private bool dirty = false;
 
-	public void Line(Vec3 from, Vec3 to, Color color, float thickness = 0.1f) => Line(from, to, color, Matrix4x4.Identity, thickness);
+	public void Line(Vec3 from, Vec3 to, Color color, float thickness = 0.1f) => Line(from, to, color, Matrix.Identity, thickness);
 	public void Line(Vec3 from, Vec3 to, Color color, Matrix transform, float thickness = 0.1f)
 	{
 		var normal = (to - from).Normalized();
-		// The other vector for the cross product can't be parallel to the normal
-		var tangent = Math.Abs(Vec3.Dot(normal, Vec3.UnitX)) < 0.5f ? Vec3.Cross(normal, Vec3.UnitX) : Vec3.Cross(normal, Vec3.UnitY);
-		var bitangent = Vec3.Cross(normal, tangent);
-
+		var (tangent, bitangent) = GetTangentVectors(normal);
+		
 		tangent *= thickness;
 		bitangent *= thickness;
 
@@ -66,7 +64,7 @@ public class Batcher3D
 			color, transform);
 	}
 
-	public void Cube(Vec3 center, Color color, float thickness = 0.1f) => Cube(center, color, Matrix4x4.Identity, thickness);
+	public void Cube(Vec3 center, Color color, float thickness = 0.1f) => Cube(center, color, Matrix.Identity, thickness);
 	public void Cube(Vec3 center, Color color, Matrix transform, float thickness = 0.1f)
 	{
 		Box(center + new Vec3(-thickness, -thickness, -thickness),
@@ -81,25 +79,27 @@ public class Batcher3D
 		);
 	}
 
-	public void Torus(Vec3 center, float radius, int resolution, Color color, float thickness = 0.1f) => Torus(center, radius, resolution, color, Matrix4x4.Identity, thickness);
+	public void Torus(Vec3 center, float radius, int resolution, Color color, float thickness = 0.1f) => Torus(center, radius, resolution, color, Matrix.Identity, thickness);
 	public void Torus(Vec3 center, float radius, int resolution, Color color, Matrix transform, float thickness = 0.1f)
 	{
 		var points = new Vec3[resolution];
 
 		float angleStep = Calc.TAU / resolution;
-		float angle = 0.0f;
-		for (int i = 0; i < resolution; i++, angle += angleStep)
+		for (int i = 0; i < resolution; i++)
 		{
-			points[i] = new Vec3(Calc.AngleToVector(angle, radius), 0.0f);
+			points[i] = new Vec3(Calc.AngleToVector(i * angleStep, radius), 0.0f);
 		}
 
-		EnsureVertexCapacity(vertexCount + resolution * 4); // 4 vertices each
-		EnsureIndexCapacity(indexCount + resolution * 4 * 2 * 3); // 4 faces * 2 triangles * 3 vertices each
+		int vtxCount = resolution * 4; // 4 vertices each
+		int idxCount = resolution * 4 * 2 * 3; // 4 faces * 2 triangles * 3 vertices each
+		
+		EnsureVertexCapacity(vertexCount + vtxCount);
+		EnsureIndexCapacity(indexCount + idxCount);
 
 		unsafe
 		{
-			Span<Vertex> vertices = new((Vertex*)vertexPtr + vertexCount, resolution * 4);
-			Span<int> indices = new((int*)indexPtr + indexCount, resolution * 4 * 2 * 3);
+			var vertices = new Span<Vertex>((Vertex*)vertexPtr + vertexCount, vtxCount);
+			var indices = new Span<int>((int*)indexPtr + indexCount, idxCount);
 
 			for (int i = 0; i < resolution; i++)
 			{
@@ -152,30 +152,32 @@ public class Batcher3D
 			}
 		}
 
-		vertexCount += resolution * 4;
-		indexCount += resolution * 4 * 2 * 3;
+		vertexCount += vtxCount;
+		indexCount += idxCount;
 		dirty = true;
 	}
 
-	public void Disk(Vec3 center, float radius, int resolution, Color color, float thickness = 0.1f) => Disk(center, radius, resolution, color, Matrix4x4.Identity, thickness);
+	public void Disk(Vec3 center, float radius, int resolution, Color color, float thickness = 0.1f) => Disk(center, radius, resolution, color, Matrix.Identity, thickness);
 	public void Disk(Vec3 center, float radius, int resolution, Color color, Matrix transform, float thickness = 0.1f)
 	{
 		var points = new Vec3[resolution];
 
 		float angleStep = Calc.TAU / resolution;
-		float angle = 0.0f;
-		for (int i = 0; i < resolution; i++, angle += angleStep)
+		for (int i = 0; i < resolution; i++)
 		{
-			points[i] = new Vec3(Calc.AngleToVector(angle, radius), 0.0f);
+			points[i] = new Vec3(Calc.AngleToVector(i * angleStep, radius), 0.0f);
 		}
+		
+		int vtxCount = resolution * 2 + 2; // 2 vertices each + 2 in the center
+		int idxCount = resolution * 4 * 3; // 1 faces for outside + 2 triangles on top/bottom = 4 triangles * 3 vertices each
 
-		EnsureVertexCapacity(vertexCount + resolution * 2 + 2); // 2 vertices each + 2 in the center
-		EnsureIndexCapacity(indexCount + resolution * 4 * 3); // 1 faces for outside + 2 triangles on top/bottom = 4 triangles * 3 vertices each
+		EnsureVertexCapacity(vertexCount + vtxCount);
+		EnsureIndexCapacity(indexCount + idxCount);
 
 		unsafe
 		{
-			Span<Vertex> vertices = new((Vertex*)vertexPtr + vertexCount, resolution * 2 + 2);
-			Span<int> indices = new((int*)indexPtr + indexCount, resolution * 4 * 3);
+			var vertices = new Span<Vertex>((Vertex*)vertexPtr + vertexCount, vtxCount);
+			var indices = new Span<int>((int*)indexPtr + indexCount, idxCount);
 
 			var up = new Vec3(0.0f, 0.0f, thickness);
 			vertices[0].Pos = Vec3.Transform(center - up, transform);
@@ -214,25 +216,28 @@ public class Batcher3D
 			}
 		}
 
-		vertexCount += resolution * 2 + 2;
-		indexCount += resolution * 4 * 3;
+		vertexCount += vtxCount;
+		indexCount += idxCount;
 		dirty = true;
 	}
 
-	public void Sphere(Vec3 center, float radius, int resolution, Color color) => Sphere(center, radius, resolution, color, Matrix4x4.Identity);
+	public void Sphere(Vec3 center, float radius, int resolution, Color color) => Sphere(center, radius, resolution, color, Matrix.Identity);
 	public void Sphere(Vec3 center, float radius, int resolution, Color color, Matrix transform)
 	{
 		// Taken and adapted from Utils.CreateSphere()
 		int stackCount = resolution;
 		int sliceCount = resolution;
 
-		EnsureVertexCapacity(vertexCount + 2 + (stackCount - 1) * sliceCount);
-		EnsureIndexCapacity(indexCount + sliceCount * 6 + (stackCount - 2) * sliceCount * 6);
+		int vtxCount = 2 + (stackCount - 1) * sliceCount;
+		int idxCount = sliceCount * 6 + (stackCount - 2) * sliceCount * 6;
+		
+		EnsureVertexCapacity(vertexCount + vtxCount);
+		EnsureIndexCapacity(indexCount + idxCount);
 
 		unsafe
 		{
-			Span<Vertex> vertices = new((Vertex*)vertexPtr + vertexCount, 2 + (stackCount - 1) * sliceCount);
-			Span<int> indices = new((int*)indexPtr + indexCount, sliceCount * 6 + (stackCount - 2) * sliceCount * 6);
+			var vertices = new Span<Vertex>((Vertex*)vertexPtr + vertexCount, vtxCount);
+			var indices = new Span<int>((int*)indexPtr + indexCount, idxCount);
 
 			int vtx = 0;
 			int idx = 0;
@@ -334,13 +339,16 @@ public class Batcher3D
 					Vec3 v4, Vec3 v5, Vec3 v6, Vec3 v7,
 					Color color, Matrix transform)
 	{
-		EnsureVertexCapacity(vertexCount + 8);
-		EnsureIndexCapacity(indexCount + 6 * 2 * 3); // 6 faces * 2 triangles * 3 vertices
+		const int vtxCount = 8;
+		const int idxCount = 6 * 2 * 3; // 6 faces * 2 triangles * 3 vertices
+		
+		EnsureVertexCapacity(vertexCount + vtxCount);
+		EnsureIndexCapacity(indexCount + idxCount);
 
 		unsafe
 		{
-			Span<Vertex> vertices = new((Vertex*)vertexPtr + vertexCount, 8);
-			Span<int> indices = new((int*)indexPtr + indexCount, 36);
+			var vertices = new Span<Vertex>((Vertex*)vertexPtr + vertexCount, vtxCount);
+			var indices = new Span<int>((int*)indexPtr + indexCount, idxCount);
 
 			vertices[0].Pos = Vec3.Transform(v0, transform);
 			vertices[1].Pos = Vec3.Transform(v1, transform);
@@ -403,8 +411,8 @@ public class Batcher3D
 			indices[35] = vertexCount + 7;
 		}
 
-		vertexCount += 8;
-		indexCount += 6 * 2 * 3;
+		vertexCount += vtxCount;
+		indexCount += idxCount;
 		dirty = true;
 	}
 
@@ -456,6 +464,14 @@ public class Batcher3D
 	{
 		vertexCount = 0;
 		indexCount = 0;
+	}
+	
+	private (Vec3 Tangent, Vec3 Bitangent) GetTangentVectors(Vec3 normal)
+	{
+		// The other vector for the cross product can't be parallel to the normal
+		var tangent = Math.Abs(Vec3.Dot(normal, Vec3.UnitX)) < 0.5f ? Vec3.Cross(normal, Vec3.UnitX) : Vec3.Cross(normal, Vec3.UnitY);
+		var bitangent = Vec3.Cross(normal, tangent);
+		return (tangent, bitangent);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
