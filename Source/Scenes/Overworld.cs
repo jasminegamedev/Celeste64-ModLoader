@@ -231,14 +231,11 @@ public class Overworld : Scene
 	// this function also takes care of resetting the entries for convenience
 	public void SlideSelectedMod(int dir)
 	{
-		if(modsWithLevels.Count > 1)
-		{
-			selectedModIdx = (selectedModIdx += dir) % modsWithLevels.Count;
-			if(selectedModIdx < 0)
-			{
-				selectedModIdx = modsWithLevels.Count - (-selectedModIdx);
-			} // wraparound if lower than zero
-		}
+		dir = Calc.Clamp(dir, -1, 1);
+
+		if(modsWithLevels.Count > 1) selectedModIdx = (selectedModIdx + dir) % modsWithLevels.Count;
+
+		if(selectedModIdx < 0) selectedModIdx = modsWithLevels.Count - 1;
 
 		entries = GetCurrentModEntries();
 	}
@@ -560,7 +557,7 @@ public class Overworld : Scene
 		//  -> Display if the pause menu is in the top-level.
 		// Else
 		//  -> Display if no level is selected.
-		if(Paused ? (pauseMenu?.IsInMainMenu) : (state == States.Selecting))
+		if((Paused ? (pauseMenu?.IsInMainMenu) : (state == States.Selecting)) == true)
 		{
 			UI.Text(batch, Game.VersionString, bounds.BottomLeft + new Vec2(4, -4) * Game.RelativeScale, new Vec2(0, 1), Color.CornflowerBlue * 0.75f);
 			UI.Text(batch, Game.LoaderVersion, bounds.BottomLeft + new Vec2(4, -24) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
