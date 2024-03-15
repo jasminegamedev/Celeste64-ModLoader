@@ -523,11 +523,6 @@ public class Overworld : Scene
 						UI.Prompt(batch, Controls.Pause, Loc.Str("OptionsTitle"), at, out _, 1.0f);
 					}
 				}
-
-				if (ModLoader.FailedToLoadMods.Any())
-				{
-					UI.Text(batch, string.Format(Loc.Str("FailedToLoadMods"), ModLoader.FailedToLoadMods.Count), bounds.BottomLeft + new Vec2(4, -44) * Game.RelativeScale, new Vec2(0, 1), Color.Red * 0.75f);
-				}
 			}
 
 			if (cameraCloseUpEase > 0)
@@ -569,6 +564,11 @@ public class Overworld : Scene
 		{
 			UI.Text(batch, Game.VersionString, bounds.BottomLeft + new Vec2(4, -4) * Game.RelativeScale, new Vec2(0, 1), Color.CornflowerBlue * 0.75f);
 			UI.Text(batch, Game.LoaderVersion, bounds.BottomLeft + new Vec2(4, -24) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
+
+			if (ModLoader.FailedToLoadMods.Any())
+			{
+				UI.Text(batch, string.Format(Loc.Str("FailedToLoadMods"), ModLoader.FailedToLoadMods.Count), bounds.BottomLeft + new Vec2(4, -44) * Game.RelativeScale, new Vec2(0, 1), Color.Red * 0.75f);
+			}
 		}
 
 		batch.Render(target);
