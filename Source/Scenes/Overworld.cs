@@ -238,6 +238,10 @@ public class Overworld : Scene
 		if(selectedModIdx < 0) selectedModIdx = modsWithLevels.Count - 1;
 
 		entries = GetCurrentModEntries();
+
+		Audio.Play(Sfx.main_menu_postcard_flip);
+
+		wobble = new Vec2(0, dir * 0.25f);
 	}
 
 	public override void Update()
@@ -280,15 +284,11 @@ public class Overworld : Scene
 			{
 				Controls.Menu.ConsumePress();
 				SlideSelectedMod(1);
-				Audio.Play(Sfx.main_menu_postcard_flip);
-				wobble = new Vec2(0, 0.25f);
 			}
 			if (Controls.Menu.Vertical.Negative.Pressed)
 			{
 				Controls.Menu.ConsumePress();
 				SlideSelectedMod(-1);
-				Audio.Play(Sfx.main_menu_postcard_flip);
-				wobble = new Vec2(0, -0.25f);
 			}
 			index = Calc.Clamp(index, 0, entries.Count - 1);
 
