@@ -51,6 +51,21 @@ public class Batcher3D
 	private readonly Mesh mesh = new();
 	private readonly Material material = new(Assets.Shaders["Sprite"]);
 	private bool dirty = false;
+	
+	public void Square(Vec3 center, Vec3 normal, Color color, float size = 0.1f) => Square(center, normal, color, Matrix.Identity, size);
+	public void Square(Vec3 center, Vec3 normal, Color color, Matrix transform, float size = 0.1f)
+	{
+		var (tangent, bitangent) = GetTangentVectors(normal);
+		
+		tangent *= size;
+		bitangent *= size;
+		
+		Quad(center - tangent - bitangent,
+			 center + tangent - bitangent,
+			 center - tangent + bitangent,
+			 center + tangent + bitangent, 
+			 color, transform);
+	}
 
 	public void Line(Vec3 from, Vec3 to, Color color, float thickness = 0.1f) => Line(from, to, color, Matrix.Identity, thickness);
 	public void Line(Vec3 from, Vec3 to, Color color, Matrix transform, float thickness = 0.1f)
@@ -66,21 +81,21 @@ public class Batcher3D
 			color, transform);
 	}
 
-	public void Cube(Vec3 center, Color color, float thickness = 0.1f) => Cube(center, color, Matrix.Identity, thickness);
-	public void Cube(Vec3 center, Color color, Matrix transform, float thickness = 0.1f)
+	public void Cube(Vec3 center, Color color, float size = 0.1f) => Cube(center, color, Matrix.Identity, size);
+	public void Cube(Vec3 center, Color color, Matrix transform, float size = 0.1f)
 	{
-		Box(center + new Vec3(-thickness, -thickness, -thickness),
-			center + new Vec3(thickness, -thickness, -thickness),
-			center + new Vec3(-thickness, thickness, -thickness),
-			center + new Vec3(thickness, thickness, -thickness),
-			center + new Vec3(-thickness, -thickness, thickness),
-			center + new Vec3(thickness, -thickness, thickness),
-			center + new Vec3(-thickness, thickness, thickness),
-			center + new Vec3(thickness, thickness, thickness),
+		Box(center + new Vec3(-size, -size, -size),
+			center + new Vec3(size, -size, -size),
+			center + new Vec3(-size, size, -size),
+			center + new Vec3(size, size, -size),
+			center + new Vec3(-size, -size, size),
+			center + new Vec3(size, -size, size),
+			center + new Vec3(-size, size, size),
+			center + new Vec3(size, size, size),
 			color, transform
 		);
 	}
-
+	
 	public void Torus(Vec3 center, float radius, int resolution, Color color, float thickness = 0.1f) => Torus(center, radius, resolution, color, Matrix.Identity, thickness);
 	public void Torus(Vec3 center, float radius, int resolution, Color color, Matrix transform, float thickness = 0.1f)
 	{
@@ -382,6 +397,50 @@ public class Batcher3D
 			indexCount += idx;
 			dirty = true;
 		}
+	}
+	
+	/// <summary>
+	/// Renders a quad of a solid color.
+	/// </summary>
+	/// <param name="v0">Top Left</param>
+	/// <param name="v1">Top Right</param>
+	/// <param name="v2">Bottom Left</param>
+	/// <param name="v3">Bottom Right</param>
+	/// <param name="color">Box color</param>
+	public void Quad(Vec3 v0, Vec3 v1, Vec3 v2, Vec3 v3,
+					 Color color, Matrix transform)
+	{
+		const int vtxCount = 4;
+		const int idxCount = 2 * 3; // 2 triangles * 3 vertices
+		
+		EnsureVertexCapacity(vertexCount + vtxCount);
+		EnsureIndexCapacity(indexCount + idxCount);
+
+		unsafe
+		{
+			var vertices = new Span<Vertex>((Vertex*)vertexPtr + vertexCount, vtxCount);
+			var indices = new Span<int>((int*)indexPtr + indexCount, idxCount);
+
+			vertices[0].Pos = Vec3.Transform(v0, transform);
+			vertices[1].Pos = Vec3.Transform(v1, transform);
+			vertices[2].Pos = Vec3.Transform(v2, transform);
+			vertices[3].Pos = Vec3.Transform(v3, transform);
+			vertices[0].Col = color;
+			vertices[1].Col = color;
+			vertices[2].Col = color;
+			vertices[3].Col = color;
+
+			indices[0] = vertexCount + 0;
+			indices[1] = vertexCount + 2;
+			indices[2] = vertexCount + 1;
+			indices[3] = vertexCount + 2;
+			indices[4] = vertexCount + 3;
+			indices[5] = vertexCount + 1;
+		}
+
+		vertexCount += vtxCount;
+		indexCount += idxCount;
+		dirty = true;
 	}
 
 	public void Box(Vec3 min, Vec3 max, Color color) => Box(min, max, color, Matrix.Identity);
