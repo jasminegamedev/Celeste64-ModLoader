@@ -475,6 +475,14 @@ public class EditorWorld : World
 		}
 		batch3D.Render(ref state);
 		batch3D.Clear();
+		
+		// Render gizmos on-top
+		target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
+		{
+			(new PositionGizmo()).Render2(ref state, batch3D);
+		}
+		batch3D.Render(ref state);
+		batch3D.Clear();
 
 		// ui
 		{
