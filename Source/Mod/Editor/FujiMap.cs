@@ -55,7 +55,14 @@ public class FujiMap : Map
 			{
 				// Get the definition data type, by the full name
 				var fullName = reader.ReadString();
-				var defType = Assembly.GetExecutingAssembly().GetType(fullName)!;
+				var defType = Assembly.GetExecutingAssembly().GetType(fullName);
+				if (defType is null || !defType.IsAssignableTo(typeof(ActorDefinition)))
+				{
+					isMalformed = true;
+					readExceptionMessage = $"The definition type {fullName} is invalid";
+					return;
+				}
+				
 				var def = Activator.CreateInstance(defType);
 
 				Log.Info($"Reading def: {def}");
