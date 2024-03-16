@@ -230,30 +230,37 @@ public class EditorWorld : World
 		Camera.LookAt = cameraPos + forward;
 
 		// Shoot ray cast for selection
-		if (Input.Mouse.LeftPressed && !ImGuiManager.WantCaptureMouse)
+		if (!ImGuiManager.WantCaptureMouse &&
+		    Camera.Target != null &&
+		    Matrix.Invert(Camera.Projection, out var inverseProj1) &&
+		    Matrix.Invert(Camera.View, out var inverseView1))
 		{
-			if (Camera.Target != null &&
-				Matrix.Invert(Camera.Projection, out var inverseProj) &&
-				Matrix.Invert(Camera.View, out var inverseView))
-			{
-				// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
-				var scale = Math.Min(App.WidthInPixels / (float)Camera.Target.Width, App.HeightInPixels / (float)Camera.Target.Height);
-				var imageRelativePos = Input.Mouse.Position - (App.SizeInPixels / 2 - Camera.Target.Bounds.Size / 2 * scale);
-				// Convert into normalized-device-coordinates
-				var ndcPos = imageRelativePos / (Camera.Target.Bounds.Size / 2 * scale) - Vec2.One;
-				// Flip Y, since up is negative in NDC coords
-				ndcPos.Y *= -1.0f;
-				var clipPos = new Vec4(ndcPos, -1.0f, 1.0f);
-				var eyePos = Vec4.Transform(clipPos, inverseProj);
-				// We only care about XY, so we set ZW to "forward"
-				eyePos.Z = -1.0f;
-				eyePos.W = 0.0f;
-				var worldPos = Vec4.Transform(eyePos, inverseView);
-				var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
+			// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
+			var scale = Math.Min(App.WidthInPixels / (float)Camera.Target.Width, App.HeightInPixels / (float)Camera.Target.Height);
+			var imageRelativePos = Input.Mouse.Position - (App.SizeInPixels / 2 - Camera.Target.Bounds.Size / 2 * scale);
+			// Convert into normalized-device-coordinates
+			var ndcPos = imageRelativePos / (Camera.Target.Bounds.Size / 2 * scale) - Vec2.One;
+			// Flip Y, since up is negative in NDC coords
+			ndcPos.Y *= -1.0f;
+			var clipPos = new Vec4(ndcPos, -1.0f, 1.0f);
+			var eyePos = Vec4.Transform(clipPos, inverseProj1);
+			// We only care about XY, so we set ZW to "forward"
+			eyePos.Z = -1.0f;
+			eyePos.W = 0.0f;
+			var worldPos = Vec4.Transform(eyePos, inverseView1);
+			var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
 
+			// Notice when mouse is hovering over.
+			// While dragging, don't update the gizmo since we might go out of the gizmo's bounds.
+			bool isDragging = Input.Mouse.LeftDown && !Input.Mouse.LeftPressed; 
+			bool hitGizmo = isDragging || posGizmo.RaycastCheck(Camera.Position, direction);
+			
+			if (Input.Mouse.LeftPressed)
+			{
 				// First check if we hit a gizmo
-				if (posGizmo.RaycastCheck(Camera.Position, direction))
+				if (hitGizmo)
 				{
+					// Start dragging
 					if (Selected is SpikeBlock.Definition def)
 					{
 						dragStart = Input.Mouse.Position;
@@ -269,30 +276,9 @@ public class EditorWorld : World
 						Selected = null;
 				}
 			}
-		}
-		
-		// Drag position gizmo
-		if (Input.Mouse.LeftDown && !ImGuiManager.WantCaptureMouse)
-		{
-			if (Camera.Target != null &&
-			    Matrix.Invert(Camera.Projection, out var inverseProj) &&
-			    Matrix.Invert(Camera.View, out var inverseView))
+			// Continue dragging
+			else if (Input.Mouse.LeftDown)
 			{
-				// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
-				var scale = Math.Min(App.WidthInPixels / (float)Camera.Target.Width, App.HeightInPixels / (float)Camera.Target.Height);
-				var imageRelativePos = Input.Mouse.Position - (App.SizeInPixels / 2 - Camera.Target.Bounds.Size / 2 * scale);
-				// Convert into normalized-device-coordinates
-				var ndcPos = imageRelativePos / (Camera.Target.Bounds.Size / 2 * scale) - Vec2.One;
-				// Flip Y, since up is negative in NDC coords
-				ndcPos.Y *= -1.0f;
-				var clipPos = new Vec4(ndcPos, -1.0f, 1.0f);
-				var eyePos = Vec4.Transform(clipPos, inverseProj);
-				// We only care about XY, so we set ZW to "forward"
-				eyePos.Z = -1.0f;
-				eyePos.W = 0.0f;
-				var worldPos = Vec4.Transform(eyePos, inverseView);
-				var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
-				
 				posGizmo.Drag(this, Input.Mouse.Position - dragStart, direction, dragStartPosition);
 			}
 		}
