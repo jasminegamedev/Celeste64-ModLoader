@@ -6,6 +6,7 @@ public class SpikeBlock() : Attacher(typeof(Definition)), IHaveModels
 {
 	public class Definition : ActorDefinition
 	{
+		[SpecialProperty(SpecialPropertyType.PositionXYZ)]
 		public Vec3 Position { get; set; } = Vec3.Zero;
 		public Vec3 Rotation { get; set; } = Vec3.Zero;
 		public Vec3 Size { get; set; } = new Vec3(50.0f, 10.0f, 100.0f);

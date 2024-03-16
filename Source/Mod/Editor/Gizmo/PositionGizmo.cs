@@ -1,7 +1,10 @@
 namespace Celeste64.Mod.Editor;
 
-public class PositionGizmo : Gizmo
+public class PositionGizmo(PositionGizmo.GetPositionDelegate getPosition, PositionGizmo.SetPositionDelegate setPosition) : Gizmo
 {
+	public delegate Vec3 GetPositionDelegate();
+	public delegate void SetPositionDelegate(Vec3 value);
+
 	private GizmoTarget target;
 
 	private const float CubeSize = 0.15f;
@@ -53,26 +56,22 @@ public class PositionGizmo : Gizmo
 		-new Vec3(CubeSize + BoundsPadding),
 		 new Vec3(CubeSize + BoundsPadding));
 
-	public static Matrix Transform
+	public override Matrix Transform
 	{
 		get
 		{
-			if (EditorWorld.Current.Selected is not SpikeBlock.Definition selected)
-				return Matrix.Identity;
+			var position = getPosition();
 
 			const float minScale = 10.0f;
-			float scale = Math.Max(minScale, Vec3.Distance(EditorWorld.Current.Camera.Position, selected.Position) / 20.0f);
+			float scale = Math.Max(minScale, Vec3.Distance(EditorWorld.Current.Camera.Position, position) / 20.0f);
 
 			return Matrix.CreateScale(scale) *
-				   Matrix.CreateTranslation(selected.Position);
+				   Matrix.CreateTranslation(position);
 		}
 	}
 
 	public override void Render(Batcher3D batch3D)
 	{
-		if (EditorWorld.Current.Selected is not SpikeBlock.Definition selected)
-			return;
-
 		const byte normalAlpha = 0xff;
 		const byte hoverAlpha = 0xff;
 		const byte dragAlpha = 0xff;
@@ -152,7 +151,8 @@ public class PositionGizmo : Gizmo
 
 		(XYZCubeBounds, GizmoTarget.CubeXYZ),
 	];
-	public bool RaycastCheck(Vec3 origin, Vec3 direction)
+
+	public override bool RaycastCheck(Vec3 origin, Vec3 direction)
 	{
 		float closestGizmo = float.PositiveInfinity;
 
@@ -169,7 +169,7 @@ public class PositionGizmo : Gizmo
 		return target != GizmoTarget.None;
 	}
 
-	public void Drag(EditorWorld editor, Vec2 mouseDelta, Vec3 mouseRay, Vec3 objectStartingPosition)
+	public override void Drag(EditorWorld editor, Vec2 mouseDelta, Vec3 mouseRay, Vec3 objectStartingPosition)
 	{
 		var axisMatrix = Transform * editor.Camera.ViewProjection;
 		var screenXAxis = Vec3.TransformNormal(Vec3.UnitX, axisMatrix).XY();
@@ -186,9 +186,7 @@ public class PositionGizmo : Gizmo
 		float dotY = Vec2.Dot(mouseDelta, screenYAxis) * dotScale;
 		float dotZ = Vec2.Dot(mouseDelta, screenZAxis) * dotScale;
 
-		Vec3 newPosition = Vec3.Zero;
-		if (editor.Selected is SpikeBlock.Definition def)
-			newPosition = def.Position;
+		Vec3 newPosition = getPosition();
 
 		var xzPlaneDelta = Vec3.Transform(XZPlaneBounds.Center, Transform) - newPosition;
 		var yzPlaneDelta = Vec3.Transform(YZPlaneBounds.Center, Transform) - newPosition;
@@ -234,11 +232,7 @@ public class PositionGizmo : Gizmo
 				break;
 		}
 
-		if (editor.Selected is SpikeBlock.Definition def2)
-		{
-			def2.Position = newPosition;
-			def2.Dirty = true;
-		}
+		setPosition(newPosition);
 	}
 }
 

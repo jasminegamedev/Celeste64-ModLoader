@@ -1,12 +1,11 @@
 using Celeste64.Mod.Helpers;
 using System.Collections.ObjectModel;
+using System.Reflection;
 
 namespace Celeste64.Mod.Editor;
 
 public class EditorWorld : World
 {
-	private const float EditorResolutionScale = 3.0f;
-
 	internal readonly ImGuiHandler[] Handlers = [
 		new EditorMenuBar(),
 
@@ -20,7 +19,38 @@ public class EditorWorld : World
 	public ReadOnlyDictionary<ActorDefinition, Actor[]> ActorsFromDefinition => actorsFromDefinition.AsReadOnly();
 	public ReadOnlyDictionary<Actor, ActorDefinition> DefinitionFromActors => definitionFromActors.AsReadOnly();
 
-	public ActorDefinition? Selected { internal set; get; } = null;
+	private ActorDefinition? selectedDefinition = null;
+	public ActorDefinition? Selected
+	{
+		private set
+		{
+			selectedDefinition = value;
+			gizmo = null;
+
+			if (selectedDefinition is null)
+				return;
+
+			var positionProp = selectedDefinition
+				.GetType()
+				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+				.FirstOrDefault(prop =>
+					!prop.HasAttr<PropertyIgnoreAttribute>() &&
+					prop.GetCustomAttribute<SpecialPropertyAttribute>() is { Value: SpecialPropertyType.PositionXYZ });
+
+			if (positionProp is null || positionProp.GetGetMethod() is not { } getMethod || positionProp.GetSetMethod() is not { } setMethod)
+				return;
+
+			gizmo = new PositionGizmo(
+				() => (Vec3)getMethod.Invoke(selectedDefinition, [])!,
+				newValue =>
+				{
+					setMethod.Invoke(selectedDefinition, [newValue]);
+					selectedDefinition.Dirty = true;
+				});
+		}
+		get => selectedDefinition;
+	}
+
 	public Actor[] SelectedActors => Selected is not null && ActorsFromDefinition.TryGetValue(Selected, out var actors) ? actors : [];
 
 	private readonly Dictionary<ActorDefinition, Actor[]> actorsFromDefinition = new();
@@ -32,7 +62,7 @@ public class EditorWorld : World
 	private readonly Batcher3D batch3D = new();
 
 	// TODO: Temporary!
-	private PositionGizmo posGizmo = new();
+	private Gizmo? gizmo;
 	private Vec2 dragStart;
 	private Vec3 dragStartPosition;
 
@@ -147,6 +177,7 @@ public class EditorWorld : World
 	}
 
 	private float previousScale = 1.0f;
+
 	public override void Entered()
 	{
 		// Game.ResolutionScale = Save.;
@@ -258,7 +289,7 @@ public class EditorWorld : World
 			// Notice when mouse is hovering over.
 			// While dragging, don't update the gizmo since we might go out of the gizmo's bounds.
 			bool isDragging = Input.Mouse.LeftDown && !Input.Mouse.LeftPressed;
-			bool hitGizmo = isDragging || posGizmo.RaycastCheck(Camera.Position, direction);
+			bool hitGizmo = isDragging || (gizmo?.RaycastCheck(Camera.Position, direction) ?? false);
 
 			if (Input.Mouse.LeftPressed)
 			{
@@ -284,7 +315,7 @@ public class EditorWorld : World
 			// Continue dragging
 			else if (Input.Mouse.LeftDown)
 			{
-				posGizmo.Drag(this, Input.Mouse.Position - dragStart, direction, dragStartPosition);
+				gizmo?.Drag(this, Input.Mouse.Position - dragStart, direction, dragStartPosition);
 			}
 		}
 
@@ -516,7 +547,7 @@ public class EditorWorld : World
 		// Render gizmos on-top
 		target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
 		{
-			posGizmo.Render(batch3D);
+			gizmo?.Render(batch3D);
 		}
 		batch3D.Render(ref state);
 		batch3D.Clear();
