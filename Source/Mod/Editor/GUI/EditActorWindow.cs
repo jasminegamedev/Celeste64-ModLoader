@@ -17,6 +17,10 @@ public class EditActorWindow() : EditorWindow("EditActor")
 		{
 			editor.Definitions.Add(new SpikeBlock.Definition());
 		}
+		if (ImGui.Button("DEBUG: Add Solid"))
+		{
+			editor.Definitions.Add(new Solid.Definition());
+		}
 
 		if (editor.Selected is { } selected)
 		{
