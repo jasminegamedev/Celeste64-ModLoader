@@ -30,7 +30,7 @@ public class ImGuiManager
 		// Reset so that ImGui itself actually receives the inputs
 		WantCaptureKeyboard = false;
 		WantCaptureMouse = false;
-		
+
 		renderer.Update();
 
 		if (debugMenu.Active)
@@ -48,7 +48,7 @@ public class ImGuiManager
 		{
 			if (handler.Active) handler.Update();
 		}
-		
+
 		var io = ImGui.GetIO();
 		WantCaptureKeyboard = io.WantCaptureKeyboard;
 		WantCaptureMouse = io.WantCaptureMouse;

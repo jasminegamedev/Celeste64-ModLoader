@@ -104,13 +104,13 @@ public class Save
 		public bool SettingsSetBool(string name, bool value = false)
 			=> SettingsBoolData[name] = value;
 	}
-	
+
 	public class EditorSettings
 	{
 		// Settings
 		public bool PlayMusic { get; set; } = false;
 		public bool PlayAmbience { get; set; } = false;
-		
+
 		// View
 		public bool RenderSnow { get; set; } = false;
 		public bool RenderSkybox { get; set; } = true;
@@ -123,7 +123,7 @@ public class Save
 			get => renderDistance;
 			set => renderDistance = Math.Clamp(value, MinRenderDistance, MaxRenderDistance);
 		}
-		
+
 		public enum Resolution { Game = 0, Double = 1, HD = 2, Native = 3 }
 		public Resolution ResolutionType { get; set; } = Resolution.Double;
 	}
@@ -194,7 +194,7 @@ public class Save
 	/// Fuji Custom - Whether The debug menu should be enabled
 	/// </summary>
 	public bool EnableDebugMenu { get; set; } = false;
-	
+
 	/// <summary>
 	/// Fuji Custom - Settings for the in-game editor
 	/// </summary>

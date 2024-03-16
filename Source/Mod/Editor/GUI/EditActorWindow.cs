@@ -50,7 +50,7 @@ public class EditActorWindow() : EditorWindow("EditActor")
 						break;
 				}
 			}
-			
+
 			ImGui.NewLine();
 			if (ImGui.Button("Remove Actor") || Input.Keyboard.Pressed(Keys.Delete))
 			{

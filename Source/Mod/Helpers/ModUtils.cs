@@ -43,29 +43,29 @@ public static class ModUtils
 		t = 0.0f;
 		if (!Matrix.Invert(transform, out var inverse))
 			return false;
-		
+
 		// The center of the bounding box needs to be at <0,0,0>
 		inverse *= Matrix.CreateTranslation(-box.Center);
-		
+
 		// convert from world to box space
 		var ro = Vec3.Transform(origin, inverse);
 		var rd = Vec3.TransformNormal(direction, inverse);
 
 		var rad = box.Size / 2.0f;
-			
+
 		// ray-box intersection in box space
 		var m = Vec3.One / rd;
 		var s = new Vec3(
-			(rd.X<0.0f)?1.0f:-1.0f,
-			(rd.Y<0.0f)?1.0f:-1.0f,
-			(rd.Z<0.0f)?1.0f:-1.0f);
-		var t1 = m*(-ro + s*rad);
-		var t2 = m*(-ro - s*rad);
+			(rd.X < 0.0f) ? 1.0f : -1.0f,
+			(rd.Y < 0.0f) ? 1.0f : -1.0f,
+			(rd.Z < 0.0f) ? 1.0f : -1.0f);
+		var t1 = m * (-ro + s * rad);
+		var t2 = m * (-ro - s * rad);
 
-		float tN = Math.Max( Math.Max( t1.X, t1.Y ), t1.Z );
-		float tF = Math.Min( Math.Min( t2.X, t2.Y ), t2.Z );
-	
-		if( tN>tF || tF<0.0) 
+		float tN = Math.Max(Math.Max(t1.X, t1.Y), t1.Z);
+		float tF = Math.Min(Math.Min(t2.X, t2.Y), t2.Z);
+
+		if (tN > tF || tF < 0.0)
 			return false;
 
 		// compute normal (in world space), face and UV
@@ -80,13 +80,13 @@ public static class ModUtils
 
 		return true;
 	}
-	
+
 	// From "GamePhysicsCookbook"
 	// See: https://github.com/gszauer/GamePhysicsCookbook/blob/a0b8ee0c39fed6d4b90bb6d2195004dfcf5a1115/Code/Geometry3D.cpp#L769-L796
 	public static bool RayIntersectsPlane(Vec3 origin, Vec3 direction, Plane plane, out Vec3 hitPoint)
 	{
 		hitPoint = default;
-		
+
 		float nd = Vec3.Dot(direction, plane.Normal);
 		float pn = Vec3.Dot(origin, plane.Normal);
 
@@ -99,7 +99,7 @@ public static class ModUtils
 		float t = (plane.D - pn) / nd;
 
 		// t must be positive
-		if (t >= 0.0f) 
+		if (t >= 0.0f)
 		{
 			hitPoint = origin + direction * t;
 			return true;

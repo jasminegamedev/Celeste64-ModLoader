@@ -29,7 +29,7 @@ public class Batcher3D
 
 		public readonly VertexFormat Format => VertexFormat;
 	}
-	
+
 	public enum Direction { X, Y, Z }
 
 	~Batcher3D()
@@ -51,19 +51,19 @@ public class Batcher3D
 	private readonly Mesh mesh = new();
 	private readonly Material material = new(Assets.Shaders["Sprite"]);
 	private bool dirty = false;
-	
+
 	public void Square(Vec3 center, Vec3 normal, Color color, float size = 0.1f) => Square(center, normal, color, Matrix.Identity, size);
 	public void Square(Vec3 center, Vec3 normal, Color color, Matrix transform, float size = 0.1f)
 	{
 		var (tangent, bitangent) = GetTangentVectors(normal);
-		
+
 		tangent *= size;
 		bitangent *= size;
-		
+
 		Quad(center - tangent - bitangent,
 			 center + tangent - bitangent,
 			 center - tangent + bitangent,
-			 center + tangent + bitangent, 
+			 center + tangent + bitangent,
 			 color, transform);
 	}
 
@@ -72,7 +72,7 @@ public class Batcher3D
 	{
 		var normal = (to - from).Normalized();
 		var (tangent, bitangent) = GetTangentVectors(normal);
-		
+
 		tangent *= thickness;
 		bitangent *= thickness;
 
@@ -95,7 +95,7 @@ public class Batcher3D
 			color, transform
 		);
 	}
-	
+
 	public void Torus(Vec3 center, float radius, int resolution, Color color, float thickness = 0.1f) => Torus(center, radius, resolution, color, Matrix.Identity, thickness);
 	public void Torus(Vec3 center, float radius, int resolution, Color color, Matrix transform, float thickness = 0.1f)
 	{
@@ -109,7 +109,7 @@ public class Batcher3D
 
 		int vtxCount = resolution * 4; // 4 vertices each
 		int idxCount = resolution * 4 * 2 * 3; // 4 faces * 2 triangles * 3 vertices each
-		
+
 		EnsureVertexCapacity(vertexCount + vtxCount);
 		EnsureIndexCapacity(indexCount + idxCount);
 
@@ -184,7 +184,7 @@ public class Batcher3D
 		{
 			points[i] = new Vec3(Calc.AngleToVector(i * angleStep, radius), 0.0f);
 		}
-		
+
 		int vtxCount = resolution * 2 + 2; // 2 vertices each + 2 in the center
 		int idxCount = resolution * 4 * 3; // 1 faces for outside + 2 triangles on top/bottom = 4 triangles * 3 vertices each
 
@@ -237,14 +237,14 @@ public class Batcher3D
 		indexCount += idxCount;
 		dirty = true;
 	}
-	
+
 	public void Cone(Vec3 position, Direction direction, float length, float radius, int resolution, Color color) => Cone(position, direction, length, radius, resolution, color, Matrix.Identity);
 	public void Cone(Vec3 position, Direction direction, float length, float radius, int resolution, Color color, Matrix transform)
 	{
 		var points = new Vec3[resolution];
 
 		float angleStep = Calc.TAU / resolution;
-		
+
 		for (int i = 0; i < resolution; i++)
 		{
 			var vec = Calc.AngleToVector(i * angleStep, radius);
@@ -256,13 +256,13 @@ public class Batcher3D
 				_ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
 			};
 		}
-		
+
 		int vtxCount = resolution * 2 + 1 + 1; // 2 vertices each + 1 in the base center + 1 at the tip
 		int idxCount = resolution * 2 * 3; // 2 triangles on top/bottom * 3 vertices each
-		
+
 		EnsureVertexCapacity(vertexCount + vtxCount);
 		EnsureIndexCapacity(indexCount + idxCount);
-		
+
 		unsafe
 		{
 			var vertices = new Span<Vertex>((Vertex*)vertexPtr + vertexCount, vtxCount);
@@ -293,7 +293,7 @@ public class Batcher3D
 			{
 				int curr = i;
 				int prev = i == 0 ? resolution - 1 : i - 1; // Wrap around to the end
-				
+
 				// Bottom
 				indices[i * (2 * 3) + 0] = vertexCount + (prev + 2);
 				indices[i * (2 * 3) + 1] = vertexCount + (curr + 2);
@@ -304,7 +304,7 @@ public class Batcher3D
 				indices[i * (2 * 3) + 5] = vertexCount + 1;
 			}
 		}
-		
+
 		vertexCount += vtxCount;
 		indexCount += idxCount;
 		dirty = true;
@@ -319,7 +319,7 @@ public class Batcher3D
 
 		int vtxCount = 2 + (stackCount - 1) * sliceCount;
 		int idxCount = sliceCount * 6 + (stackCount - 2) * sliceCount * 6;
-		
+
 		EnsureVertexCapacity(vertexCount + vtxCount);
 		EnsureIndexCapacity(indexCount + idxCount);
 
@@ -398,7 +398,7 @@ public class Batcher3D
 			dirty = true;
 		}
 	}
-	
+
 	/// <summary>
 	/// Renders a quad of a solid color.
 	/// </summary>
@@ -412,7 +412,7 @@ public class Batcher3D
 	{
 		const int vtxCount = 4;
 		const int idxCount = 2 * 3; // 2 triangles * 3 vertices
-		
+
 		EnsureVertexCapacity(vertexCount + vtxCount);
 		EnsureIndexCapacity(indexCount + idxCount);
 
@@ -474,7 +474,7 @@ public class Batcher3D
 	{
 		const int vtxCount = 8;
 		const int idxCount = 6 * 2 * 3; // 6 faces * 2 triangles * 3 vertices
-		
+
 		EnsureVertexCapacity(vertexCount + vtxCount);
 		EnsureIndexCapacity(indexCount + idxCount);
 
@@ -598,7 +598,7 @@ public class Batcher3D
 		vertexCount = 0;
 		indexCount = 0;
 	}
-	
+
 	private (Vec3 Tangent, Vec3 Bitangent) GetTangentVectors(Vec3 normal)
 	{
 		// The other vector for the cross product can't be parallel to the normal

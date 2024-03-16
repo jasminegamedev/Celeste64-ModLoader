@@ -9,30 +9,30 @@ public class EditorMenuBar : ImGuiHandler
 		bool changed = false;
 
 		ImGui.BeginMainMenuBar();
-		
+
 		if (ImGui.BeginMenu("Settings"))
 		{
 			bool music = Save.Instance.Editor.PlayMusic;
 			changed |= ImGui.Checkbox("Player Music", ref music);
 			Save.Instance.Editor.PlayMusic = music;
-			
+
 			bool ambience = Save.Instance.Editor.PlayAmbience;
 			changed |= ImGui.Checkbox("Play Ambience", ref ambience);
 			Save.Instance.Editor.PlayAmbience = ambience;
-			
+
 			ImGui.EndMenu();
 		}
-		
+
 		if (ImGui.BeginMenu("View"))
 		{
 			bool snow = Save.Instance.Editor.RenderSnow;
 			changed |= ImGui.Checkbox("Show Snow", ref snow);
 			Save.Instance.Editor.RenderSnow = snow;
-			
+
 			bool skybox = Save.Instance.Editor.RenderSkybox;
 			changed |= ImGui.Checkbox("Show Skybox", ref skybox);
 			Save.Instance.Editor.RenderSkybox = skybox;
-			
+
 			float renderDistance = Save.Instance.Editor.RenderDistance;
 			changed |= ImGui.DragFloat("Render Distance", ref renderDistance, v_speed: 10.0f, v_min: Save.EditorSettings.MinRenderDistance, v_max: Save.EditorSettings.MaxRenderDistance);
 			Save.Instance.Editor.RenderDistance = renderDistance;
@@ -43,7 +43,7 @@ public class EditorMenuBar : ImGuiHandler
 				"HD (1920x1080)",
 				$"Native ({App.Width}x{App.Height})",
 			];
-			
+
 			var resolutionType = Save.Instance.Editor.ResolutionType;
 			if (ImGui.BeginCombo("Resolution", displayStrings[(int)resolutionType]))
 			{
@@ -67,15 +67,15 @@ public class EditorMenuBar : ImGuiHandler
 					Save.Instance.Editor.ResolutionType = Save.EditorSettings.Resolution.Native;
 					changed = true;
 				}
-				
+
 				ImGui.EndCombo();
 			}
-			
+
 			ImGui.EndMenu();
 		}
-		
+
 		ImGui.EndMainMenuBar();
-		
+
 		if (changed)
 			EditorWorld.Current.RefreshEnvironment();
 	}

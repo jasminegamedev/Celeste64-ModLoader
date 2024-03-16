@@ -8,12 +8,12 @@ public class EditorWorld : World
 	private const float EditorResolutionScale = 3.0f;
 
 	internal readonly ImGuiHandler[] Handlers = [
-		new EditorMenuBar(),	
-			
+		new EditorMenuBar(),
+
 		new EditActorWindow(),
 		new EnvironmentSettingsWindow(),
 	];
-	
+
 	public static EditorWorld Current => (Game.Scene as EditorWorld)!;
 
 	public List<ActorDefinition> Definitions => Map is FujiMap fujiMap ? fujiMap.Definitions : [];
@@ -30,7 +30,7 @@ public class EditorWorld : World
 	private Vec2 cameraRot = new(0, 0);
 
 	private readonly Batcher3D batch3D = new();
-	
+
 	// TODO: Temporary!
 	private PositionGizmo posGizmo = new();
 	private Vec2 dragStart;
@@ -40,16 +40,16 @@ public class EditorWorld : World
 	{
 		Camera.NearPlane = 0.1f; // Allow getting closer to objects
 		Camera.FOVMultiplier = 1.25f; // Higher FOV feels better in the editor
-		
+
 		// Store previous game resolution to restore it when exiting
 		previousScale = Game.ResolutionScale;
-		
+
 		// Load environment
 		RefreshEnvironment();
 
 		// Map gets implicitly loaded, since our Definitions are taken directly from it
 	}
-	
+
 	internal void RefreshEnvironment()
 	{
 		Camera.FarPlane = Save.Instance.Editor.RenderDistance;
@@ -61,12 +61,12 @@ public class EditorWorld : World
 			Save.EditorSettings.Resolution.Native => Math.Max(App.Width / (float)Game.DefaultWidth, App.Height / (float)Game.DefaultHeight),
 			_ => throw new ArgumentOutOfRangeException(),
 		};
-		
+
 		if (Map == null)
 			return;
-		
+
 		// Taken from World constructor with added cleanup of previously created stuff
-		
+
 		if (Get<Snow>() is { } snow)
 			Destroy(snow);
 		if (Map.SnowAmount > 0 && Save.Instance.Editor.RenderSnow)
@@ -123,7 +123,7 @@ public class EditorWorld : World
 			Game.Instance.Ambience = Audio.Play(Ambience);
 		if (!string.IsNullOrWhiteSpace(AmbienceWav))
 			Game.Instance.AmbienceWav = Audio.PlayMusic(AmbienceWav);
-		
+
 		skyboxes.Clear();
 		if (!string.IsNullOrEmpty(Map.Skybox) && Save.Instance.Editor.RenderSkybox)
 		{
@@ -150,7 +150,7 @@ public class EditorWorld : World
 	{
 		Game.ResolutionScale = previousScale;
 	}
-	
+
 	public void RemoveDefinition(ActorDefinition definition)
 	{
 		Definitions.Remove(definition);
@@ -231,9 +231,9 @@ public class EditorWorld : World
 
 		// Shoot ray cast for selection
 		if (!ImGuiManager.WantCaptureMouse &&
-		    Camera.Target != null &&
-		    Matrix.Invert(Camera.Projection, out var inverseProj1) &&
-		    Matrix.Invert(Camera.View, out var inverseView1))
+			Camera.Target != null &&
+			Matrix.Invert(Camera.Projection, out var inverseProj1) &&
+			Matrix.Invert(Camera.View, out var inverseView1))
 		{
 			// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
 			var scale = Math.Min(App.WidthInPixels / (float)Camera.Target.Width, App.HeightInPixels / (float)Camera.Target.Height);
@@ -252,9 +252,9 @@ public class EditorWorld : World
 
 			// Notice when mouse is hovering over.
 			// While dragging, don't update the gizmo since we might go out of the gizmo's bounds.
-			bool isDragging = Input.Mouse.LeftDown && !Input.Mouse.LeftPressed; 
+			bool isDragging = Input.Mouse.LeftDown && !Input.Mouse.LeftPressed;
 			bool hitGizmo = isDragging || posGizmo.RaycastCheck(Camera.Position, direction);
-			
+
 			if (Input.Mouse.LeftPressed)
 			{
 				// First check if we hit a gizmo
@@ -507,7 +507,7 @@ public class EditorWorld : World
 		}
 		batch3D.Render(ref state);
 		batch3D.Clear();
-		
+
 		// Render gizmos on-top
 		target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
 		{

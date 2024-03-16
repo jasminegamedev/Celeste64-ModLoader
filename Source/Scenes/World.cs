@@ -208,7 +208,7 @@ public class World : Scene
 				AmbienceWav = "";
 				Ambience = $"event:/sfx/ambience/{map.Ambience}";
 			}
-			
+
 			if (!string.IsNullOrEmpty(map.Skybox))
 			{
 				// single skybox
@@ -224,7 +224,7 @@ public class World : Scene
 				}
 			}
 		}
-		
+
 		if (Type == WorldType.Game) // The editor handles loading itself
 		{
 			ModManager.Instance.OnPreMapLoaded(this, map);
