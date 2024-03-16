@@ -48,6 +48,11 @@ public class EditorWorld : World
 		RefreshEnvironment();
 
 		// Map gets implicitly loaded, since our Definitions are taken directly from it
+		// However mark all definitions as dirty to ensure they will get added
+		foreach (var def in Definitions)
+		{
+			def.Dirty = true;
+		}
 	}
 
 	internal void RefreshEnvironment()
