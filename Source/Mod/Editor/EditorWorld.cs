@@ -515,6 +515,7 @@ public class EditorWorld : World
 		}
 		batch3D.Render(ref state);
 		batch3D.Clear();
+		ApplyPostEffects();
 
 		// ui
 		{
