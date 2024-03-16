@@ -34,7 +34,7 @@ public class EditorWorld : World
 				.GetType()
 				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
 				.FirstOrDefault(prop =>
-					!prop.HasAttr<PropertyIgnoreAttribute>() &&
+					!prop.HasAttr<IgnorePropertyAttribute>() &&
 					prop.GetCustomAttribute<SpecialPropertyAttribute>() is { Value: SpecialPropertyType.PositionXYZ });
 
 			if (positionProp is null || positionProp.GetGetMethod() is not { } getMethod || positionProp.GetSetMethod() is not { } setMethod)

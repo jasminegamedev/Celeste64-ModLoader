@@ -22,11 +22,11 @@ public class EditActorWindow() : EditorWindow("EditActor")
 		{
 			var props = selected.GetType()
 				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-				.Where(prop => !prop.HasAttr<PropertyIgnoreAttribute>());
+				.Where(prop => !prop.HasAttr<IgnorePropertyAttribute>());
 
 			foreach (var prop in props)
 			{
-				if (prop.GetCustomAttribute<PropertyCustomAttribute>() is { } custom)
+				if (prop.GetCustomAttribute<CustomPropertyAttribute>() is { } custom)
 				{
 					var obj = prop.GetValue(selected)!;
 					custom.RenderGui(ref obj);

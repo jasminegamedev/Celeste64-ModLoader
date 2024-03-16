@@ -10,7 +10,7 @@ public interface ICustomProperty<T>
 }
 
 [AttributeUsage(AttributeTargets.Property)]
-public class PropertyCustomAttribute(Type type) : Attribute
+public class CustomPropertyAttribute(Type type) : Attribute
 {
 	private readonly MethodInfo m_Serialize = type.GetMethod(nameof(ICustomProperty<object>.Serialize), BindingFlags.Public | BindingFlags.Static)
 										   ?? throw new Exception($"Custom property definition {type} does not inherit from ICustomProperty");

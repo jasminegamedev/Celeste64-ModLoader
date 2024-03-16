@@ -62,11 +62,11 @@ public class FujiMap : Map
 
 				var props = defType
 					.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-					.Where(prop => !prop.HasAttr<PropertyIgnoreAttribute>());
+					.Where(prop => !prop.HasAttr<IgnorePropertyAttribute>());
 
 				foreach (var prop in props)
 				{
-					if (prop.GetCustomAttribute<PropertyCustomAttribute>() is { } custom)
+					if (prop.GetCustomAttribute<CustomPropertyAttribute>() is { } custom)
 					{
 						prop.SetValue(def, custom.Deserialize(reader));
 						continue;
@@ -162,11 +162,11 @@ public class FujiMap : Map
 
 			var props = def.GetType()
 				.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
-				.Where(prop => !prop.HasAttr<PropertyIgnoreAttribute>());
+				.Where(prop => !prop.HasAttr<IgnorePropertyAttribute>());
 
 			foreach (var prop in props)
 			{
-				if (prop.GetCustomAttribute<PropertyCustomAttribute>() is { } custom)
+				if (prop.GetCustomAttribute<CustomPropertyAttribute>() is { } custom)
 				{
 					custom.Serialize(prop.GetValue(def)!, writer);
 					continue;
