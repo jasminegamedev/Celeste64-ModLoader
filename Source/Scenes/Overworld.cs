@@ -57,7 +57,7 @@ public class Overworld : Scene
 			}
 		}
 
-		public void Redraw(Batcher batch, float shine)
+		public void Redraw(Batcher batch, float shine, bool selected)
 		{
 			float Padding = 16 * Game.RelativeScale;
 
@@ -67,6 +67,16 @@ public class Overworld : Scene
 			var bounds = Target.Bounds;
 			var font = Language.Current.SpriteFont;
 			var img = (SelectionEase < 0.50f ? Image : new(Assets.Textures["postcards/back"]));
+
+			int strawbs = 0, deaths = 0;
+			TimeSpan time = new();
+
+			if (selected && Save.Instance.TryGetRecord(Level.ID) is { } record) // only the selected item should have its save queried
+			{
+				strawbs = record.Strawberries.Count;
+				deaths = record.Deaths;
+				time = record.Time;
+			}
 
 			if (img.Texture != null)
 			{
@@ -87,7 +97,14 @@ public class Overworld : Scene
 				}
 
 				batch.PushMatrix(Matrix3x2.CreateScale(2.0f) * Matrix3x2.CreateTranslation(bounds.BottomLeft + new Vec2(Padding, -Padding)));
-				UI.Text(batch, Level.Name, Vec2.Zero, new Vec2(0, 1), Color.White);
+				UI.Text(batch, Level.Name, Vec2.Zero, selected ? new Vec2(0, 1.75f) : new Vec2(0, 1), Color.White);
+				if (selected)
+				{
+					batch.PopMatrix();
+					batch.PushMatrix(Matrix3x2.CreateScale(1.5f) * Matrix3x2.CreateTranslation(bounds.BottomLeft + new Vec2(Padding, -Padding)));
+					UI.Strawberries(batch, strawbs, new Vec2(-4, -20));
+					UI.Deaths(batch, deaths, new Vec2(64, -20));
+				}
 				batch.PopMatrix();
 			}
 			else
@@ -100,16 +117,6 @@ public class Overworld : Scene
 				// stats
 				batch.PushMatrix(Matrix3x2.CreateScale(1.3f) * Matrix3x2.CreateTranslation(bounds.Center + new Vec2(0, -Padding)));
 				{
-					int strawbs = 0, deaths = 0;
-					TimeSpan time = new();
-
-					if (Save.Instance.TryGetRecord(Level.ID) is { } record)
-					{
-						strawbs = record.Strawberries.Count;
-						deaths = record.Deaths;
-						time = record.Time;
-					}
-
 					UI.Strawberries(batch, strawbs, new Vec2(-8 * Game.RelativeScale, -UI.IconSize / 2 - 4 * Game.RelativeScale), 1);
 					UI.Deaths(batch, deaths, new Vec2(8 * Game.RelativeScale, -UI.IconSize / 2 - 4 * Game.RelativeScale), 0);
 					UI.Timer(batch, time, new Vec2(0 * Game.RelativeScale, UI.IconSize / 2 + 4 * Game.RelativeScale), 0.5f);
@@ -427,7 +434,7 @@ public class Overworld : Scene
 		{
 			var flip = (entry.SelectionEase > 0.50f ? 1 : -1);
 			var shine = MathF.Max(0, MathF.Max(-wobble.X, flip * wobble.Y)) * entry.HighlightEase;
-			entry.Redraw(batch, shine);
+			entry.Redraw(batch, shine, entries[index] == entry);
 			batch.Clear();
 		}
 
