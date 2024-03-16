@@ -73,27 +73,70 @@ public class PositionGizmo : Gizmo
 		if (EditorWorld.Current.Selected is not SpikeBlock.Definition selected)
 			return;
 		
-		const byte selectedAlpha = 0xff;
-		const byte deselectedAlpha = 0xff;
+		const byte normalAlpha = 0xff;
+		const byte hoverAlpha = 0xff;
+		const byte dragAlpha = 0xff;
 		
-		var xColorSelected = new Color(0xff9999, selectedAlpha);
-		var yColorSelected = new Color(0xbfffbf, selectedAlpha);
-		var zColorSelected = new Color(0x8080ff, selectedAlpha);
-		var cubeColorSelected = new Color(0xffffff, selectedAlpha);
-		var xColorDeselected = new Color(0xbf0000, deselectedAlpha);
-		var yColorDeselected = new Color(0x00bf00, deselectedAlpha);
-		var zColorDeselected = new Color(0x0000bf, deselectedAlpha);
-		var cubeColorDeselected = new Color(0xbfbfbf, deselectedAlpha);
+		const byte mainLightnessNormal = 0xcc;
+		const byte otherLightnessNormal = 0x00;
 		
-		var xAxisColor = target == GizmoTarget.AxisX ? xColorSelected : xColorDeselected;
-		var yAxisColor = target == GizmoTarget.AxisY ? yColorSelected : yColorDeselected;
-		var zAxisColor = target == GizmoTarget.AxisZ ? zColorSelected : zColorDeselected;
+		const byte mainLightnessHover = 0xff;
+        const byte otherLightnessHover = 0x44;
+
+        const byte mainLightnessDrag = 0xff;
+        const byte otherLightnessDrag = 0xb0;
 		
-		var xzPlaneColor = target == GizmoTarget.PlaneXZ ? yColorSelected : yColorDeselected;
-		var yzPlaneColor = target == GizmoTarget.PlaneYZ ? xColorSelected : xColorDeselected;
-		var xyPlaneColor = target == GizmoTarget.PlaneXY ? zColorSelected : zColorDeselected;
+		// var xColorNormal = new Color(0xcc0000, normalAlpha);
+		// var xColorHover = new Color(0xff3333, hoverAlpha);
+		// var xColorDrag = new Color(0xff9999, dragAlpha);
+		//
+		// var yColorNormal = new Color(0x00cc00, normalAlpha);
+		// var yColorHover = new Color(0x33ff33, hoverAlpha);
+		// var yColorDrag = new Color(0x99ff99, dragAlpha);
+		//
+		// var zColorNormal = new Color(0x0000cc, normalAlpha);
+		// var zColorHover = new Color(0x3333ff, hoverAlpha);
+		// var zColorDrag = new Color(0x9999ff, dragAlpha);
 		
-		var xyzCubeColor = target == GizmoTarget.CubeXYZ ? cubeColorSelected : cubeColorDeselected; 
+		var xColorNormal = new Color(mainLightnessNormal, otherLightnessNormal, otherLightnessNormal, normalAlpha);
+		var xColorHover  = new Color(mainLightnessHover, otherLightnessHover, otherLightnessHover, hoverAlpha);
+		var xColorDrag   = new Color(mainLightnessDrag, otherLightnessDrag, otherLightnessDrag, dragAlpha);
+		
+		var yColorNormal = new Color(otherLightnessNormal, mainLightnessNormal, otherLightnessNormal, normalAlpha);
+		var yColorHover  = new Color(otherLightnessHover, mainLightnessHover, otherLightnessHover, hoverAlpha);
+		var yColorDrag   = new Color(otherLightnessDrag, mainLightnessDrag, otherLightnessDrag, dragAlpha);
+		
+		var zColorNormal = new Color(otherLightnessNormal, otherLightnessNormal, mainLightnessNormal, normalAlpha);
+		var zColorHover  = new Color(otherLightnessHover, otherLightnessHover, mainLightnessHover, hoverAlpha);
+		var zColorDrag   = new Color(otherLightnessDrag, otherLightnessDrag, mainLightnessDrag, dragAlpha);
+		
+		var xyzColorNormal = new Color(mainLightnessNormal, mainLightnessNormal, mainLightnessNormal, normalAlpha);
+		var xyzColorHover = new Color(mainLightnessHover, mainLightnessHover, mainLightnessHover, hoverAlpha);
+		var xyzColorDrag = new Color(mainLightnessDrag, mainLightnessDrag, mainLightnessDrag, dragAlpha);
+		
+		var xAxisColor = target == GizmoTarget.AxisX 
+			? Input.Mouse.LeftDown ? xColorDrag : xColorHover 
+			: xColorNormal;
+		var yAxisColor = target == GizmoTarget.AxisY
+			? Input.Mouse.LeftDown ? yColorDrag : yColorHover 
+			: yColorNormal;
+		var zAxisColor = target == GizmoTarget.AxisZ 
+			? Input.Mouse.LeftDown ? zColorDrag : zColorHover 
+			: zColorNormal;
+		
+		var xzPlaneColor = target == GizmoTarget.PlaneXZ
+			? Input.Mouse.LeftDown ? yColorDrag : yColorHover 
+			: yColorNormal;
+		var yzPlaneColor = target == GizmoTarget.PlaneYZ
+			? Input.Mouse.LeftDown ? xColorDrag : xColorHover 
+			: xColorNormal;
+		var xyPlaneColor = target == GizmoTarget.PlaneXY
+			? Input.Mouse.LeftDown ? zColorDrag : zColorHover 
+			: zColorNormal;
+		
+		var xyzCubeColor = target == GizmoTarget.CubeXYZ
+			? Input.Mouse.LeftDown ? xyzColorDrag : xyzColorHover 
+			: xyzColorNormal;
 		
 		// X
 		batch3D.Line(Vec3.UnitX * (CubeSize + Padding), Vec3.UnitX * AxisLen, xAxisColor, Transform, AxisRadius);
