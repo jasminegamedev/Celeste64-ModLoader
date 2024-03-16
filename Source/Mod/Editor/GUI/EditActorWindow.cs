@@ -28,9 +28,12 @@ public class EditActorWindow() : EditorWindow("EditActor")
 			{
 				if (prop.GetCustomAttribute<CustomPropertyAttribute>() is { } custom)
 				{
-					var obj = prop.GetValue(selected)!;
-					custom.RenderGui(ref obj);
-					prop.SetValue(selected, obj);
+					object obj = prop.GetValue(selected)!;
+					if (custom.RenderGui(ref obj))
+					{
+						prop.SetValue(selected, obj);
+						selected.Dirty = true;
+					}
 
 					continue;
 				}
