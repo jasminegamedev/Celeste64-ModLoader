@@ -77,42 +77,21 @@ public class PositionGizmo : Gizmo
 		const byte hoverAlpha = 0xff;
 		const byte dragAlpha = 0xff;
 		
-		const byte mainLightnessNormal = 0xcc;
-		const byte otherLightnessNormal = 0x00;
+		var xColorNormal = new Color(0xde1100, normalAlpha);
+		var xColorHover = new Color(0xff6450, hoverAlpha);
+		var xColorDrag = new Color(0xff9989, dragAlpha);
 		
-		const byte mainLightnessHover = 0xff;
-        const byte otherLightnessHover = 0x44;
-
-        const byte mainLightnessDrag = 0xff;
-        const byte otherLightnessDrag = 0xb0;
+		var yColorNormal = new Color(0x4aed00, normalAlpha);
+		var yColorHover = new Color(0x83ff66, hoverAlpha);
+		var yColorDrag = new Color(0xccffbe, dragAlpha);
 		
-		// var xColorNormal = new Color(0xcc0000, normalAlpha);
-		// var xColorHover = new Color(0xff3333, hoverAlpha);
-		// var xColorDrag = new Color(0xff9999, dragAlpha);
-		//
-		// var yColorNormal = new Color(0x00cc00, normalAlpha);
-		// var yColorHover = new Color(0x33ff33, hoverAlpha);
-		// var yColorDrag = new Color(0x99ff99, dragAlpha);
-		//
-		// var zColorNormal = new Color(0x0000cc, normalAlpha);
-		// var zColorHover = new Color(0x3333ff, hoverAlpha);
-		// var zColorDrag = new Color(0x9999ff, dragAlpha);
+		var zColorNormal = new Color(0x0d00f3, normalAlpha);
+		var zColorHover = new Color(0x3064ff, hoverAlpha);
+		var zColorDrag = new Color(0x6693ff, dragAlpha);
 		
-		var xColorNormal = new Color(mainLightnessNormal, otherLightnessNormal, otherLightnessNormal, normalAlpha);
-		var xColorHover  = new Color(mainLightnessHover, otherLightnessHover, otherLightnessHover, hoverAlpha);
-		var xColorDrag   = new Color(mainLightnessDrag, otherLightnessDrag, otherLightnessDrag, dragAlpha);
-		
-		var yColorNormal = new Color(otherLightnessNormal, mainLightnessNormal, otherLightnessNormal, normalAlpha);
-		var yColorHover  = new Color(otherLightnessHover, mainLightnessHover, otherLightnessHover, hoverAlpha);
-		var yColorDrag   = new Color(otherLightnessDrag, mainLightnessDrag, otherLightnessDrag, dragAlpha);
-		
-		var zColorNormal = new Color(otherLightnessNormal, otherLightnessNormal, mainLightnessNormal, normalAlpha);
-		var zColorHover  = new Color(otherLightnessHover, otherLightnessHover, mainLightnessHover, hoverAlpha);
-		var zColorDrag   = new Color(otherLightnessDrag, otherLightnessDrag, mainLightnessDrag, dragAlpha);
-		
-		var xyzColorNormal = new Color(mainLightnessNormal, mainLightnessNormal, mainLightnessNormal, normalAlpha);
-		var xyzColorHover = new Color(mainLightnessHover, mainLightnessHover, mainLightnessHover, hoverAlpha);
-		var xyzColorDrag = new Color(mainLightnessDrag, mainLightnessDrag, mainLightnessDrag, dragAlpha);
+		var xyzColorNormal = new Color(0xc7c7c7, normalAlpha);
+		var xyzColorHover = new Color(0xe2e2e2, hoverAlpha);
+		var xyzColorDrag = new Color(0xffffff, dragAlpha);
 		
 		var xAxisColor = target == GizmoTarget.AxisX 
 			? Input.Mouse.LeftDown ? xColorDrag : xColorHover 
