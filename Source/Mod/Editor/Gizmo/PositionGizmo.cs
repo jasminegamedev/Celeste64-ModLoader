@@ -6,6 +6,7 @@ public class PositionGizmo(PositionGizmo.GetPositionDelegate getPosition, Positi
 	public delegate void SetPositionDelegate(Vec3 value);
 
 	private GizmoTarget target;
+	private Vec3 beforeDragPosition = Vec3.Zero;
 
 	private const float CubeSize = 0.15f;
 	private const float PlaneSize = 0.6f;
@@ -168,8 +169,13 @@ public class PositionGizmo(PositionGizmo.GetPositionDelegate getPosition, Positi
 
 		return target != GizmoTarget.None;
 	}
+	
+	public override void DragStart()
+	{
+		beforeDragPosition = getPosition();
+	}
 
-	public override void Drag(EditorWorld editor, Vec2 mouseDelta, Vec3 mouseRay, Vec3 objectStartingPosition)
+	public override void Drag(EditorWorld editor, Vec2 mouseDelta, Vec3 mouseRay)
 	{
 		var axisMatrix = Transform * editor.Camera.ViewProjection;
 		var screenXAxis = Vec3.TransformNormal(Vec3.UnitX, axisMatrix).XY();
@@ -192,31 +198,31 @@ public class PositionGizmo(PositionGizmo.GetPositionDelegate getPosition, Positi
 		var yzPlaneDelta = Vec3.Transform(YZPlaneBounds.Center, Transform) - newPosition;
 		var xyPlaneDelta = Vec3.Transform(XYPlaneBounds.Center, Transform) - newPosition;
 
-		var cameraPlaneNormal = (editor.Camera.Position - objectStartingPosition).Normalized();
-		var cameraPlane = new Plane(cameraPlaneNormal, Vec3.Dot(cameraPlaneNormal, objectStartingPosition));
+		var cameraPlaneNormal = (editor.Camera.Position - beforeDragPosition).Normalized();
+		var cameraPlane = new Plane(cameraPlaneNormal, Vec3.Dot(cameraPlaneNormal, beforeDragPosition));
 
 		switch (target)
 		{
 			case GizmoTarget.AxisX:
-				newPosition = objectStartingPosition + Vec3.UnitX * dotX;
+				newPosition = beforeDragPosition + Vec3.UnitX * dotX;
 				break;
 			case GizmoTarget.AxisY:
-				newPosition = objectStartingPosition + Vec3.UnitY * dotY;
+				newPosition = beforeDragPosition + Vec3.UnitY * dotY;
 				break;
 			case GizmoTarget.AxisZ:
-				newPosition = objectStartingPosition + Vec3.UnitZ * dotZ;
+				newPosition = beforeDragPosition + Vec3.UnitZ * dotZ;
 				break;
 
 			case GizmoTarget.PlaneXZ:
-				float tY = (objectStartingPosition.Y - editor.Camera.Position.Y) / mouseRay.Y;
+				float tY = (beforeDragPosition.Y - editor.Camera.Position.Y) / mouseRay.Y;
 				newPosition = editor.Camera.Position + mouseRay * tY - xzPlaneDelta;
 				break;
 			case GizmoTarget.PlaneYZ:
-				float tX = (objectStartingPosition.X - editor.Camera.Position.X) / mouseRay.X;
+				float tX = (beforeDragPosition.X - editor.Camera.Position.X) / mouseRay.X;
 				newPosition = editor.Camera.Position + mouseRay * tX - yzPlaneDelta;
 				break;
 			case GizmoTarget.PlaneXY:
-				float tZ = (objectStartingPosition.Z - editor.Camera.Position.Z) / mouseRay.Z;
+				float tZ = (beforeDragPosition.Z - editor.Camera.Position.Z) / mouseRay.Z;
 				newPosition = editor.Camera.Position + mouseRay * tZ - xyPlaneDelta;
 				break;
 

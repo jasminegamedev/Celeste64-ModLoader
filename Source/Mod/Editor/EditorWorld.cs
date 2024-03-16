@@ -64,7 +64,6 @@ public class EditorWorld : World
 	// TODO: Temporary!
 	private Gizmo? gizmo;
 	private Vec2 dragStart;
-	private Vec3 dragStartPosition;
 
 	internal EditorWorld(EntryInfo entry) : base(entry)
 	{
@@ -297,11 +296,8 @@ public class EditorWorld : World
 				if (hitGizmo)
 				{
 					// Start dragging
-					if (Selected is SpikeBlock.Definition def)
-					{
-						dragStart = Input.Mouse.Position;
-						dragStartPosition = def.Position;
-					}
+					dragStart = Input.Mouse.Position;
+					gizmo?.DragStart();
 				}
 				// Then check for actors
 				else
@@ -315,7 +311,7 @@ public class EditorWorld : World
 			// Continue dragging
 			else if (Input.Mouse.LeftDown)
 			{
-				gizmo?.Drag(this, Input.Mouse.Position - dragStart, direction, dragStartPosition);
+				gizmo?.Drag(this, Input.Mouse.Position - dragStart, direction);
 			}
 		}
 
