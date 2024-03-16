@@ -435,7 +435,7 @@ public class Overworld : Scene
 		var camera = new Camera
 		{
 			Target = target,
-			Position = new Vec3(0, -100 + 30 * Ease.Cube.In(cameraCloseUpEase), 0),
+			Position = new Vec3(0, -125 + 30 * Ease.Cube.In(cameraCloseUpEase), 0),
 			LookAt = new Vec3(0, 0, 0),
 			NearPlane = 1,
 			FarPlane = 1000
@@ -444,7 +444,7 @@ public class Overworld : Scene
 		for (int i = 0; i < entries.Count; i++)
 		{
 			var it = entries[i];
-			var shift = Ease.Cube.In(1.0f - it.HighlightEase) * 30 - Ease.Cube.In(it.SelectionEase) * 20;
+			var shift = Ease.Cube.In(1.0f - it.HighlightEase) * 30 - Ease.Cube.In(it.SelectionEase) * 30;
 			if (i != index)
 				shift += Ease.Cube.InOut(selectedEase) * 50;
 			var position = new Vec3((i - slide) * 60, shift, 0);
@@ -529,16 +529,15 @@ public class Overworld : Scene
 				batch.PopBlend();
 			}
 
-			var staticPromptPos = bounds.TopCenter + new Vec2(1, 16) * Game.RelativeScale;
-			var modTitlePos = bounds.TopCenter + new Vec2(-8 + (-slide * 160), 32) * Game.RelativeScale;
+			var promptPos = bounds.TopCenter + new Vec2(1, 16) * Game.RelativeScale;
 
 			if (selectedModIdx == 0 && state == States.Selecting)
 			{
-				UI.Text(batch, new Loc.Localized("FujiOverworldModSlideNote"), staticPromptPos, new Vec2(0.5f, 0), Color.Gray);
+				UI.Text(batch, new Loc.Localized("FujiOverworldModSlideNote"), promptPos, new Vec2(0.5f, 0), Color.Gray);
 			}
 			else if (state == States.Selecting)
 			{
-				UI.Text(batch, modsWithLevels[selectedModIdx].ModInfo.Name, modTitlePos, new Vec2(0.5f, 0), Color.White);
+				UI.Text(batch, modsWithLevels[selectedModIdx].ModInfo.Name, promptPos, new Vec2(0.5f, 0), Color.White);
 			}
 		}
 
