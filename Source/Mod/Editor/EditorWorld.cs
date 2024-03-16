@@ -252,31 +252,7 @@ public class EditorWorld : World
 				var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
 
 				// First check if we hit a gizmo
-				(BoundingBox Bounds, GizmoTarget Target)[] gizmoTargets = [
-					(posGizmo.xAxisBounds, GizmoTarget.AxisX),
-					(posGizmo.yAxisBounds, GizmoTarget.AxisY),
-					(posGizmo.zAxisBounds, GizmoTarget.AxisZ),
-					
-					(posGizmo.xzPlaneBounds, GizmoTarget.PlaneXZ),
-					(posGizmo.yzPlaneBounds, GizmoTarget.PlaneYZ),
-					(posGizmo.xyPlaneBounds, GizmoTarget.PlaneXY),
-					
-					(posGizmo.xyzCubeBounds, GizmoTarget.CubeXYZ),
-				];
-				
-				bool foundGizmo = false;
-				float closestGizmo = float.PositiveInfinity;
-				foreach (var (bounds, target) in gizmoTargets)
-				{
-					if (!ModUtils.RayIntersectOBB(Camera.Position, direction, bounds, posGizmo.Transform, out float dist) || dist >= closestGizmo) 
-						continue;
-
-					posGizmo.Target = target;
-					foundGizmo = true;
-					closestGizmo = dist;
-				}
-				
-				if (foundGizmo)
+				if (posGizmo.RaycastCheck(Camera.Position, direction))
 				{
 					if (Selected is SpikeBlock.Definition def)
 					{
@@ -284,14 +260,11 @@ public class EditorWorld : World
 						dragStartPosition = def.Position;
 					}
 				}
+				// Then check for actors
 				else
 				{
-					posGizmo.Target = GizmoTarget.None;
-					
-					// Then check for actors
 					if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
 						Selected = hit.Actor is not null && definitionFromActors.TryGetValue(hit.Actor, out var def) ? def : null;
-					// Otherwise we clicked into nothing
 					else
 						Selected = null;
 				}
@@ -320,74 +293,7 @@ public class EditorWorld : World
 				var worldPos = Vec4.Transform(eyePos, inverseView);
 				var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
 				
-				var axisMatrix = posGizmo.Transform * Camera.ViewProjection;
-				var screenXAxis = Vec3.TransformNormal(Vec3.UnitX, axisMatrix).XY();
-				var screenYAxis = Vec3.TransformNormal(Vec3.UnitY, axisMatrix).XY();
-				var screenZAxis = Vec3.TransformNormal(Vec3.UnitZ, axisMatrix).XY();
-				// Flip Y, since down is positive in screen coords
-				screenXAxis.Y *= -1.0f;
-				screenYAxis.Y *= -1.0f;
-				screenZAxis.Y *= -1.0f;
-				
-				// Linear scalar for the movement. Chosen on what felt best.
-				const float dotScale = 1.0f / 50.0f;
-				float dotX = Vec2.Dot(Input.Mouse.Position - dragStart, screenXAxis) * dotScale;
-				float dotY = Vec2.Dot(Input.Mouse.Position - dragStart, screenYAxis) * dotScale;
-				float dotZ = Vec2.Dot(Input.Mouse.Position - dragStart, screenZAxis) * dotScale;
-				
-				Vec3 newPosition = Vec3.Zero;
-				if (Selected is SpikeBlock.Definition def)
-					newPosition = def.Position;
-				
-				var xzPlaneDelta = Vec3.Transform(posGizmo.xzPlaneBounds.Center, posGizmo.Transform) - newPosition;
-				var yzPlaneDelta = Vec3.Transform(posGizmo.yzPlaneBounds.Center, posGizmo.Transform) - newPosition;
-				var xyPlaneDelta = Vec3.Transform(posGizmo.xyPlaneBounds.Center, posGizmo.Transform) - newPosition;
-				
-				var cameraPlaneNormal = (Camera.Position - dragStartPosition).Normalized();
-				var cameraPlane = new Plane(cameraPlaneNormal, Vec3.Dot(cameraPlaneNormal, dragStartPosition));
-				
-				switch (posGizmo.Target)
-				{
-					case GizmoTarget.AxisX:
-						newPosition = dragStartPosition + Vec3.UnitX * dotX;
-						break;
-					case GizmoTarget.AxisY:
-						newPosition = dragStartPosition + Vec3.UnitY * dotY;
-						break;
-					case GizmoTarget.AxisZ:
-						newPosition = dragStartPosition + Vec3.UnitZ * dotZ;
-						break;
-					
-					case GizmoTarget.PlaneXZ:
-						float tY = (dragStartPosition.Y - Camera.Position.Y) / direction.Y;
-						newPosition = Camera.Position + direction * tY - xzPlaneDelta;
-						break;
-					case GizmoTarget.PlaneYZ:
-						float tX = (dragStartPosition.X - Camera.Position.X) / direction.X;
-						newPosition = Camera.Position + direction * tX - yzPlaneDelta;
-						break;
-					case GizmoTarget.PlaneXY:
-						float tZ = (dragStartPosition.Z - Camera.Position.Z) / direction.Z;
-						newPosition = Camera.Position + direction * tZ - xyPlaneDelta;
-						break;
-
-					case GizmoTarget.CubeXYZ:
-						if (ModUtils.RayIntersectsPlane(Camera.Position, direction, cameraPlane, out var hit))
-						{
-							newPosition = hit;
-						}
-						break;
-
-					case GizmoTarget.None:
-					default:
-						break;
-				}
-				
-				if (Selected is SpikeBlock.Definition def2)
-				{
-					def2.Position = newPosition;
-					def2.Dirty = true;
-				}
+				posGizmo.Drag(this, Input.Mouse.Position - dragStart, direction, dragStartPosition);
 			}
 		}
 
@@ -619,7 +525,7 @@ public class EditorWorld : World
 		// Render gizmos on-top
 		target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
 		{
-			posGizmo.Render2(ref state, batch3D);
+			posGizmo.Render(batch3D);
 		}
 		batch3D.Render(ref state);
 		batch3D.Clear();

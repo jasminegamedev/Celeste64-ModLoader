@@ -2,7 +2,7 @@ namespace Celeste64.Mod.Editor;
 
 public abstract class Gizmo
 {
-	public abstract void Render(ref RenderState state);
+	public abstract void Render(Batcher3D batch3D);
 }
 
 public enum GizmoTarget

@@ -2,66 +2,58 @@ namespace Celeste64.Mod.Editor;
 
 public class PositionGizmo : Gizmo
 {
-	public override void Render(ref RenderState state)
-	{
-		if (EditorWorld.Current.Selected is not { } selected)
-			return;
-		
-		
-	}
+	private GizmoTarget target;
 	
-	public GizmoTarget Target;
+	private const float CubeSize = 0.15f;
+	private const float PlaneSize = 0.6f;
+	private const float Padding = 0.15f;
+	private const float AxisLen = 1.5f;
+	private const float AxisRadius = AxisLen / 35.0f;
+	private const float ConeLen = AxisLen / 2.5f;
+	private const float ConeRadius = ConeLen / 3.0f;
 	
-	static float cubeSize = 0.15f;
-	static float planeSize = 0.6f;
-	static float padding = 0.15f;
-	static float axisLen = 1.5f;
-	static float axisRadius => axisLen / 35.0f;
-	static float coneLen => axisLen / 2.5f;
-	static float coneRadius => coneLen / 3.0f;
-	
-	static float boundsPadding => 0.1f;
+	private const float BoundsPadding = 0.1f;
 
 	// Axis
-	static float axisBoundsLengthMin => cubeSize + padding;
-	static float axisBoundsLengthMax => axisLen + coneLen * 0.9f;
-	static float axisBoundsRadiusMin => -axisRadius - boundsPadding;
-	static float axisBoundsRadiusMax => axisRadius + boundsPadding;
+	private const float AxisBoundsLengthMin = CubeSize + Padding;
+	private const float AxisBoundsLengthMax = AxisLen + ConeLen * 0.9f;
+	private const float AxisBoundsRadiusMin = -AxisRadius - BoundsPadding;
+	private const float AxisBoundsRadiusMax = AxisRadius + BoundsPadding;
 	
-	public BoundingBox xAxisBounds => new(
-		new Vec3(axisBoundsLengthMin, axisBoundsRadiusMin, axisBoundsRadiusMin),
-		new Vec3(axisBoundsLengthMax, axisBoundsRadiusMax, axisBoundsRadiusMax));
+	private static readonly BoundingBox XAxisBounds = new(
+		new Vec3(AxisBoundsLengthMin, AxisBoundsRadiusMin, AxisBoundsRadiusMin),
+		new Vec3(AxisBoundsLengthMax, AxisBoundsRadiusMax, AxisBoundsRadiusMax));
 	
-	public BoundingBox yAxisBounds => new(
-		new Vec3(axisBoundsRadiusMin, axisBoundsLengthMin, axisBoundsRadiusMin),
-		new Vec3(axisBoundsRadiusMax, axisBoundsLengthMax, axisBoundsRadiusMax));
+	private static readonly BoundingBox YAxisBounds = new(
+		new Vec3(AxisBoundsRadiusMin, AxisBoundsLengthMin, AxisBoundsRadiusMin),
+		new Vec3(AxisBoundsRadiusMax, AxisBoundsLengthMax, AxisBoundsRadiusMax));
 	
-	public BoundingBox zAxisBounds => new(
-		new Vec3(axisBoundsRadiusMin, axisBoundsRadiusMin, axisBoundsLengthMin),
-		new Vec3(axisBoundsRadiusMax, axisBoundsRadiusMax, axisBoundsLengthMax));
+	private static readonly BoundingBox ZAxisBounds = new(
+		new Vec3(AxisBoundsRadiusMin, AxisBoundsRadiusMin, AxisBoundsLengthMin),
+		new Vec3(AxisBoundsRadiusMax, AxisBoundsRadiusMax, AxisBoundsLengthMax));
 	
 	// Planes
-	static float planeBoundsMin => cubeSize + axisLen / 2.0f - planeSize / 2.0f - boundsPadding;
-	static float planeBoundsMax => cubeSize + axisLen / 2.0f + planeSize / 2.0f + boundsPadding;
+	private const float PlaneBoundsMin = CubeSize + AxisLen / 2.0f - PlaneSize / 2.0f - BoundsPadding;
+	private const float PlaneBoundsMax = CubeSize + AxisLen / 2.0f + PlaneSize / 2.0f + BoundsPadding;
 	
-	public BoundingBox xzPlaneBounds => new(
-		new Vec3(planeBoundsMin, 0.0f, planeBoundsMin),
-		new Vec3(planeBoundsMax, 0.0f, planeBoundsMax));
+	private static readonly BoundingBox XZPlaneBounds = new(
+		new Vec3(PlaneBoundsMin, 0.0f, PlaneBoundsMin),
+		new Vec3(PlaneBoundsMax, 0.0f, PlaneBoundsMax));
 	
-	public BoundingBox yzPlaneBounds => new(
-		new Vec3(0.0f, planeBoundsMin, planeBoundsMin),
-		new Vec3(0.0f, planeBoundsMax, planeBoundsMax));
+	private static readonly BoundingBox YZPlaneBounds = new(
+		new Vec3(0.0f, PlaneBoundsMin, PlaneBoundsMin),
+		new Vec3(0.0f, PlaneBoundsMax, PlaneBoundsMax));
 	
-	public BoundingBox xyPlaneBounds => new(
-		new Vec3(planeBoundsMin, planeBoundsMin, 0.0f),
-		new Vec3(planeBoundsMax, planeBoundsMax, 0.0f));
+	private static readonly BoundingBox XYPlaneBounds = new(
+		new Vec3(PlaneBoundsMin, PlaneBoundsMin, 0.0f),
+		new Vec3(PlaneBoundsMax, PlaneBoundsMax, 0.0f));
 	
 	// Cube
-	public BoundingBox xyzCubeBounds => new(
-		-new Vec3(cubeSize + boundsPadding),
-		 new Vec3(cubeSize + boundsPadding));
+	private static readonly BoundingBox XYZCubeBounds = new(
+		-new Vec3(CubeSize + BoundsPadding),
+		 new Vec3(CubeSize + BoundsPadding));
 	
-	public Matrix Transform
+	public static Matrix Transform
 	{
 		get
 		{
@@ -75,14 +67,12 @@ public class PositionGizmo : Gizmo
 				   Matrix.CreateTranslation(selected.Position);
 		}
 	}
-
-	public void Render2(ref RenderState state, Batcher3D batch3D)
+	
+	public override void Render(Batcher3D batch3D)
 	{
 		if (EditorWorld.Current.Selected is not SpikeBlock.Definition selected)
 			return;
 		
-		// const byte selectedAlpha = 0x7f;
-		// const byte deselectedAlpha = 0x2f;
 		const byte selectedAlpha = 0xff;
 		const byte deselectedAlpha = 0xff;
 		
@@ -95,38 +85,138 @@ public class PositionGizmo : Gizmo
 		var zColorDeselected = new Color(0x0000bf, deselectedAlpha);
 		var cubeColorDeselected = new Color(0xbfbfbf, deselectedAlpha);
 		
-		var xAxisColor = Target == GizmoTarget.AxisX ? xColorSelected : xColorDeselected;
-		var yAxisColor = Target == GizmoTarget.AxisY ? yColorSelected : yColorDeselected;
-		var zAxisColor = Target == GizmoTarget.AxisZ ? zColorSelected : zColorDeselected;
+		var xAxisColor = target == GizmoTarget.AxisX ? xColorSelected : xColorDeselected;
+		var yAxisColor = target == GizmoTarget.AxisY ? yColorSelected : yColorDeselected;
+		var zAxisColor = target == GizmoTarget.AxisZ ? zColorSelected : zColorDeselected;
 		
-		var xzPlaneColor = Target == GizmoTarget.PlaneXZ ? yColorSelected : yColorDeselected;
-		var yzPlaneColor = Target == GizmoTarget.PlaneYZ ? xColorSelected : xColorDeselected;
-		var xyPlaneColor = Target == GizmoTarget.PlaneXY ? zColorSelected : zColorDeselected;
+		var xzPlaneColor = target == GizmoTarget.PlaneXZ ? yColorSelected : yColorDeselected;
+		var yzPlaneColor = target == GizmoTarget.PlaneYZ ? xColorSelected : xColorDeselected;
+		var xyPlaneColor = target == GizmoTarget.PlaneXY ? zColorSelected : zColorDeselected;
 		
-		var xyzCubeColor = Target == GizmoTarget.CubeXYZ ? cubeColorSelected : cubeColorDeselected; 
+		var xyzCubeColor = target == GizmoTarget.CubeXYZ ? cubeColorSelected : cubeColorDeselected; 
 		
 		// X
-		batch3D.Line(Vec3.UnitX * (cubeSize + padding), Vec3.UnitX * axisLen, xAxisColor, Transform, axisRadius);
-		batch3D.Cone(Vec3.UnitX * axisLen, Batcher3D.Direction.X, coneLen, coneRadius, 12, xAxisColor, Transform);
+		batch3D.Line(Vec3.UnitX * (CubeSize + Padding), Vec3.UnitX * AxisLen, xAxisColor, Transform, AxisRadius);
+		batch3D.Cone(Vec3.UnitX * AxisLen, Batcher3D.Direction.X, ConeLen, ConeRadius, 12, xAxisColor, Transform);
 		// Y
-		batch3D.Line(Vec3.UnitY * (cubeSize + padding), Vec3.UnitY * axisLen, yAxisColor, Transform, axisRadius);
-		batch3D.Cone(Vec3.UnitY * axisLen, Batcher3D.Direction.Y, coneLen, coneRadius, 12, yAxisColor, Transform);
+		batch3D.Line(Vec3.UnitY * (CubeSize + Padding), Vec3.UnitY * AxisLen, yAxisColor, Transform, AxisRadius);
+		batch3D.Cone(Vec3.UnitY * AxisLen, Batcher3D.Direction.Y, ConeLen, ConeRadius, 12, yAxisColor, Transform);
 		// Z
-		batch3D.Line(Vec3.UnitZ * (cubeSize + padding), Vec3.UnitZ * axisLen, zAxisColor, Transform, axisRadius);
-		batch3D.Cone(Vec3.UnitZ * axisLen, Batcher3D.Direction.Z, coneLen, coneRadius, 12, zAxisColor, Transform);
+		batch3D.Line(Vec3.UnitZ * (CubeSize + Padding), Vec3.UnitZ * AxisLen, zAxisColor, Transform, AxisRadius);
+		batch3D.Cone(Vec3.UnitZ * AxisLen, Batcher3D.Direction.Z, ConeLen, ConeRadius, 12, zAxisColor, Transform);
 		
 		// XZ
-		batch3D.Square(Vec3.UnitX * (cubeSize + axisLen / 2.0f) + Vec3.UnitZ * (cubeSize + axisLen / 2.0f), 
-					   Vec3.UnitY, xzPlaneColor, Transform, planeSize / 2.0f);
+		batch3D.Square(Vec3.UnitX * (CubeSize + AxisLen / 2.0f) + Vec3.UnitZ * (CubeSize + AxisLen / 2.0f), 
+					   Vec3.UnitY, xzPlaneColor, Transform, PlaneSize / 2.0f);
 		// YZ
-		batch3D.Square(Vec3.UnitY * (cubeSize + axisLen / 2.0f) + Vec3.UnitZ * (cubeSize + axisLen / 2.0f), 
-			           Vec3.UnitX, yzPlaneColor, Transform, planeSize / 2.0f);
+		batch3D.Square(Vec3.UnitY * (CubeSize + AxisLen / 2.0f) + Vec3.UnitZ * (CubeSize + AxisLen / 2.0f), 
+			           Vec3.UnitX, yzPlaneColor, Transform, PlaneSize / 2.0f);
 		// XY
-		batch3D.Square(Vec3.UnitX * (cubeSize + axisLen / 2.0f) + Vec3.UnitY * (cubeSize + axisLen / 2.0f), 
-			           Vec3.UnitZ, xyPlaneColor, Transform, planeSize / 2.0f);
+		batch3D.Square(Vec3.UnitX * (CubeSize + AxisLen / 2.0f) + Vec3.UnitY * (CubeSize + AxisLen / 2.0f), 
+			           Vec3.UnitZ, xyPlaneColor, Transform, PlaneSize / 2.0f);
 
 		// XYZ
-		batch3D.Cube(Vec3.Zero, xyzCubeColor, Transform, cubeSize);
+		batch3D.Cube(Vec3.Zero, xyzCubeColor, Transform, CubeSize);
+	}
+	
+	private static readonly (BoundingBox Bounds, GizmoTarget Target)[] GizmoTargets = [
+		(XAxisBounds, GizmoTarget.AxisX),
+		(YAxisBounds, GizmoTarget.AxisY),
+		(ZAxisBounds, GizmoTarget.AxisZ),
+					
+		(XZPlaneBounds, GizmoTarget.PlaneXZ),
+		(YZPlaneBounds, GizmoTarget.PlaneYZ),
+		(XYPlaneBounds, GizmoTarget.PlaneXY),
+					
+		(XYZCubeBounds, GizmoTarget.CubeXYZ),
+	];
+	public bool RaycastCheck(Vec3 origin, Vec3 direction)
+	{
+		float closestGizmo = float.PositiveInfinity;
+		
+		target = GizmoTarget.None;
+		foreach (var (checkBounds, checkTarget) in GizmoTargets)
+		{
+			if (!ModUtils.RayIntersectOBB(origin, direction, checkBounds, Transform, out float dist) || dist >= closestGizmo) 
+				continue;
+
+			target = checkTarget;
+			closestGizmo = dist;
+		}
+		
+		return target != GizmoTarget.None;
+	}
+	
+	public void Drag(EditorWorld editor, Vec2 mouseDelta, Vec3 mouseRay, Vec3 objectStartingPosition)
+	{
+		var axisMatrix = Transform * editor.Camera.ViewProjection;
+		var screenXAxis = Vec3.TransformNormal(Vec3.UnitX, axisMatrix).XY();
+		var screenYAxis = Vec3.TransformNormal(Vec3.UnitY, axisMatrix).XY();
+		var screenZAxis = Vec3.TransformNormal(Vec3.UnitZ, axisMatrix).XY();
+		// Flip Y, since down is positive in screen coords
+		screenXAxis.Y *= -1.0f;
+		screenYAxis.Y *= -1.0f;
+		screenZAxis.Y *= -1.0f;
+		
+		// Linear scalar for the movement. Chosen on what felt best.
+		const float dotScale = 1.0f / 50.0f;
+		float dotX = Vec2.Dot(mouseDelta, screenXAxis) * dotScale;
+		float dotY = Vec2.Dot(mouseDelta, screenYAxis) * dotScale;
+		float dotZ = Vec2.Dot(mouseDelta, screenZAxis) * dotScale;
+		
+		Vec3 newPosition = Vec3.Zero;
+		if (editor.Selected is SpikeBlock.Definition def)
+			newPosition = def.Position;
+		
+		var xzPlaneDelta = Vec3.Transform(XZPlaneBounds.Center, Transform) - newPosition;
+		var yzPlaneDelta = Vec3.Transform(YZPlaneBounds.Center, Transform) - newPosition;
+		var xyPlaneDelta = Vec3.Transform(XYPlaneBounds.Center, Transform) - newPosition;
+		
+		var cameraPlaneNormal = (editor.Camera.Position - objectStartingPosition).Normalized();
+		var cameraPlane = new Plane(cameraPlaneNormal, Vec3.Dot(cameraPlaneNormal, objectStartingPosition));
+		
+		switch (target)
+		{
+			case GizmoTarget.AxisX:
+				newPosition = objectStartingPosition + Vec3.UnitX * dotX;
+				break;
+			case GizmoTarget.AxisY:
+				newPosition = objectStartingPosition + Vec3.UnitY * dotY;
+				break;
+			case GizmoTarget.AxisZ:
+				newPosition = objectStartingPosition + Vec3.UnitZ * dotZ;
+				break;
+			
+			case GizmoTarget.PlaneXZ:
+				float tY = (objectStartingPosition.Y - editor.Camera.Position.Y) / mouseRay.Y;
+				newPosition = editor.Camera.Position + mouseRay * tY - xzPlaneDelta;
+				break;
+			case GizmoTarget.PlaneYZ:
+				float tX = (objectStartingPosition.X - editor.Camera.Position.X) / mouseRay.X;
+				newPosition = editor.Camera.Position + mouseRay * tX - yzPlaneDelta;
+				break;
+			case GizmoTarget.PlaneXY:
+				float tZ = (objectStartingPosition.Z - editor.Camera.Position.Z) / mouseRay.Z;
+				newPosition = editor.Camera.Position + mouseRay * tZ - xyPlaneDelta;
+				break;
+
+			case GizmoTarget.CubeXYZ:
+				if (ModUtils.RayIntersectsPlane(editor.Camera.Position, mouseRay, cameraPlane, out var hit))
+				{
+					newPosition = hit;
+				}
+				break;
+
+			case GizmoTarget.None:
+			default:
+				break;
+		}
+		
+		if (editor.Selected is SpikeBlock.Definition def2)
+		{
+			def2.Position = newPosition;
+			def2.Dirty = true;
+		}
 	}
 }
 
