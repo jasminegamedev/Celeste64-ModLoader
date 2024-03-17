@@ -51,7 +51,8 @@ public class EditorWorld : World
 				{
 					setMethod.Invoke(selectedDefinition, [newValue]);
 					selectedDefinition.Dirty = true;
-				});
+				},
+				scale: 1.0f);
 		}
 		get => selectedDefinition;
 	}

@@ -26,6 +26,7 @@ public class PositionGizmo : Gizmo
 	
 	private readonly GetPositionDelegate getPosition;
 	private readonly SetPositionDelegate setPosition;
+	private readonly float scale;
 	
 	private GizmoTarget target;
 	private Vec3 beforeDragPosition = Vec3.Zero;
@@ -87,9 +88,9 @@ public class PositionGizmo : Gizmo
 			var position = getPosition();
 
 			const float minScale = 10.0f;
-			float scale = Math.Max(minScale, Vec3.Distance(EditorWorld.Current.Camera.Position, position) / 20.0f);
+			float distanceScale = Math.Max(minScale, Vec3.Distance(EditorWorld.Current.Camera.Position, position) / 20.0f);
 
-			return Matrix.CreateScale(scale) *
+			return Matrix.CreateScale(distanceScale * scale) *
 				   Matrix.CreateTranslation(position);
 		}
 	}
@@ -97,10 +98,11 @@ public class PositionGizmo : Gizmo
 	private readonly PositionGizmoSelectionTarget[] selectionTargets;
 	public override IEnumerable<SelectionTarget> SelectionTargets => selectionTargets;
 	
-	public PositionGizmo(GetPositionDelegate getPosition, SetPositionDelegate setPosition)
+	public PositionGizmo(GetPositionDelegate getPosition, SetPositionDelegate setPosition, float scale)
 	{
 		this.getPosition = getPosition;
 		this.setPosition = setPosition;
+		this.scale = scale;
 		
 		selectionTargets = [
 			new PositionGizmoSelectionTarget(this, GizmoTarget.AxisX, XAxisBounds),

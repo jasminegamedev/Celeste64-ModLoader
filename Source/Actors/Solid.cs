@@ -143,7 +143,8 @@ public class Solid : Actor, IHaveModels
 									{
 										def.Vertices[idx] = v - def.Position;
 										def.Dirty = true;
-									});
+									},
+									scale: 0.5f);
 							},
 							// OnDragged = (mouseDelta, mouseRay) => Log.Info($"Dragged vertex {vertex} ({mouseDelta}, {mouseRay})"),
 						});
