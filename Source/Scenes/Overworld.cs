@@ -352,6 +352,8 @@ public class Overworld : Scene
 						}
 						Paused = false;
 					}));
+
+					Audio.Play(Sfx.ui_pause);
 				}
 			}
 		}
@@ -425,6 +427,7 @@ public class Overworld : Scene
 					Game.Instance.NeedsReload = false;
 					Game.Instance.ReloadAssets();
 				}
+				Audio.Play(Sfx.ui_unpause);
 				Paused = false;
 			}
 		}
