@@ -8,6 +8,12 @@ public class Overworld : Scene
 	public const int DefaultCardHeight = 320;
 	public static int CardWidth => (int)(DefaultCardWidth * Game.RelativeScale);
 	public static int CardHeight => (int)(DefaultCardHeight * Game.RelativeScale);
+	public static int ModIconSizeLarge = 48;
+	public static int ModIconSize = 40;
+	public static int ModIconLeftMargin = 16;
+	public static int ModIconSpacing = 52;
+	public static int ModIconSelectCompensation = 4;
+	public static int ModIconVertAdjust = 20;
 
 	public bool Paused;
 	public Menu? pauseMenu;
@@ -497,13 +503,17 @@ public class Overworld : Scene
 				int relativeIndex = i - selectedModIdx;
 
 				var modIcon = mod.Subtextures.TryGetValue(mod.ModInfo.Icon ?? "", out var value) ? value : strawberryImage;
-				var modIconSize = sel ? new Vec2(48 / modIcon.Width, 48 / modIcon.Height) : new Vec2(40 / modIcon.Width, 40 / modIcon.Height);
+				var modIconSize =
+				sel ?
+				new Vec2(ModIconSizeLarge / modIcon.Width, ModIconSizeLarge / modIcon.Height)
+				:
+				new Vec2(ModIconSize / modIcon.Width, ModIconSize / modIcon.Height);
 
 				batch.Image(
 					modIcon,
 					new Vec2(
-						(sel ? -4 : 0) + 16,
-						(sel ? -4 : 0) + (52 * relativeIndex) + (bounds.Height / 2) - 20
+						(sel ? -(ModIconSizeLarge - ModIconSize) : 0) + ModIconLeftMargin, // Horizontal
+						(sel ? -(ModIconSizeLarge - ModIconSize) : 0) + (ModIconSpacing * relativeIndex) + (bounds.Height / 2) - ModIconVertAdjust // Vertical
 					),
 					Vec2.Zero, modIconSize, 0, Color.White);
 			}
