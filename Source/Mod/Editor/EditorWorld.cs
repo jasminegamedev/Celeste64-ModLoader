@@ -347,8 +347,6 @@ public class EditorWorld : World
 		}
 		dragTarget = null;
 		
-		OnBeforeSelection.Invoke();
-
 		// Collect all active selection targets
 		List<SelectionTarget> selectionTargets = [];
 		if (Selected is not null && Selected.SelectionTypes.Length > 0)
@@ -387,6 +385,7 @@ public class EditorWorld : World
 				
 				if (Input.Mouse.LeftPressed)
 				{
+					OnBeforeSelection.Invoke();
 					closest.Selected();
 				
 					dragTarget = closest;
@@ -414,6 +413,7 @@ public class EditorWorld : World
 			// Then check for actors
 			// else
 			// {
+				OnBeforeSelection.Invoke();
 				if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
 					Selected = hit.Actor is not null && definitionFromActors.TryGetValue(hit.Actor, out var def) ? def : null;
 				else

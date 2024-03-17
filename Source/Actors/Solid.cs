@@ -13,9 +13,19 @@ public class Solid : Actor, IHaveModels
 		public Vec3 Position { get; set; }
 		
 		static float size => 10.0f;
-		[CustomProperty(typeof(VerticesProperty))]
-		public List<List<Vec3>> Faces { get; set; } = [
-			[new Vec3(-size, 0.0f, size), new Vec3(size, 0.0f, size), new Vec3(size, 0.0f, -size), new Vec3(-size, 0.0f, -size)]
+
+		public List<Vec3> Vertices { get; set; } = [
+			new Vec3(-size, size, size), new Vec3(size, size, size), new Vec3(size, size, -size), new Vec3(-size, size, -size),
+			new Vec3(-size, -size, size), new Vec3(size, -size, size), new Vec3(size, -size, -size), new Vec3(-size, -size, -size)
+		];
+		
+		public List<List<int>> Faces { get; set; } = [
+			[0, 1, 2, 3], // Front
+			[7, 6, 5, 4], // Back
+			[4, 5, 1, 0], // Top
+			[3, 2, 6, 7], // Bottom
+			[1, 5, 6, 2], // Left
+			[4, 0, 3, 7], // Right
 		];
 		
 		public Definition()
@@ -31,8 +41,8 @@ public class Solid : Actor, IHaveModels
 			var bounds = new BoundingBox();
 			foreach (var face in Faces)
 			{
-				var faceMin = face.Aggregate(Vec3.Min);
-				var faceMax = face.Aggregate(Vec3.Max);
+				var faceMin = face.Select(idx => Vertices[idx]).Aggregate(Vec3.Min);
+				var faceMax = face.Select(idx => Vertices[idx]).Aggregate(Vec3.Max);
 				bounds = new BoundingBox(Vec3.Min(bounds.Min, faceMin), Vec3.Max(bounds.Max, faceMax)); 
 			}
 			
@@ -46,7 +56,7 @@ public class Solid : Actor, IHaveModels
 			foreach (var face in Faces)
 			{
 				int vertexIndex = colliderVertices.Count;
-				var plane = Plane.CreateFromVertices(face[0], face[1], face[2]);
+				var plane = Plane.CreateFromVertices(Vertices[face[0]], Vertices[face[1]], Vertices[face[2]]);
 				
 				colliderFaces.Add(new Face
 				{
@@ -64,9 +74,9 @@ public class Solid : Actor, IHaveModels
 				}
 				
 				// The center of the bounding box should always be <0, 0, 0>
-				colliderVertices.AddRange(face.Select(vertex => vertex - bounds.Center));
-				meshVertices.AddRange(face.Select(vertex => new Vertex(
-					position: vertex - bounds.Center,
+				colliderVertices.AddRange(face.Select(idx => Vertices[idx] - bounds.Center));
+				meshVertices.AddRange(face.Select(idx => new Vertex(
+					position: Vertices[idx] - bounds.Center,
 					texcoord: Vec2.Zero,
 					color: Vec3.One,
 					normal: plane.Normal)));
@@ -88,87 +98,6 @@ public class Solid : Actor, IHaveModels
 			
 			return [solid];
 		}
-		
-		public class VerticesProperty : ICustomProperty<List<List<Vec3>>>
-		{
-			public static void Serialize(List<List<Vec3>> value, BinaryWriter writer)
-			{
-				writer.Write(value.Count);
-				foreach (var vertices in value)
-				{
-					writer.Write(vertices.Count);
-					foreach (var vertex in vertices)
-					{
-						writer.Write(vertex);
-					}
-				}
-			}
-
-			public static List<List<Vec3>> Deserialize(BinaryReader reader)
-			{
-				int faceCount = reader.ReadInt32();
-				var value = new List<List<Vec3>>(capacity: faceCount);
-				for (int i = 0; i < faceCount; i++)
-				{
-					int vertexCount = reader.ReadInt32();
-					var vertices = new List<Vec3>(capacity: vertexCount);
-					for (int j = 0; j < vertices.Capacity; j++)
-					{
-						vertices.Add(reader.ReadVec3());
-					}
-					value.Add(vertices);
-				}
-				
-				return value;
-			}
-
-			public static bool RenderGui(ref List<List<Vec3>> value)
-			{
-				bool changed = false;
-				
-				ImGui.Text("Geometry:");
-				for (int i = 0; i < value.Count; i++)
-				{
-					ImGui.SeparatorText($"Face {i + 1}");
-					for (int j = 0; j < value[i].Count; j++)
-					{
-						var v = value[i][j];
-						changed |= ImGui.DragFloat3($"{j + 1}##{i}-{j}", ref v);
-						value[i][j] = v;
-						
-						if (value[i].Count > 3 && ImGui.Button($"Remove Vertex##{i}-{j}"))
-						{
-							value[i].RemoveAt(j);
-							changed = true;
-						}
-					}
-					
-					ImGui.Separator();
-					
-					if (ImGui.Button($"Add Vertex##{i}"))
-					{
-						value[i].Add(Vec3.Zero);
-						changed = true;
-					}
-					
-					if (ImGui.Button($"Remove Face##{i}"))
-					{
-						value.RemoveAt(i);
-						changed = true;
-					}
-				}
-				
-				ImGui.Separator();
-				
-				if (ImGui.Button("Add Face"))
-				{
-					value.Add([Vec3.Zero, Vec3.Zero, Vec3.Zero]);
-					changed = true;
-				}
-				
-				return changed;
-			}
-		}
 	}
 	
 	public class VertexSelectionType : SelectionType
@@ -183,7 +112,7 @@ public class Solid : Actor, IHaveModels
 		public VertexSelectionType(Solid.Definition def)
 		{
 			// TODO: This line crashes on initial load, since the editor is still null there
-			EditorWorld.Current.OnBeforeSelection += () => vertexGizmo = null;
+			// EditorWorld.Current.OnBeforeSelection += () => vertexGizmo = null;
 			
 			def.OnUpdated += () =>
 			{
@@ -194,27 +123,21 @@ public class Solid : Actor, IHaveModels
 				var transform = Matrix.CreateTranslation(def.Position);
 				const float selectionRadius = 1.0f;
 
-				for (int i = 0; i < def.Faces.Count; i++)
+				foreach (var face in def.Faces)
 				{
-					var face = def.Faces[i];
-					for (int j = 0; j < face.Count; j++)
+					foreach (int idx in face)
 					{
-						var vertex = face[j];
-						
-						int faceIdx = i;
-						int vertexIdx = j;
-						
-						targets.Add(new SimpleSelectionTarget(transform, new BoundingBox(vertex, selectionRadius * 2.0f))
+						targets.Add(new SimpleSelectionTarget(transform, new BoundingBox(def.Vertices[idx], selectionRadius * 2.0f))
 						{
 							// OnHovered = () => Log.Info($"Hovered vertex {vertex}"),
 							OnSelected = () =>
 							{
-								Log.Info($"Selected vertex {vertex}");
+								Log.Info($"Selected vertex {idx} {def.Vertices[idx]}");
 								vertexGizmo = new PositionGizmo(
-									() => def.Faces[faceIdx][vertexIdx] + def.Position,
+									() => def.Vertices[idx] + def.Position,
 									v =>
 									{
-										def.Faces[faceIdx][vertexIdx] = v - def.Position;
+										def.Vertices[idx] = v - def.Position;
 										def.Dirty = true;
 									});
 							},

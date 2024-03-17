@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -78,43 +79,11 @@ public class FujiMap : Map
 						prop.SetValue(def, custom.Deserialize(reader));
 						continue;
 					}
-
-					// Primitives
-					if (prop.PropertyType == typeof(bool))
-						prop.SetValue(def, reader.ReadBoolean());
-					else if (prop.PropertyType == typeof(byte))
-						prop.SetValue(def, reader.ReadByte());
-					else if (prop.PropertyType == typeof(byte[]))
-						prop.SetValue(def, reader.ReadBytes(reader.Read7BitEncodedInt()));
-					else if (prop.PropertyType == typeof(char))
-						prop.SetValue(def, reader.ReadChar());
-					else if (prop.PropertyType == typeof(char[]))
-						prop.SetValue(def, reader.ReadChars(reader.Read7BitEncodedInt()));
-					else if (prop.PropertyType == typeof(decimal))
-						prop.SetValue(def, reader.ReadDecimal());
-					else if (prop.PropertyType == typeof(double))
-						prop.SetValue(def, reader.ReadDouble());
-					else if (prop.PropertyType == typeof(float))
-						prop.SetValue(def, reader.ReadSingle());
-					else if (prop.PropertyType == typeof(int))
-						prop.SetValue(def, reader.ReadInt32());
-					else if (prop.PropertyType == typeof(long))
-						prop.SetValue(def, reader.ReadInt64());
-					else if (prop.PropertyType == typeof(sbyte))
-						prop.SetValue(def, reader.ReadSByte());
-					else if (prop.PropertyType == typeof(short))
-						prop.SetValue(def, reader.ReadInt16());
-					else if (prop.PropertyType == typeof(Half))
-						prop.SetValue(def, reader.ReadHalf());
-					else if (prop.PropertyType == typeof(string))
-						prop.SetValue(def, reader.ReadString());
-					// Special support
-					else if (prop.PropertyType == typeof(Vec2))
-						prop.SetValue(def, reader.ReadVec2());
-					else if (prop.PropertyType == typeof(Vec3))
-						prop.SetValue(def, reader.ReadVec3());
-					else if (prop.PropertyType == typeof(Color))
-						prop.SetValue(def, reader.ReadColor());
+					
+					if (DeserializeObject(prop.PropertyType, reader) is not { } obj)
+						throw new Exception($"Property '{prop.Name}' of type {prop.PropertyType} from definition '{def}' cannot be deserialized");
+					
+					prop.SetValue(def, obj);
 
 					Log.Info($" - {prop.Name}: {prop.GetValue(def)}");
 				}
@@ -179,68 +148,8 @@ public class FujiMap : Map
 					continue;
 				}
 
-				switch (prop.GetValue(def))
-				{
-					// Primitives
-					case bool v:
-						writer.Write(v);
-						break;
-					case byte v:
-						writer.Write(v);
-						break;
-					case byte[] v:
-						writer.Write7BitEncodedInt(v.Length);
-						writer.Write(v);
-						break;
-					case char v:
-						writer.Write(v);
-						break;
-					case char[] v:
-						writer.Write7BitEncodedInt(v.Length);
-						writer.Write(v);
-						break;
-					case decimal v:
-						writer.Write(v);
-						break;
-					case double v:
-						writer.Write(v);
-						break;
-					case float v:
-						writer.Write(v);
-						break;
-					case int v:
-						writer.Write(v);
-						break;
-					case long v:
-						writer.Write(v);
-						break;
-					case sbyte v:
-						writer.Write(v);
-						break;
-					case short v:
-						writer.Write(v);
-						break;
-					case Half v:
-						writer.Write(v);
-						break;
-					case string v:
-						writer.Write(v);
-						break;
-
-					// Special support
-					case Vec2 v:
-						writer.Write(v);
-						break;
-					case Vec3 v:
-						writer.Write(v);
-						break;
-					case Color v:
-						writer.Write(v);
-						break;
-
-					default:
-						throw new Exception($"Property '{prop.Name}' of type {prop.PropertyType} from definition '{def}' cannot be serialized");
-				}
+				if (!SerializeObject(prop.GetValue(def), writer))
+					throw new Exception($"Property '{prop.Name}' of type {prop.PropertyType} from definition '{def}' cannot be serialized");
 
 				Log.Info($" * {prop.Name}: {prop.GetValue(def)}");
 			}
@@ -258,5 +167,124 @@ public class FujiMap : Map
 			}
 		}
 		world.Add(new Player { Position = new Vec3(0, 0, 100) });
+	}
+	
+	private bool SerializeObject(object? obj, BinaryWriter writer)
+	{
+		switch (obj)
+		{
+			// Primitives
+			case bool v:
+				writer.Write(v);
+				break;
+			case byte v:
+				writer.Write(v);
+				break;
+			case char v:
+				writer.Write(v);
+				break;
+			case decimal v:
+				writer.Write(v);
+				break;
+			case double v:
+				writer.Write(v);
+				break;
+			case float v:
+				writer.Write(v);
+				break;
+			case int v:
+				writer.Write(v);
+				break;
+			case long v:
+				writer.Write(v);
+				break;
+			case sbyte v:
+				writer.Write(v);
+				break;
+			case short v:
+				writer.Write(v);
+				break;
+			case Half v:
+				writer.Write(v);
+				break;
+			case string v:
+				writer.Write(v);
+				break;
+
+			// Special support
+			case Vec2 v:
+				writer.Write(v);
+				break;
+			case Vec3 v:
+				writer.Write(v);
+				break;
+			case Color v:
+				writer.Write(v);
+				break;
+
+			// Collections
+			case IList v:
+				writer.Write7BitEncodedInt(v.Count);
+				foreach (var item in v)
+					SerializeObject(item, writer);
+				break;
+				
+			default:
+				return false;
+		}
+		
+		return true;
+	}
+	
+	private object? DeserializeObject(Type type, BinaryReader reader)
+	{
+		// Primitives
+		if (type == typeof(bool))
+			return reader.ReadBoolean();
+		if (type == typeof(byte))
+			return reader.ReadByte();
+		if (type == typeof(byte[]))
+			return reader.ReadBytes(reader.Read7BitEncodedInt());
+		if (type == typeof(char))
+			return reader.ReadChar();
+		if (type == typeof(char[]))
+			return reader.ReadChars(reader.Read7BitEncodedInt());
+		if (type == typeof(decimal))
+			return reader.ReadDecimal();
+		if (type == typeof(double))
+			return reader.ReadDouble();
+		if (type == typeof(float))
+			return reader.ReadSingle();
+		if (type == typeof(int))
+			return reader.ReadInt32();
+		if (type == typeof(long))
+			return reader.ReadInt64();
+		if (type == typeof(sbyte))
+			return reader.ReadSByte();
+		if (type == typeof(short))
+			return reader.ReadInt16();
+		if (type == typeof(Half))
+			return reader.ReadHalf();
+		if (type == typeof(string))
+			return reader.ReadString();
+		// Special support
+		if (type == typeof(Vec2))
+			return reader.ReadVec2();
+		if (type == typeof(Vec3))
+			return reader.ReadVec3();
+		if (type == typeof(Color))
+			return reader.ReadColor();
+		// Collections
+		if (type.IsAssignableTo(typeof(IList)) && type.IsGenericType)
+		{
+			var itemType = type.GenericTypeArguments[0];
+			var list = (IList)Activator.CreateInstance(type)!;
+			int count = reader.Read7BitEncodedInt();
+			for (int i = 0; i < count; i++)
+				list.Add(DeserializeObject(itemType, reader));
+			return list;
+		}
+		
+		return null;
 	}
 }
