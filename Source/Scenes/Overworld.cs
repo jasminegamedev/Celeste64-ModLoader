@@ -163,9 +163,11 @@ public class Overworld : Scene
 	// but also introduces bugs.
 	private List<Entry> entries = [];
 	private int selectedModIdx = 0;
+	public GameMod selectedMod => modsWithLevels[selectedModIdx];
 	private readonly Batcher batch = new();
 	private readonly Mesh mesh = new();
 	private readonly Material material = new(Assets.Shaders["Sprite"]);
+	private Subtexture strawberryImage = Assets.Subtextures["icon_strawberry"];
 	private readonly Menu restartConfirmMenu = new();
 
 	public Overworld(bool startOnLastSelected)
@@ -207,12 +209,11 @@ public class Overworld : Scene
 
 	public List<Entry> GetCurrentModEntries()
 	{
-		GameMod currentMod = modsWithLevels[selectedModIdx];
 		List<Entry> entriesTemp = [];
 
 		// We treat the vanilla "mod" as a catch-all option (because it only has one level anyway). 
 		// It will return every available item.
-		if (currentMod is VanillaGameMod)
+		if (selectedMod is VanillaGameMod)
 		{
 			foreach (var level in Assets.Levels)
 			{
@@ -225,9 +226,9 @@ public class Overworld : Scene
 		}
 		else
 		{
-			foreach (var level in currentMod.Levels)
+			foreach (var level in selectedMod.Levels)
 			{
-				entriesTemp.Add(new(level, currentMod));
+				entriesTemp.Add(new(level, selectedMod));
 			}
 		}
 
@@ -481,6 +482,24 @@ public class Overworld : Scene
 				CullMode = CullMode.None
 			};
 			cmd.Submit();
+		}
+
+		// mod icons
+		for (int i = 0; i < modsWithLevels.Count; i++)
+		{
+			GameMod mod = modsWithLevels[i];
+			bool sel = mod == selectedMod;
+
+			var modIcon = mod.Subtextures.TryGetValue(mod.ModInfo.Icon ?? "", out var value) ? value : strawberryImage;
+			var modIconSize = sel ? new Vec2(48 / modIcon.Width, 48 / modIcon.Height) : new Vec2(40 / modIcon.Width, 40 / modIcon.Height);
+
+			batch.Image(
+				modIcon,
+				new Vec2(
+					(sel ? -4 : 0) + 16,
+					(sel ? -4 : 0) + (52 * i)
+				),
+				Vec2.Zero, modIconSize, 0, Color.White);
 		}
 
 		// overlay
