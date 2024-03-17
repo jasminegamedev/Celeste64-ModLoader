@@ -69,7 +69,7 @@ public class FujiMap : Map
 
 				var props = defType
 					.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-					.Where(prop => !prop.HasAttr<IgnorePropertyAttribute>());
+					.Where(prop => !prop.HasAttr<IgnorePropertyAttribute>() && prop.Name != nameof(ActorDefinition.SelectionTypes));
 
 				foreach (var prop in props)
 				{
@@ -169,7 +169,7 @@ public class FujiMap : Map
 
 			var props = def.GetType()
 				.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
-				.Where(prop => !prop.HasAttr<IgnorePropertyAttribute>());
+				.Where(prop => !prop.HasAttr<IgnorePropertyAttribute>() && prop.Name != nameof(ActorDefinition.SelectionTypes));
 
 			foreach (var prop in props)
 			{
