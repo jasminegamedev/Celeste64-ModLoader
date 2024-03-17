@@ -192,7 +192,9 @@ public class Solid : Actor, IHaveModels
 					{
 						Transform = transform,
 						Bounds = new BoundingBox(vertex, selectionRadius * 2.0f),
+						OnHovered = () => Log.Info($"Hovered vertex {vertex}"),
 						OnSelected = () => Log.Info($"Selected vertex {vertex}"),
+						OnDragged = (mouseDelta, mouseRay) => Log.Info($"Dragged vertex {vertex} ({mouseDelta}, {mouseRay})"),
 					}));
 				
 				// foreach (var face in def.Faces)

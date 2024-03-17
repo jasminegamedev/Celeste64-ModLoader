@@ -5,5 +5,7 @@ public class SelectionTarget
 	public required Matrix Transform;
 	public required BoundingBox Bounds;
 	
-	public required Action OnSelected;
+	public Action? OnHovered = null;
+	public Action? OnSelected = null;
+	public Action<Vec2, Vec3>? OnDragged = null;
 }

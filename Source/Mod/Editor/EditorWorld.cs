@@ -67,7 +67,8 @@ public class EditorWorld : World
 
 	// TODO: Temporary!
 	private Gizmo? gizmo;
-	private Vec2 dragStart;
+	private SelectionTarget? dragTarget = null;
+	private Vec2 dragMouseStart = Vec2.Zero;
 
 	internal EditorWorld(EntryInfo entry) : base(entry)
 	{
@@ -332,8 +333,15 @@ public class EditorWorld : World
 		var worldPos = Vec4.Transform(eyePos, inverseView);
 		var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
 
-		// Check for selection target first
-		if (Input.Mouse.LeftPressed && Selected is not null && Selected.SelectionTypes.Length > 0)
+		// Continue/Stop dragging
+		if (Input.Mouse.LeftDown && dragTarget is not null)
+		{
+			dragTarget.OnDragged?.Invoke(Input.Mouse.Position - dragMouseStart, direction);
+			return;
+		}
+		dragTarget = null;
+
+		if (Selected is not null && Selected.SelectionTypes.Length > 0)
 		{
 			// TODO: Allow for selection different types
 			var selType = Selected.SelectionTypes[0];
@@ -352,7 +360,14 @@ public class EditorWorld : World
 			
 			if (closest is not null)
 			{
-				closest.OnSelected();
+				closest.OnHovered?.Invoke();
+				if (Input.Mouse.LeftPressed)
+				{
+					closest.OnSelected?.Invoke();
+				
+					dragTarget = closest;
+					dragMouseStart = Input.Mouse.Position;
+				}
 				return;
 			}
 		}
@@ -368,7 +383,7 @@ public class EditorWorld : World
 			if (hitGizmo)
 			{
 				// Start dragging
-				dragStart = Input.Mouse.Position;
+				
 				gizmo?.DragStart();
 			}
 			// Then check for actors
@@ -383,7 +398,7 @@ public class EditorWorld : World
 		// Continue dragging
 		else if (Input.Mouse.LeftDown)
 		{
-			gizmo?.Drag(this, Input.Mouse.Position - dragStart, direction);
+			gizmo?.Drag(this, Input.Mouse.Position - dragMouseStart, direction);
 		}
 	}
 
