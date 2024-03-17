@@ -502,7 +502,7 @@ public class Overworld : Scene
 
 				GameMod mod = modsWithLevels[i];
 
-				bool sel = mod == selectedMod;
+				bool sel = i == selectedModIdx;
 				int relativeIndex = i - selectedModIdx;
 
 				var modIcon = mod.Subtextures.TryGetValue(mod.ModInfo.Icon ?? "", out var value) ? value : strawberryImage;
