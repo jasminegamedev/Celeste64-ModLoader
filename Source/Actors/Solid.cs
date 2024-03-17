@@ -13,11 +13,17 @@ public class Solid : Actor, IHaveModels
 		public Vec3 Position { get; set; }
 		
 		static float size => 10.0f;
-		
 		[CustomProperty(typeof(VerticesProperty))]
 		public List<List<Vec3>> Faces { get; set; } = [
 			[new Vec3(-size, 0.0f, size), new Vec3(size, 0.0f, size), new Vec3(size, 0.0f, -size), new Vec3(-size, 0.0f, -size)]
 		];
+		
+		public Definition()
+		{
+			SelectionTypes = [
+				new VertexSelectionType(this),
+			];
+		}
 		
 		public override Actor[] Load(World.WorldType type)
 		{
@@ -100,15 +106,17 @@ public class Solid : Actor, IHaveModels
 
 			public static List<List<Vec3>> Deserialize(BinaryReader reader)
 			{
-				var value = new List<List<Vec3>>(capacity: reader.ReadInt32());
-				for (int i = 0; i < value.Capacity; i++)
+				int faceCount = reader.ReadInt32();
+				var value = new List<List<Vec3>>(capacity: faceCount);
+				for (int i = 0; i < faceCount; i++)
 				{
-					var vertices = new List<Vec3>(capacity: reader.ReadInt32());
+					int vertexCount = reader.ReadInt32();
+					var vertices = new List<Vec3>(capacity: vertexCount);
 					for (int j = 0; j < vertices.Capacity; j++)
 					{
-						vertices[j] = reader.ReadVec3();
+						vertices.Add(reader.ReadVec3());
 					}
-					value[i] = vertices;
+					value.Add(vertices);
 				}
 				
 				return value;
@@ -160,6 +168,45 @@ public class Solid : Actor, IHaveModels
 				
 				return changed;
 			}
+		}
+	}
+	
+	public class VertexSelectionType : SelectionType
+	{
+		private readonly List<SelectionTarget> targets = [];
+		public override IEnumerable<SelectionTarget> Targets => targets;
+		
+		public VertexSelectionType(Solid.Definition def)
+		{
+			def.OnUpdated += () =>
+			{
+				targets.Clear();
+				
+				var transform = Matrix.CreateTranslation(def.Position);
+				const float selectionRadius = 1.0f;
+				
+				// TODO: Which implementation is better for performance? Probably the foreach one?
+				targets.AddRange(def.Faces
+					.SelectMany(face => face)
+					.Select(vertex => new SelectionTarget
+					{
+						Transform = transform,
+						Bounds = new BoundingBox(vertex, selectionRadius * 2.0f),
+						OnSelected = () => Log.Info($"Selected vertex {vertex}"),
+					}));
+				
+				// foreach (var face in def.Faces)
+				// {
+				// 	foreach (var vertex in face)
+				// 	{
+				// 		targets.Add(new SelectionTarget()
+				// 		{
+				// 			Transform = transform,
+				// 			Bounds = new BoundingBox(vertex, selectionRadius * 2.0f)
+				// 		});
+				// 	}
+				// }
+			};
 		}
 	}
 	

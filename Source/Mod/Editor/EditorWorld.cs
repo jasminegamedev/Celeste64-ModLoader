@@ -19,6 +19,8 @@ public class EditorWorld : World
 	public ReadOnlyDictionary<ActorDefinition, Actor[]> ActorsFromDefinition => actorsFromDefinition.AsReadOnly();
 	public ReadOnlyDictionary<Actor, ActorDefinition> DefinitionFromActors => definitionFromActors.AsReadOnly();
 
+	public event Action<ActorDefinition?> OnSelectionChanged = def => {};
+	
 	private ActorDefinition? selectedDefinition = null;
 	public ActorDefinition? Selected
 	{
@@ -26,10 +28,12 @@ public class EditorWorld : World
 		{
 			selectedDefinition = value;
 			gizmo = null;
+			
+			OnSelectionChanged(value);
 
 			if (selectedDefinition is null)
 				return;
-
+			
 			var positionProp = selectedDefinition
 				.GetType()
 				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -265,55 +269,7 @@ public class EditorWorld : World
 		Camera.LookAt = cameraPos + forward;
 
 		// Shoot ray cast for selection
-		if (!ImGuiManager.WantCaptureMouse &&
-			Camera.Target != null &&
-			Matrix.Invert(Camera.Projection, out var inverseProj1) &&
-			Matrix.Invert(Camera.View, out var inverseView1))
-		{
-			// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
-			var scale = Math.Min(App.WidthInPixels / (float)Camera.Target.Width, App.HeightInPixels / (float)Camera.Target.Height);
-			var imageRelativePos = Input.Mouse.Position - (App.SizeInPixels / 2 - Camera.Target.Bounds.Size / 2 * scale);
-			// Convert into normalized-device-coordinates
-			var ndcPos = imageRelativePos / (Camera.Target.Bounds.Size / 2 * scale) - Vec2.One;
-			// Flip Y, since up is negative in NDC coords
-			ndcPos.Y *= -1.0f;
-			var clipPos = new Vec4(ndcPos, -1.0f, 1.0f);
-			var eyePos = Vec4.Transform(clipPos, inverseProj1);
-			// We only care about XY, so we set ZW to "forward"
-			eyePos.Z = -1.0f;
-			eyePos.W = 0.0f;
-			var worldPos = Vec4.Transform(eyePos, inverseView1);
-			var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
-
-			// Notice when mouse is hovering over.
-			// While dragging, don't update the gizmo since we might go out of the gizmo's bounds.
-			bool isDragging = Input.Mouse.LeftDown && !Input.Mouse.LeftPressed;
-			bool hitGizmo = isDragging || (gizmo?.RaycastCheck(Camera.Position, direction) ?? false);
-
-			if (Input.Mouse.LeftPressed)
-			{
-				// First check if we hit a gizmo
-				if (hitGizmo)
-				{
-					// Start dragging
-					dragStart = Input.Mouse.Position;
-					gizmo?.DragStart();
-				}
-				// Then check for actors
-				else
-				{
-					if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
-						Selected = hit.Actor is not null && definitionFromActors.TryGetValue(hit.Actor, out var def) ? def : null;
-					else
-						Selected = null;
-				}
-			}
-			// Continue dragging
-			else if (Input.Mouse.LeftDown)
-			{
-				gizmo?.Drag(this, Input.Mouse.Position - dragStart, direction);
-			}
-		}
+		SelectionRaycast();
 
 		// Update actors of definitions
 		foreach (var def in Definitions.Where(def => def.Dirty))
@@ -337,6 +293,7 @@ public class EditorWorld : World
 			}
 
 			def.Dirty = false;
+			def.Updated();
 		}
 
 		// Don't call base.Update, since we don't want the actors to update
@@ -348,6 +305,86 @@ public class EditorWorld : World
 
 		// add / remove actors
 		ResolveChanges();
+	}
+
+	private void SelectionRaycast()
+	{
+		if (ImGuiManager.WantCaptureMouse ||
+		    Camera.Target is null ||
+		    !Matrix.Invert(Camera.Projection, out var inverseProj) ||
+		    !Matrix.Invert(Camera.View, out var inverseView))
+		{
+			return;
+		}
+		
+		// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
+		var scale = Math.Min(App.WidthInPixels / (float)Camera.Target.Width, App.HeightInPixels / (float)Camera.Target.Height);
+		var imageRelativePos = Input.Mouse.Position - (App.SizeInPixels / 2 - Camera.Target.Bounds.Size / 2 * scale);
+		// Convert into normalized-device-coordinates
+		var ndcPos = imageRelativePos / (Camera.Target.Bounds.Size / 2 * scale) - Vec2.One;
+		// Flip Y, since up is negative in NDC coords
+		ndcPos.Y *= -1.0f;
+		var clipPos = new Vec4(ndcPos, -1.0f, 1.0f);
+		var eyePos = Vec4.Transform(clipPos, inverseProj);
+		// We only care about XY, so we set ZW to "forward"
+		eyePos.Z = -1.0f;
+		eyePos.W = 0.0f;
+		var worldPos = Vec4.Transform(eyePos, inverseView);
+		var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
+
+		// Check for selection target first
+		if (Input.Mouse.LeftPressed && Selected is not null && Selected.SelectionTypes.Length > 0)
+		{
+			// TODO: Allow for selection different types
+			var selType = Selected.SelectionTypes[0];
+			
+			SelectionTarget? closest = null;
+			float closestDist = float.PositiveInfinity;
+			
+			foreach (var target in selType.Targets)
+			{
+				if (!ModUtils.RayIntersectOBB(Camera.Position, direction, target.Bounds, target.Transform, out float dist) || dist >= closestDist)
+					continue;
+				
+				closest = target;
+				closestDist = dist;
+			}
+			
+			if (closest is not null)
+			{
+				closest.OnSelected();
+				return;
+			}
+		}
+		
+		// Notice when mouse is hovering over.
+		// While dragging, don't update the gizmo since we might go out of the gizmo's bounds.
+		bool isDragging = Input.Mouse.LeftDown && !Input.Mouse.LeftPressed;
+		bool hitGizmo = isDragging || (gizmo?.RaycastCheck(Camera.Position, direction) ?? false);
+
+		if (Input.Mouse.LeftPressed)
+		{
+			// First check if we hit a gizmo
+			if (hitGizmo)
+			{
+				// Start dragging
+				dragStart = Input.Mouse.Position;
+				gizmo?.DragStart();
+			}
+			// Then check for actors
+			else
+			{
+				if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
+					Selected = hit.Actor is not null && definitionFromActors.TryGetValue(hit.Actor, out var def) ? def : null;
+				else
+					Selected = null;
+			}
+		}
+		// Continue dragging
+		else if (Input.Mouse.LeftDown)
+		{
+			gizmo?.Drag(this, Input.Mouse.Position - dragStart, direction);
+		}
 	}
 
 	public override void Render(Target target)
