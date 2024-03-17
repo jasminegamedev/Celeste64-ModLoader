@@ -503,11 +503,9 @@ public class Overworld : Scene
 				int relativeIndex = i - selectedModIdx;
 
 				var modIcon = mod.Subtextures.TryGetValue(mod.ModInfo.Icon ?? "", out var value) ? value : strawberryImage;
-				var modIconSize =
-				sel ?
-				new Vec2(ModIconSizeLarge / modIcon.Width, ModIconSizeLarge / modIcon.Height)
-				:
-				new Vec2(ModIconSize / modIcon.Width, ModIconSize / modIcon.Height);
+				var modIconSize = sel
+					? new Vec2(ModIconSizeLarge / modIcon.Width, ModIconSizeLarge / modIcon.Height)
+					: new Vec2(ModIconSize / modIcon.Width, ModIconSize / modIcon.Height);
 
 				batch.Image(
 					modIcon,
