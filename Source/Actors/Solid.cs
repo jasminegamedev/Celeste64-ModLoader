@@ -100,7 +100,7 @@ public class Solid : Actor, IHaveModels
 		}
 	}
 	
-	public class VertexSelectionType : SelectionType
+	public class VertexSelectionType(Solid.Definition def) : SelectionType
 	{
 		private readonly List<SelectionTarget> targets = [];
 		// TODO: Support other gizmos depending on current tool. Maybe with some restriction on which tools are allowed tho
@@ -109,10 +109,14 @@ public class Solid : Actor, IHaveModels
 		public override IEnumerable<SelectionTarget> Targets => targets;
 		public override IEnumerable<Gizmo> Gizmos => vertexGizmo is null ? [] : [vertexGizmo];
 
-		public VertexSelectionType(Solid.Definition def)
+		public override void Awake()
 		{
-			// TODO: This line crashes on initial load, since the editor is still null there
-			// EditorWorld.Current.OnBeforeSelection += () => vertexGizmo = null;
+			EditorWorld.Current.OnTargetSelected += target =>
+			{
+				// Deselect if something else was selected
+				if (target is null || !targets.Contains(target) && !(vertexGizmo?.SelectionTargets.Contains(target) ?? false))
+					vertexGizmo = null;
+			};
 			
 			def.OnUpdated += () =>
 			{

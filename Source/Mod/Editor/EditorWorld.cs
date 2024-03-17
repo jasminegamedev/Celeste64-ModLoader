@@ -15,22 +15,22 @@ public class EditorWorld : World
 
 	public static EditorWorld Current => (Game.Scene as EditorWorld)!;
 
-	public List<ActorDefinition> Definitions => Map is FujiMap fujiMap ? fujiMap.Definitions : [];
+	public IReadOnlyList<ActorDefinition> Definitions => Map is FujiMap fujiMap ? fujiMap.Definitions : [];
 	public ReadOnlyDictionary<ActorDefinition, Actor[]> ActorsFromDefinition => actorsFromDefinition.AsReadOnly();
 	public ReadOnlyDictionary<Actor, ActorDefinition> DefinitionFromActors => definitionFromActors.AsReadOnly();
 
-	public event Action<ActorDefinition?> OnSelectionChanged = def => {};
-	public event Action OnBeforeSelection = () => {};
+	public event Action<SelectionTarget?> OnTargetSelected = target => {};
 	
 	private ActorDefinition? selectedDefinition = null;
 	public ActorDefinition? Selected
 	{
 		private set
 		{
+			if (selectedDefinition == value)
+				return;
+			
 			selectedDefinition = value;
 			gizmo = null;
-			
-			OnSelectionChanged(value);
 
 			if (selectedDefinition is null)
 				return;
@@ -83,10 +83,40 @@ public class EditorWorld : World
 		RefreshEnvironment();
 
 		// Map gets implicitly loaded, since our Definitions are taken directly from it
-		// However mark all definitions as dirty to ensure they will get added
 		foreach (var def in Definitions)
 		{
+			// Mark all definitions as dirty to ensure they will get added
 			def.Dirty = true;
+		}
+	}
+	
+	public void AddDefinition(ActorDefinition definition)
+	{
+		if (Map is not FujiMap fujiMap)
+			return;
+	
+		fujiMap.Definitions.Add(definition);
+		
+		// Make sure it'll get loaded
+		definition.Dirty = true;
+	
+		foreach (var selectionType in definition.SelectionTypes)
+			selectionType.Awake();
+	}
+	
+	public void RemoveDefinition(ActorDefinition definition)
+	{
+		if (Map is not FujiMap fujiMap)
+			return;
+		
+		fujiMap.Definitions.Remove(definition);
+		if (actorsFromDefinition.Remove(definition, out var actors))
+		{
+			foreach (var actor in actors)
+			{
+				definitionFromActors.Remove(actor);
+				Destroy(actor);
+			}
 		}
 	}
 
@@ -185,24 +215,16 @@ public class EditorWorld : World
 
 	public override void Entered()
 	{
-		// Game.ResolutionScale = Save.;
+		// Awake all SelectionTypes of definitions which already exist
+		foreach (var def in Definitions)
+		{
+			foreach (var selectionType in def.SelectionTypes)
+				selectionType.Awake();		
+		}
 	}
 	public override void Exited()
 	{
 		Game.ResolutionScale = previousScale;
-	}
-
-	public void RemoveDefinition(ActorDefinition definition)
-	{
-		Definitions.Remove(definition);
-		if (actorsFromDefinition.Remove(definition, out var actors))
-		{
-			foreach (var actor in actors)
-			{
-				definitionFromActors.Remove(actor);
-				Destroy(actor);
-			}
-		}
 	}
 
 	public override void Update()
@@ -365,6 +387,7 @@ public class EditorWorld : World
 		foreach (var target in selectionTargets)
 			target.IsHovered = false;
 		
+		// Handle SelectionTargets
 		{
 			SelectionTarget? closest = null;
 			float closestDist = float.PositiveInfinity;
@@ -385,7 +408,7 @@ public class EditorWorld : World
 				
 				if (Input.Mouse.LeftPressed)
 				{
-					OnBeforeSelection.Invoke();
+					OnTargetSelected(closest);
 					closest.Selected();
 				
 					dragTarget = closest;
@@ -394,36 +417,20 @@ public class EditorWorld : World
 				}
 				return;
 			}
+
+			if (Input.Mouse.LeftPressed)
+			{
+				// No SelectionTarget was hit
+				OnTargetSelected(null);
+			}
 		}
 		
-		// Notice when mouse is hovering over.
-		// While dragging, don't update the gizmo since we might go out of the gizmo's bounds.
-		bool isDragging = Input.Mouse.LeftDown && !Input.Mouse.LeftPressed;
-		// bool hitGizmo = isDragging || (gizmo?.RaycastCheck(Camera.Position, direction) ?? false);
-
 		if (Input.Mouse.LeftPressed)
 		{
-			// First check if we hit a gizmo
-			// if (hitGizmo)
-			// {
-				// Start dragging
-				
-				// gizmo?.DragStart();
-			// }
-			// Then check for actors
-			// else
-			// {
-				OnBeforeSelection.Invoke();
-				if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
-					Selected = hit.Actor is not null && definitionFromActors.TryGetValue(hit.Actor, out var def) ? def : null;
-				else
-					Selected = null;
-			// }
-		}
-		// Continue dragging
-		else if (Input.Mouse.LeftDown)
-		{
-			// gizmo?.Drag(this, Input.Mouse.Position - dragMouseStart, direction);
+			if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
+				Selected = hit.Actor is not null && definitionFromActors.TryGetValue(hit.Actor, out var def) ? def : null;
+			else
+				Selected = null;
 		}
 	}
 
@@ -675,10 +682,6 @@ public class EditorWorld : World
 		foreach (var actor in Actors)
 		{
 			if (!actor.WorldBounds.Intersects(box))
-				continue;
-
-			// Don't re-select an actor
-			if (SelectedActors.Contains(actor))
 				continue;
 
 			// TODO: Allow selecting decorations, since they're currently one giant object

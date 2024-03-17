@@ -15,11 +15,11 @@ public class EditActorWindow() : EditorWindow("EditActor")
 		// TODO: Add some actor picker
 		if (ImGui.Button("DEBUG: Add Spikes"))
 		{
-			editor.Definitions.Add(new SpikeBlock.Definition());
+			editor.AddDefinition(new SpikeBlock.Definition());
 		}
 		if (ImGui.Button("DEBUG: Add Solid"))
 		{
-			editor.Definitions.Add(new Solid.Definition());
+			editor.AddDefinition(new Solid.Definition());
 		}
 
 		if (editor.Selected is { } selected)
