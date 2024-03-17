@@ -20,6 +20,7 @@ public class EditorWorld : World
 	public ReadOnlyDictionary<Actor, ActorDefinition> DefinitionFromActors => definitionFromActors.AsReadOnly();
 
 	public event Action<ActorDefinition?> OnSelectionChanged = def => {};
+	public event Action OnBeforeSelection = () => {};
 	
 	private ActorDefinition? selectedDefinition = null;
 	public ActorDefinition? Selected
@@ -345,6 +346,8 @@ public class EditorWorld : World
 			dragTarget.IsDragged = false;
 		}
 		dragTarget = null;
+		
+		OnBeforeSelection.Invoke();
 
 		// Collect all active selection targets
 		List<SelectionTarget> selectionTargets = [];
@@ -353,6 +356,7 @@ public class EditorWorld : World
 			// TODO: Allow for selecting different types
 			var selType = Selected.SelectionTypes[0];
 			selectionTargets.AddRange(selType.Targets);
+			selectionTargets.AddRange(selType.Gizmos.SelectMany(static gizmo => gizmo.SelectionTargets));
 		} 
 		if (gizmo is not null)
 		{
@@ -617,6 +621,15 @@ public class EditorWorld : World
 		target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
 		{
 			gizmo?.Render(batch3D);
+			if (Selected is not null && Selected.SelectionTypes.Length > 0)
+			{
+				// TODO: Allow for selecting different types
+				var selType = Selected.SelectionTypes[0];
+				foreach (var g in selType.Gizmos)
+				{
+					g.Render(batch3D);
+				}
+			} 
 		}
 		batch3D.Render(ref state);
 		batch3D.Clear();

@@ -174,38 +174,54 @@ public class Solid : Actor, IHaveModels
 	public class VertexSelectionType : SelectionType
 	{
 		private readonly List<SelectionTarget> targets = [];
-		public override IEnumerable<SelectionTarget> Targets => targets;
+		// TODO: Support other gizmos depending on current tool. Maybe with some restriction on which tools are allowed tho
+		private PositionGizmo? vertexGizmo = null;
 		
+		public override IEnumerable<SelectionTarget> Targets => targets;
+		public override IEnumerable<Gizmo> Gizmos => vertexGizmo is null ? [] : [vertexGizmo];
+
 		public VertexSelectionType(Solid.Definition def)
 		{
+			// TODO: This line crashes on initial load, since the editor is still null there
+			EditorWorld.Current.OnBeforeSelection += () => vertexGizmo = null;
+			
 			def.OnUpdated += () =>
 			{
 				targets.Clear();
+				// TODO: Detect when geometry changed?
+				// vertexGizmo = null;
 				
 				var transform = Matrix.CreateTranslation(def.Position);
 				const float selectionRadius = 1.0f;
-				
-				// TODO: Which implementation is better for performance? Probably the foreach one?
-				targets.AddRange(def.Faces
-					.SelectMany(face => face)
-					.Select(vertex => new SimpleSelectionTarget(transform, new BoundingBox(vertex, selectionRadius * 2.0f))
+
+				for (int i = 0; i < def.Faces.Count; i++)
+				{
+					var face = def.Faces[i];
+					for (int j = 0; j < face.Count; j++)
 					{
-						OnHovered = () => Log.Info($"Hovered vertex {vertex}"),
-						OnSelected = () => Log.Info($"Selected vertex {vertex}"),
-						OnDragged = (mouseDelta, mouseRay) => Log.Info($"Dragged vertex {vertex} ({mouseDelta}, {mouseRay})"),
-					}));
-				
-				// foreach (var face in def.Faces)
-				// {
-				// 	foreach (var vertex in face)
-				// 	{
-				// 		targets.Add(new SelectionTarget()
-				// 		{
-				// 			Transform = transform,
-				// 			Bounds = new BoundingBox(vertex, selectionRadius * 2.0f)
-				// 		});
-				// 	}
-				// }
+						var vertex = face[j];
+						
+						int faceIdx = i;
+						int vertexIdx = j;
+						
+						targets.Add(new SimpleSelectionTarget(transform, new BoundingBox(vertex, selectionRadius * 2.0f))
+						{
+							// OnHovered = () => Log.Info($"Hovered vertex {vertex}"),
+							OnSelected = () =>
+							{
+								Log.Info($"Selected vertex {vertex}");
+								vertexGizmo = new PositionGizmo(
+									() => def.Faces[faceIdx][vertexIdx] + def.Position,
+									v =>
+									{
+										def.Faces[faceIdx][vertexIdx] = v - def.Position;
+										def.Dirty = true;
+									});
+							},
+							// OnDragged = (mouseDelta, mouseRay) => Log.Info($"Dragged vertex {vertex} ({mouseDelta}, {mouseRay})"),
+						});
+					}
+				}
 			};
 		}
 	}
