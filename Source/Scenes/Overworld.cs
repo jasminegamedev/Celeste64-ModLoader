@@ -485,21 +485,28 @@ public class Overworld : Scene
 		}
 
 		// mod icons
-		for (int i = 0; i < modsWithLevels.Count; i++)
+		if (selectedModIdx > 0) // don't render if not filtering
 		{
-			GameMod mod = modsWithLevels[i];
-			bool sel = mod == selectedMod;
+			for (int i = 0; i < modsWithLevels.Count; i++)
+			{
+				if (i == 0) continue; // don't render the vanilla "mod"
 
-			var modIcon = mod.Subtextures.TryGetValue(mod.ModInfo.Icon ?? "", out var value) ? value : strawberryImage;
-			var modIconSize = sel ? new Vec2(48 / modIcon.Width, 48 / modIcon.Height) : new Vec2(40 / modIcon.Width, 40 / modIcon.Height);
+				GameMod mod = modsWithLevels[i];
 
-			batch.Image(
-				modIcon,
-				new Vec2(
-					(sel ? -4 : 0) + 16,
-					(sel ? -4 : 0) + (52 * i)
-				),
-				Vec2.Zero, modIconSize, 0, Color.White);
+				bool sel = mod == selectedMod;
+				int relativeIndex = i - selectedModIdx;
+
+				var modIcon = mod.Subtextures.TryGetValue(mod.ModInfo.Icon ?? "", out var value) ? value : strawberryImage;
+				var modIconSize = sel ? new Vec2(48 / modIcon.Width, 48 / modIcon.Height) : new Vec2(40 / modIcon.Width, 40 / modIcon.Height);
+
+				batch.Image(
+					modIcon,
+					new Vec2(
+						(sel ? -4 : 0) + 16,
+						(sel ? -4 : 0) + (52 * relativeIndex) + (bounds.Height / 2) - 20
+					),
+					Vec2.Zero, modIconSize, 0, Color.White);
+			}
 		}
 
 		// overlay
