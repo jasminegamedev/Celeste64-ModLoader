@@ -57,6 +57,7 @@ public class PositionGizmo(PositionGizmo.GetPositionDelegate getPosition, Positi
 		-new Vec3(CubeSize + BoundsPadding),
 		 new Vec3(CubeSize + BoundsPadding));
 
+	// TODO: Please cache these properties
 	public override Matrix Transform
 	{
 		get
@@ -70,6 +71,75 @@ public class PositionGizmo(PositionGizmo.GetPositionDelegate getPosition, Positi
 				   Matrix.CreateTranslation(position);
 		}
 	}
+	
+	public IEnumerable<SelectionTarget> Targets => 
+	[
+		// X Axis
+		new SelectionTarget
+		{
+			Transform = Transform,
+			Bounds = XAxisBounds,
+			OnSelected = DragStart,
+			OnHovered = () => target = GizmoTarget.AxisX,
+			OnDragged = Drag
+		},
+		// Y Axis
+		new SelectionTarget
+		{
+			Transform = Transform,
+			Bounds = YAxisBounds,
+			OnSelected = DragStart,
+			OnHovered = () => target = GizmoTarget.AxisY,
+			OnDragged = Drag
+		},
+		// Z Axis
+		new SelectionTarget
+		{
+			Transform = Transform,
+			Bounds = ZAxisBounds,
+			OnSelected = DragStart,
+			OnHovered = () => target = GizmoTarget.AxisZ,
+			OnDragged = Drag
+		},
+		
+		// XZ Plane
+		new SelectionTarget
+		{
+			Transform = Transform,
+			Bounds = XZPlaneBounds,
+			OnSelected = DragStart,
+			OnHovered = () => target = GizmoTarget.PlaneXZ,
+			OnDragged = Drag
+		},
+		// YZ Plane
+		new SelectionTarget
+		{
+			Transform = Transform,
+			Bounds = YZPlaneBounds,
+			OnSelected = DragStart,
+			OnHovered = () => target = GizmoTarget.PlaneYZ,
+			OnDragged = Drag
+		},
+		// XY Plane
+		new SelectionTarget
+		{
+			Transform = Transform,
+			Bounds = XYPlaneBounds,
+			OnSelected = DragStart,
+			OnHovered = () => target = GizmoTarget.PlaneXY,
+			OnDragged = Drag
+		},
+		
+		// XYZ Cube
+		new SelectionTarget
+		{
+			Transform = Transform,
+			Bounds = XYZCubeBounds,
+			OnSelected = DragStart,
+			OnHovered = () => target = GizmoTarget.CubeXYZ,
+			OnDragged = Drag
+		},
+	];
 
 	public override void Render(Batcher3D batch3D)
 	{
@@ -175,8 +245,10 @@ public class PositionGizmo(PositionGizmo.GetPositionDelegate getPosition, Positi
 		beforeDragPosition = getPosition();
 	}
 
-	public override void Drag(EditorWorld editor, Vec2 mouseDelta, Vec3 mouseRay)
+	public override void Drag(Vec2 mouseDelta, Vec3 mouseRay)
 	{
+		var editor = EditorWorld.Current;
+		
 		var axisMatrix = Transform * editor.Camera.ViewProjection;
 		var screenXAxis = Vec3.TransformNormal(Vec3.UnitX, axisMatrix).XY();
 		var screenYAxis = Vec3.TransformNormal(Vec3.UnitY, axisMatrix).XY();

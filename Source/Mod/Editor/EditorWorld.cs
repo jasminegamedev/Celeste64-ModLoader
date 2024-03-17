@@ -345,11 +345,12 @@ public class EditorWorld : World
 		{
 			// TODO: Allow for selection different types
 			var selType = Selected.SelectionTypes[0];
+			var targets = selType.Targets.Concat((gizmo as PositionGizmo)?.Targets ?? []);
 			
 			SelectionTarget? closest = null;
 			float closestDist = float.PositiveInfinity;
 			
-			foreach (var target in selType.Targets)
+			foreach (var target in targets)
 			{
 				if (!ModUtils.RayIntersectOBB(Camera.Position, direction, target.Bounds, target.Transform, out float dist) || dist >= closestDist)
 					continue;
@@ -375,30 +376,30 @@ public class EditorWorld : World
 		// Notice when mouse is hovering over.
 		// While dragging, don't update the gizmo since we might go out of the gizmo's bounds.
 		bool isDragging = Input.Mouse.LeftDown && !Input.Mouse.LeftPressed;
-		bool hitGizmo = isDragging || (gizmo?.RaycastCheck(Camera.Position, direction) ?? false);
+		// bool hitGizmo = isDragging || (gizmo?.RaycastCheck(Camera.Position, direction) ?? false);
 
 		if (Input.Mouse.LeftPressed)
 		{
 			// First check if we hit a gizmo
-			if (hitGizmo)
-			{
+			// if (hitGizmo)
+			// {
 				// Start dragging
 				
-				gizmo?.DragStart();
-			}
+				// gizmo?.DragStart();
+			// }
 			// Then check for actors
-			else
-			{
+			// else
+			// {
 				if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
 					Selected = hit.Actor is not null && definitionFromActors.TryGetValue(hit.Actor, out var def) ? def : null;
 				else
 					Selected = null;
-			}
+			// }
 		}
 		// Continue dragging
 		else if (Input.Mouse.LeftDown)
 		{
-			gizmo?.Drag(this, Input.Mouse.Position - dragMouseStart, direction);
+			// gizmo?.Drag(this, Input.Mouse.Position - dragMouseStart, direction);
 		}
 	}
 

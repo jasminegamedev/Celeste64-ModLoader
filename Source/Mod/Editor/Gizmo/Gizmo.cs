@@ -8,7 +8,7 @@ public abstract class Gizmo
 	public abstract bool RaycastCheck(Vec3 origin, Vec3 direction);
 	
 	public abstract void DragStart();
-	public abstract void Drag(EditorWorld editor, Vec2 mouseDelta, Vec3 mouseRay);
+	public abstract void Drag(Vec2 mouseDelta, Vec3 mouseRay);
 }
 
 public enum GizmoTarget
