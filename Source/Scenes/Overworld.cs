@@ -9,12 +9,11 @@ public class Overworld : Scene
 	public const int DefaultCardHeight = 320;
 	public static int CardWidth => (int)(DefaultCardWidth * Game.RelativeScale);
 	public static int CardHeight => (int)(DefaultCardHeight * Game.RelativeScale);
-	public static int ModIconSizeLarge = 48;
-	public static int ModIconSize = 40;
-	public static int ModIconLeftMargin = 16;
-	public static int ModIconSpacing = 52;
-	public static int ModIconSelectCompensation = 4;
-	public static int ModIconVertAdjust = 20;
+	public const int ModIconSizeLarge = 48;
+	public const int ModIconSize = 40;
+	public const int ModIconLeftMargin = 16;
+	public const int ModIconSpacing = 52;
+	public const int ModIconVertAdjust = 20;
 
 	public bool Paused;
 	public Menu? pauseMenu;
