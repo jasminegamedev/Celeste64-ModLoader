@@ -4,6 +4,7 @@ namespace Celeste64;
 
 public class Overworld : Scene
 {
+	#region Constants
 	public const int DefaultCardWidth = 480;
 	public const int DefaultCardHeight = 320;
 	public static int CardWidth => (int)(DefaultCardWidth * Game.RelativeScale);
@@ -17,7 +18,9 @@ public class Overworld : Scene
 
 	public bool Paused;
 	public Menu? pauseMenu;
+	#endregion
 
+	#region Level Entry
 	public class Entry
 	{
 		public readonly LevelInfo Level;
@@ -149,7 +152,9 @@ public class Overworld : Scene
 			batch.Render(Target);
 		}
 	}
+	#endregion
 
+	#region Overworld Properties
 	private enum States
 	{
 		Selecting,
@@ -175,7 +180,9 @@ public class Overworld : Scene
 	private readonly Material material = new(Assets.Shaders["Sprite"]);
 	private Subtexture strawberryImage = Assets.Subtextures["icon_strawberry"];
 	private readonly Menu restartConfirmMenu = new();
+	#endregion
 
+	#region Overworld Constructor
 	public Overworld(bool startOnLastSelected)
 	{
 		Music = "event:/music/mus_title";
@@ -212,7 +219,9 @@ public class Overworld : Scene
 
 		entries = GetCurrentModEntries();
 	}
+	#endregion
 
+	#region Overworld Methods
 	public List<Entry> GetCurrentModEntries()
 	{
 		List<Entry> entriesTemp = [];
@@ -257,7 +266,9 @@ public class Overworld : Scene
 
 		wobble = new Vec2(0, dir * 0.25f);
 	}
+	#endregion
 
+	#region Update & Render
 	public override void Update()
 	{
 		slide += (index - slide) * (1 - MathF.Pow(.001f, Time.Delta));
@@ -614,4 +625,5 @@ public class Overworld : Scene
 		batch.Render(target);
 		batch.Clear();
 	}
+	#endregion
 }
