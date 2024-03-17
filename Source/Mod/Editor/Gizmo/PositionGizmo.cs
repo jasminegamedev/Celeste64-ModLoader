@@ -1,10 +1,32 @@
 namespace Celeste64.Mod.Editor;
 
-public class PositionGizmo(PositionGizmo.GetPositionDelegate getPosition, PositionGizmo.SetPositionDelegate setPosition) : Gizmo
+public enum GizmoTarget
 {
+	None,
+	AxisX, AxisY, AxisZ,
+	PlaneXZ, PlaneYZ, PlaneXY,
+	CubeXYZ,
+}
+
+public class PositionGizmo : Gizmo
+{
+	private class PositionGizmoSelectionTarget(PositionGizmo gizmo, GizmoTarget target, BoundingBox bounds) : SelectionTarget
+	{
+		public readonly GizmoTarget Target = target;
+		
+		public override Matrix Transform => gizmo.Transform;
+		public override BoundingBox Bounds { get; } = bounds;
+
+		public override void Selected() => gizmo.DragStart();
+		public override void Dragged(Vec2 mouseDelta, Vec3 mouseRay) => gizmo.Drag(mouseDelta, mouseRay);
+	}
+	
 	public delegate Vec3 GetPositionDelegate();
 	public delegate void SetPositionDelegate(Vec3 value);
-
+	
+	private readonly GetPositionDelegate getPosition;
+	private readonly SetPositionDelegate setPosition;
+	
 	private GizmoTarget target;
 	private Vec3 beforeDragPosition = Vec3.Zero;
 
@@ -58,7 +80,7 @@ public class PositionGizmo(PositionGizmo.GetPositionDelegate getPosition, Positi
 		 new Vec3(CubeSize + BoundsPadding));
 
 	// TODO: Please cache these properties
-	public override Matrix Transform
+	public Matrix Transform
 	{
 		get
 		{
@@ -72,77 +94,40 @@ public class PositionGizmo(PositionGizmo.GetPositionDelegate getPosition, Positi
 		}
 	}
 	
-	public IEnumerable<SelectionTarget> Targets => 
-	[
-		// X Axis
-		new SelectionTarget
-		{
-			Transform = Transform,
-			Bounds = XAxisBounds,
-			OnSelected = DragStart,
-			OnHovered = () => target = GizmoTarget.AxisX,
-			OnDragged = Drag
-		},
-		// Y Axis
-		new SelectionTarget
-		{
-			Transform = Transform,
-			Bounds = YAxisBounds,
-			OnSelected = DragStart,
-			OnHovered = () => target = GizmoTarget.AxisY,
-			OnDragged = Drag
-		},
-		// Z Axis
-		new SelectionTarget
-		{
-			Transform = Transform,
-			Bounds = ZAxisBounds,
-			OnSelected = DragStart,
-			OnHovered = () => target = GizmoTarget.AxisZ,
-			OnDragged = Drag
-		},
+	private readonly PositionGizmoSelectionTarget[] selectionTargets;
+	public override IEnumerable<SelectionTarget> SelectionTargets => selectionTargets;
+	
+	public PositionGizmo(GetPositionDelegate getPosition, SetPositionDelegate setPosition)
+	{
+		this.getPosition = getPosition;
+		this.setPosition = setPosition;
 		
-		// XZ Plane
-		new SelectionTarget
-		{
-			Transform = Transform,
-			Bounds = XZPlaneBounds,
-			OnSelected = DragStart,
-			OnHovered = () => target = GizmoTarget.PlaneXZ,
-			OnDragged = Drag
-		},
-		// YZ Plane
-		new SelectionTarget
-		{
-			Transform = Transform,
-			Bounds = YZPlaneBounds,
-			OnSelected = DragStart,
-			OnHovered = () => target = GizmoTarget.PlaneYZ,
-			OnDragged = Drag
-		},
-		// XY Plane
-		new SelectionTarget
-		{
-			Transform = Transform,
-			Bounds = XYPlaneBounds,
-			OnSelected = DragStart,
-			OnHovered = () => target = GizmoTarget.PlaneXY,
-			OnDragged = Drag
-		},
-		
-		// XYZ Cube
-		new SelectionTarget
-		{
-			Transform = Transform,
-			Bounds = XYZCubeBounds,
-			OnSelected = DragStart,
-			OnHovered = () => target = GizmoTarget.CubeXYZ,
-			OnDragged = Drag
-		},
-	];
-
+		selectionTargets = [
+			new PositionGizmoSelectionTarget(this, GizmoTarget.AxisX, XAxisBounds),
+			new PositionGizmoSelectionTarget(this, GizmoTarget.AxisY, YAxisBounds),
+			new PositionGizmoSelectionTarget(this, GizmoTarget.AxisZ, ZAxisBounds),
+			
+			new PositionGizmoSelectionTarget(this, GizmoTarget.PlaneXZ, XZPlaneBounds),
+			new PositionGizmoSelectionTarget(this, GizmoTarget.PlaneYZ, YZPlaneBounds),
+			new PositionGizmoSelectionTarget(this, GizmoTarget.PlaneXY, XYPlaneBounds),
+				
+			new PositionGizmoSelectionTarget(this, GizmoTarget.CubeXYZ, XYZCubeBounds),
+		];
+	}
+	
 	public override void Render(Batcher3D batch3D)
 	{
+		// Check which part is targeted
+		target = GizmoTarget.None;
+		foreach (var selectionTarget in selectionTargets)
+		{
+			if (selectionTarget.IsHovered || selectionTarget.IsDragged)
+			{
+				target = selectionTarget.Target;
+				break;
+			}
+		}
+		
 		const byte normalAlpha = 0xff;
 		const byte hoverAlpha = 0xff;
 		const byte dragAlpha = 0xff;
@@ -211,41 +196,12 @@ public class PositionGizmo(PositionGizmo.GetPositionDelegate getPosition, Positi
 		batch3D.Cube(Vec3.Zero, xyzCubeColor, Transform, CubeSize);
 	}
 
-	private static readonly (BoundingBox Bounds, GizmoTarget Target)[] GizmoTargets = [
-		(XAxisBounds, GizmoTarget.AxisX),
-		(YAxisBounds, GizmoTarget.AxisY),
-		(ZAxisBounds, GizmoTarget.AxisZ),
-
-		(XZPlaneBounds, GizmoTarget.PlaneXZ),
-		(YZPlaneBounds, GizmoTarget.PlaneYZ),
-		(XYPlaneBounds, GizmoTarget.PlaneXY),
-
-		(XYZCubeBounds, GizmoTarget.CubeXYZ),
-	];
-
-	public override bool RaycastCheck(Vec3 origin, Vec3 direction)
-	{
-		float closestGizmo = float.PositiveInfinity;
-
-		target = GizmoTarget.None;
-		foreach (var (checkBounds, checkTarget) in GizmoTargets)
-		{
-			if (!ModUtils.RayIntersectOBB(origin, direction, checkBounds, Transform, out float dist) || dist >= closestGizmo)
-				continue;
-
-			target = checkTarget;
-			closestGizmo = dist;
-		}
-
-		return target != GizmoTarget.None;
-	}
-	
-	public override void DragStart()
+	private void DragStart()
 	{
 		beforeDragPosition = getPosition();
 	}
 
-	public override void Drag(Vec2 mouseDelta, Vec3 mouseRay)
+	private void Drag(Vec2 mouseDelta, Vec3 mouseRay)
 	{
 		var editor = EditorWorld.Current;
 		

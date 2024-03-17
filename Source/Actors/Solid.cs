@@ -188,10 +188,8 @@ public class Solid : Actor, IHaveModels
 				// TODO: Which implementation is better for performance? Probably the foreach one?
 				targets.AddRange(def.Faces
 					.SelectMany(face => face)
-					.Select(vertex => new SelectionTarget
+					.Select(vertex => new SimpleSelectionTarget(transform, new BoundingBox(vertex, selectionRadius * 2.0f))
 					{
-						Transform = transform,
-						Bounds = new BoundingBox(vertex, selectionRadius * 2.0f),
 						OnHovered = () => Log.Info($"Hovered vertex {vertex}"),
 						OnSelected = () => Log.Info($"Selected vertex {vertex}"),
 						OnDragged = (mouseDelta, mouseRay) => Log.Info($"Dragged vertex {vertex} ({mouseDelta}, {mouseRay})"),

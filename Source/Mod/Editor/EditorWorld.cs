@@ -336,21 +336,38 @@ public class EditorWorld : World
 		// Continue/Stop dragging
 		if (Input.Mouse.LeftDown && dragTarget is not null)
 		{
-			dragTarget.OnDragged?.Invoke(Input.Mouse.Position - dragMouseStart, direction);
+			dragTarget.Dragged(Input.Mouse.Position - dragMouseStart, direction);
 			return;
+		}
+
+		if (dragTarget != null)
+		{
+			dragTarget.IsDragged = false;
 		}
 		dragTarget = null;
 
+		// Collect all active selection targets
+		List<SelectionTarget> selectionTargets = [];
 		if (Selected is not null && Selected.SelectionTypes.Length > 0)
 		{
-			// TODO: Allow for selection different types
+			// TODO: Allow for selecting different types
 			var selType = Selected.SelectionTypes[0];
-			var targets = selType.Targets.Concat((gizmo as PositionGizmo)?.Targets ?? []);
-			
+			selectionTargets.AddRange(selType.Targets);
+		} 
+		if (gizmo is not null)
+		{
+			selectionTargets.AddRange(gizmo.SelectionTargets);
+		}
+		
+		// Un-hover everything
+		foreach (var target in selectionTargets)
+			target.IsHovered = false;
+		
+		{
 			SelectionTarget? closest = null;
 			float closestDist = float.PositiveInfinity;
 			
-			foreach (var target in targets)
+			foreach (var target in selectionTargets)
 			{
 				if (!ModUtils.RayIntersectOBB(Camera.Position, direction, target.Bounds, target.Transform, out float dist) || dist >= closestDist)
 					continue;
@@ -361,12 +378,15 @@ public class EditorWorld : World
 			
 			if (closest is not null)
 			{
-				closest.OnHovered?.Invoke();
+				closest.Hovered();
+				closest.IsHovered = true;
+				
 				if (Input.Mouse.LeftPressed)
 				{
-					closest.OnSelected?.Invoke();
+					closest.Selected();
 				
 					dragTarget = closest;
+					dragTarget.IsDragged = true;
 					dragMouseStart = Input.Mouse.Position;
 				}
 				return;
