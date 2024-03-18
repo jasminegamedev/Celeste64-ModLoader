@@ -4,7 +4,7 @@ namespace Celeste64;
 
 public class Overworld : Scene
 {
-	#region Constants
+	#region Static Properties
 	public const int DefaultCardWidth = 480;
 	public const int DefaultCardHeight = 320;
 	public static int CardWidth => (int)(DefaultCardWidth * Game.RelativeScale);
@@ -14,9 +14,6 @@ public class Overworld : Scene
 	public const int ModIconLeftMargin = 16;
 	public const int ModIconSpacing = 52;
 	public const int ModIconVertAdjust = 20;
-
-	public bool Paused;
-	public Menu? pauseMenu;
 	#endregion
 
 	#region Level Entry
@@ -163,6 +160,10 @@ public class Overworld : Scene
 	}
 
 	private States state = States.Selecting;
+
+	public bool Paused;
+	public Menu? pauseMenu;
+
 	private int index = 0;
 	private float slide = 0;
 	private float selectedEase = 0;
@@ -249,8 +250,7 @@ public class Overworld : Scene
 		return entriesTemp;
 	}
 
-	// reference taken from Menu.OptionList
-	// this function also takes care of resetting the entries for convenience
+	// this function also takes care of resetting the entries, as well as visual and audio flair, for convenience
 	public void SlideSelectedMod(int dir)
 	{
 		dir = Calc.Clamp(dir, -1, 1);
@@ -555,23 +555,20 @@ public class Overworld : Scene
 				Color.White * 0.30f);
 
 			// button prompts
-			if (state != States.Entering)
+			if (state != States.Entering && !Paused)
 			{
-				if (!Paused)
-				{
-					var cancelPrompt = Loc.Str(state == States.Selecting ? "Back" : "Cancel");
-					var at = bounds.BottomRight + new Vec2(-16, -4) * Game.RelativeScale + new Vec2(0, -UI.PromptSize);
-					var width = 0.0f;
-					var width2 = 0.0f;
-					UI.Prompt(batch, Controls.Cancel, cancelPrompt, at, out width, 1.0f);
-					at.X -= width + 8 * Game.RelativeScale;
-					UI.Prompt(batch, Controls.Confirm, Loc.Str("Confirm"), at, out width2, 1.0f);
+				var cancelPrompt = Loc.Str(state == States.Selecting ? "Back" : "Cancel");
+				var at = bounds.BottomRight + new Vec2(-16, -4) * Game.RelativeScale + new Vec2(0, -UI.PromptSize);
+				var width = 0.0f;
+				var width2 = 0.0f;
+				UI.Prompt(batch, Controls.Cancel, cancelPrompt, at, out width, 1.0f);
+				at.X -= width + 8 * Game.RelativeScale;
+				UI.Prompt(batch, Controls.Confirm, Loc.Str("Confirm"), at, out width2, 1.0f);
 
-					if (state == States.Selecting)
-					{
-						at.X -= width2 + 8 * Game.RelativeScale;
-						UI.Prompt(batch, Controls.Pause, Loc.Str("OptionsTitle"), at, out _, 1.0f);
-					}
+				if (state == States.Selecting)
+				{
+					at.X -= width2 + 8 * Game.RelativeScale;
+					UI.Prompt(batch, Controls.Pause, Loc.Str("OptionsTitle"), at, out _, 1.0f);
 				}
 			}
 
