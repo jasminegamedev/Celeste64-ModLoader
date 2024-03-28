@@ -63,6 +63,10 @@ public class ControlsConfig_V01 : PersistedData
 				new(Keys.B),
 				new(Buttons.North)
 			],
+			["RenameFile"] = [
+				new(Keys.R),
+				new(Buttons.West)
+			],
 		},
 
 		Sticks = new()

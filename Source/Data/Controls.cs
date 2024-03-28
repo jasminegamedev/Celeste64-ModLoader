@@ -17,6 +17,7 @@ public static class Controls
 	public static readonly VirtualButton CopyFile = new("CopyFile");
 	public static readonly VirtualButton DeleteFile = new("DeleteFile");
 	public static readonly VirtualButton CreateFile = new("CreateFile");
+	public static readonly VirtualButton RenameFile = new("RenameFile");
 
 	public static ControlsConfig_V01 Instance = new();
 
@@ -97,6 +98,8 @@ public static class Controls
 			it.BindTo(DeleteFile);
 		foreach (var it in FindAction(config, "CreateFile"))
 			it.BindTo(CreateFile);
+		foreach (var it in FindAction(config, "RenameFile"))
+			it.BindTo(RenameFile);
 
 	}
 
@@ -114,6 +117,7 @@ public static class Controls
 		CopyFile.Clear();
 		DeleteFile.Clear();
 		CreateFile.Clear();
+		RenameFile.Clear();
 	}
 
 	public static void Consume()
@@ -130,6 +134,7 @@ public static class Controls
 		CopyFile.Consume();
 		DeleteFile.Consume();
 		CreateFile.Consume();
+		RenameFile.Consume();
 	}
 
 	private static readonly Dictionary<string, Dictionary<string, string>> prompts = [];
@@ -172,6 +177,8 @@ public static class Controls
 			return GetPromptLocation("deletefile");
 		else if (button == CopyFile)
 			return GetPromptLocation("copyfile");
+		else if (button == RenameFile)
+			return GetPromptLocation("renamefile");
 		else
 			return GetPromptLocation("pause");
 	}

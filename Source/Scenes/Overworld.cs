@@ -1,5 +1,6 @@
 using Celeste64.Mod;
-
+using ImGuiNET;
+using System.Diagnostics;
 namespace Celeste64;
 
 public class Overworld : Scene
@@ -267,6 +268,7 @@ public class Overworld : Scene
 	}
 	#endregion
 
+	string SomethingFun = string.Empty;
 	#region Update & Render
 	public override void Update()
 	{
@@ -605,6 +607,8 @@ public class Overworld : Scene
 			pauseMenu.Render(batch, bounds.Center);
 		}
 
+
+
 		// show version number on Overworld as well
 		// Logic breakdown:
 		// If paused
@@ -615,6 +619,8 @@ public class Overworld : Scene
 		{
 			UI.Text(batch, Game.VersionString, bounds.BottomLeft + new Vec2(4, -4) * Game.RelativeScale, new Vec2(0, 1), Color.CornflowerBlue * 0.75f);
 			UI.Text(batch, Game.LoaderVersion, bounds.BottomLeft + new Vec2(4, -24) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
+			UI.Text(batch, SomethingFun, bounds.BottomLeft + new Vec2(4, -44) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
+
 
 			if (ModLoader.FailedToLoadMods.Any())
 			{

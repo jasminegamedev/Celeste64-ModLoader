@@ -14,6 +14,8 @@
 		"Create": "Create",
 		"Delete": "Delete",
 		"Copy": "Copy",
+		"Rename": "Rename",
+		"NewName": "New Name",
 		"RestartLevel": "Clear Save & Restart Level",
 		"PauseTitle": "Paused",
 		"PauseResume": "Resume",

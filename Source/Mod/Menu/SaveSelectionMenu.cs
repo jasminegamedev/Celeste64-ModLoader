@@ -1,4 +1,6 @@
-﻿using Celeste64.Mod.Data;
+﻿using Celeste64.Mod;
+using Celeste64.Mod.Data;
+using System.Diagnostics;
 
 namespace Celeste64;
 
@@ -21,6 +23,7 @@ public class SaveSelectionMenu : Menu
 	private Subtexture strawberryImage;
 
 	private List<string> saves;
+	private string renamedFileName = string.Empty;
 
 	internal SaveSelectionMenu(Menu? rootMenu)
 	{
@@ -121,6 +124,22 @@ public class SaveSelectionMenu : Menu
 				index++;
 			}
 		}
+	}
+
+	void SetRename(Keys? key)
+	{
+		if (key == Keys.Backspace || key == Keys.KeypadBackspace)
+		{
+			if (renamedFileName.Length > 0)
+				renamedFileName = renamedFileName.Remove(renamedFileName.Length - 1);
+		}
+		else
+			renamedFileName += KeyboardHandler.GetKeyName(key).ToLower();
+	}
+
+	string GetRename()
+	{
+		return renamedFileName;
 	}
 
 	protected override void HandleInput()
@@ -250,6 +269,24 @@ public class SaveSelectionMenu : Menu
 			PushSubMenu(newMenu);
 			newMenu.Add(new Option("OptionsNo", () => PopSubMenu()));
 		}
+
+		if (Controls.RenameFile.Pressed)
+		{
+			Menu newMenu = new Menu(this);
+			newMenu.Title = $"Rename this file: {saves[CurrentPageStart + CurrentIndex]}";
+			newMenu.Add(new InputField("NewName", (k) => SetRename(k), GetRename));
+			newMenu.Add(new Option("OptionsYes", () => {
+				SaveManager.Instance.ChangeFileName(saves[CurrentPageStart + CurrentIndex], GetRename());
+				ResetSaves();
+				PopSubMenu();
+				renamedFileName = string.Empty;
+			}));
+			PushSubMenu(newMenu);
+			newMenu.Add(new Option("OptionsNo", () => {
+				renamedFileName = string.Empty;
+				PopSubMenu();
+			}));
+		}
 	}
 
 	protected override void RenderItems(Batcher batch)
@@ -280,6 +317,10 @@ public class SaveSelectionMenu : Menu
 			at.X -= width + 8 * Game.RelativeScale;
 
 			UI.Prompt(batch, Controls.CopyFile, Loc.Str("Copy"), at, out width, 1.0f);
+			at.X -= width + 8 * Game.RelativeScale;
+
+			UI.Prompt(batch, Controls.RenameFile, Loc.Str("Rename"), at, out _, 1.0f);
+
 			batch.PopMatrix();
 		}
 	}

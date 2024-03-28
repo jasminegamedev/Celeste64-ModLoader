@@ -1,3 +1,5 @@
+using Celeste64.Mod;
+
 namespace Celeste64;
 
 public class Menu
@@ -12,6 +14,7 @@ public class Menu
 		public virtual bool Selectable { get; } = true;
 		public virtual bool Pressed() => false;
 		public virtual void Slide(int dir) { }
+		public virtual void GetKeyPress(Keys? key) { }
 
 		// LocString is the base localized string object, before any changes.
 		// This is kept separate from the label so we can get substrings from the LocString like the Description.
@@ -203,6 +206,19 @@ public class Menu
 		}
 	}
 
+	public class InputField(Loc.Localized locString, Action<Keys?> set, Func<string> get) : Item
+	{
+		public override Loc.Localized LocString => locString;
+		public override string Label => $"{LocString} : {get()}";
+		public override void GetKeyPress(Keys? key)
+		{
+			Controls.Confirm.ConsumePress();
+			Controls.Cancel.ConsumePress();
+			if (key != null)
+				set(key);
+		}
+	}
+
 	public int Index;
 	public string Title = string.Empty;
 	public bool Focused = true;
@@ -354,6 +370,9 @@ public class Menu
 
 	protected virtual void HandleInput()
 	{
+		KeyboardHandler.Instance.ReadKeys();
+		Keys? key = KeyboardHandler.Instance.GetPressedKey();
+
 		if (items.Count > 0)
 		{
 			var was = Index;
@@ -384,6 +403,8 @@ public class Menu
 
 			if (was != Index)
 				Audio.Play(step < 0 ? UpSound : DownSound);
+
+			items[Index].GetKeyPress(key);
 
 			if (Controls.Menu.Horizontal.Negative.Pressed)
 				items[Index].Slide(-1);
