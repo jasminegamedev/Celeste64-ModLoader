@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
-using System.Text;
-using Celeste64.Mod;
+﻿using Celeste64.Mod;
 using Celeste64.Mod.Patches;
+using System.Diagnostics;
+using System.Text;
 
 namespace Celeste64;
 
@@ -38,17 +38,17 @@ public class Game : Module
 	}
 
 	public const string GamePath = "Celeste64";
-    // ModloaderCustom
-    public const string GameTitle = "Celeste 64: Fragments of the Mountain + Fuji Mod Loader";
+	// ModloaderCustom
+	public const string GameTitle = "Celeste 64: Fragments of the Mountain + Fuji Mod Loader";
 	public static readonly Version GameVersion = typeof(Game).Assembly.GetName().Version!;
 	public static readonly string VersionString = $"Celeste 64: v.{GameVersion.Major}.{GameVersion.Minor}.{GameVersion.Build}";
 	public static string LoaderVersion { get; set; } = "";
-	
+
 	public const int DefaultWidth = 640;
 	public const int DefaultHeight = 360;
-	
-	public static event Action OnResolutionChanged;
-	
+
+	public static event Action OnResolutionChanged = () => { };
+
 	private static float _resolutionScale = 1.0f;
 	public static float ResolutionScale
 	{
@@ -57,14 +57,18 @@ public class Game : Module
 		{
 			if (_resolutionScale == value)
 				return;
-			
+
 			_resolutionScale = value;
 			OnResolutionChanged.Invoke();
 		}
 	}
-	
-	public static int Width => (int)(DefaultWidth * _resolutionScale);
-	public static int Height => (int)(DefaultHeight * _resolutionScale);
+
+	public static bool IsDynamicRes;
+
+	public static int Width => IsDynamicRes ? App.WidthInPixels : (int)(DefaultWidth * _resolutionScale);
+	public static int Height => IsDynamicRes ? App.HeightInPixels : (int)(DefaultHeight * _resolutionScale);
+	private int Height_old = (int)(DefaultHeight * _resolutionScale);
+	private int Width_old = (int)(DefaultWidth * _resolutionScale);
 
 	/// <summary>
 	/// Used by various rendering elements to proportionally scale if you change the default game resolution
@@ -82,8 +86,8 @@ public class Game : Module
 	private readonly FMOD.Studio.EVENT_CALLBACK audioEventCallback;
 	private int audioBeatCounter;
 	private bool audioBeatCounterEvent;
-    
-    private ImGuiManager imGuiManager;
+
+	private ImGuiManager imGuiManager;
 
 	public AudioHandle Ambience;
 	public AudioHandle Music;
@@ -91,19 +95,24 @@ public class Game : Module
 	public SoundHandle? AmbienceWav;
 	public SoundHandle? MusicWav;
 
-	public Scene? Scene { get { return scenes.TryPeek(out Scene? scene) ? scene : null; } }
-	public World? World { get { return Scene is World world ? world : null; } }
+	public Scene? Scene => scenes.TryPeek(out var scene) ? scene : null;
+	public World? World => Scene as World;
 
 	internal bool NeedsReload = false;
 
 	public Game()
 	{
+		if (IsDynamicRes)
+		{
+			Log.Warning("Dynamic resolution is an experimental feature. Certain UI elements may not be adjusted correctly.");
+		}
+
 		OnResolutionChanged += () =>
 		{
 			target.Dispose();
 			target = new(Width, Height, [TextureFormat.Color, TextureFormat.Depth24Stencil8]);
 		};
-		
+
 		// If this isn't stored, the delegate will get GC'd and everything will crash :)
 		audioEventCallback = MusicTimelineCallback;
 		imGuiManager = new ImGuiManager();
@@ -112,15 +121,15 @@ public class Game : Module
 	public override void Startup()
 	{
 		instance = this;
-        
-        // Fuji: apply patches
-        Patches.Load();
-		
+
+		// Fuji: apply patches
+		Patches.Load();
+
 		Time.FixedStep = true;
 		App.VSync = true;
 		App.Title = GameTitle;
 		Audio.Init();
-        
+
 		scenes.Push(new Startup());
 		ModManager.Instance.OnGameLoaded(this);
 	}
@@ -135,10 +144,10 @@ public class Game : Module
 			var it = scenes.Pop();
 			it.Disposed();
 		}
-		
-        // Fuji: remove patches
-        Patches.Unload();
-        
+
+		// Fuji: remove patches
+		Patches.Unload();
+
 		scenes.Clear();
 		instance = null;
 
@@ -161,19 +170,64 @@ public class Game : Module
 			Music.Stop();
 	}
 
+	public void UnsafelySetScene(Scene next)
+	{
+		scenes.Clear();
+		scenes.Push(next);
+	}
+
+	private void HandleError(Exception e)
+	{
+		if (scenes.Peek() is GameErrorMessage)
+		{
+			throw e; // If we're already on the error message screen, accept our fate: it's a fatal crash!
+		}
+
+		scenes.Clear();
+		Log.Error("== ERROR ==\n\n" + e.ToString());
+		WriteToLog();
+		UnsafelySetScene(new GameErrorMessage(e));
+		return;
+	}
+
 	public override void Update()
 	{
-        imGuiManager.UpdateHandlers();
-        
-		// update top scene
-		if (scenes.TryPeek(out var scene))
+		if (IsDynamicRes)
 		{
-			var pausing = 
-				transitionStep == TransitionStep.FadeIn && transition.FromPause ||
-				transitionStep == TransitionStep.FadeOut && transition.ToPause;
+			if (Height_old != Height || Width_old != Width)
+			{
+				OnResolutionChanged.Invoke();
+			}
 
-			if (!pausing)
-				scene.Update();
+			Height_old = Height;
+			Width_old = Width;
+		}
+
+		imGuiManager.UpdateHandlers();
+
+		scenes.TryPeek(out var scene); // gets the top scene
+
+		// update top scene
+		try
+		{
+			if (scene != null)
+			{
+				var pausing =
+					transitionStep == TransitionStep.FadeIn && transition.FromPause ||
+					transitionStep == TransitionStep.FadeOut && transition.ToPause;
+
+				if (!pausing)
+					scene.Update();
+			}
+
+			if (!(scene is GameErrorMessage))
+			{
+				ModManager.Instance.Update(Time.Delta);
+			}
+		}
+		catch (Exception e)
+		{
+			HandleError(e);
 		}
 
 		// handle transitions
@@ -189,26 +243,45 @@ public class Game : Module
 			}
 		}
 		else if (transitionStep == TransitionStep.Hold)
-        {
-            transition.HoldOnBlackFor -= Time.Delta;
+		{
+			transition.HoldOnBlackFor -= Time.Delta;
 			if (transition.HoldOnBlackFor <= 0)
-            {
-                if (transition.FromBlack != null)
-                    transition.ToBlack = transition.FromBlack;
-                transition.ToBlack?.Restart(true);
+			{
+				if (transition.FromBlack != null)
+					transition.ToBlack = transition.FromBlack;
+				transition.ToBlack?.Restart(true);
 				transitionStep = TransitionStep.Perform;
-            }
-        }
+			}
+		}
 		else if (transitionStep == TransitionStep.Perform)
 		{
+			Scene? newScene = transition.Scene != null ? transition.Scene() : null;
+			if (Settings.EnableAdditionalLogging && newScene != null) Log.Info("Switching scene: " + newScene.GetType());
+
 			Audio.StopBus(Sfx.bus_gameplay_world, false);
 
 			// exit last scene
 			if (scenes.TryPeek(out var lastScene))
 			{
-				lastScene?.Exited();
-				if (transition.Mode != Transition.Modes.Push)
-					lastScene?.Disposed();
+				try
+				{
+					lastScene?.Exited();
+					if (transition.Mode != Transition.Modes.Push)
+						lastScene?.Disposed();
+				}
+				catch (Exception e)
+				{
+					transitionStep = TransitionStep.None;
+					HandleError(e);
+				}
+			}
+
+			// perform game save between transitions
+			if (transition.Saving)
+			{
+				Save.SaveToFile();
+				Settings.SaveToFile();
+				ModSettings.SaveToFile();
 			}
 
 			// reload assets if requested
@@ -217,40 +290,44 @@ public class Game : Module
 				Assets.Load();
 			}
 
-			// perform game save between transitions
-			if (transition.Saving)
-				Save.Instance.SaveToFile();
-
 			// perform transition
 			switch (transition.Mode)
 			{
 				case Transition.Modes.Replace:
-					Debug.Assert(transition.Scene != null);
+					Debug.Assert(newScene != null);
 					if (scenes.Count > 0)
 						scenes.Pop();
-					scenes.Push(transition.Scene());
+					scenes.Push(newScene);
 					break;
 				case Transition.Modes.Push:
-					Debug.Assert(transition.Scene != null);
-					scenes.Push(transition.Scene());
+					Debug.Assert(newScene != null);
+					scenes.Push(newScene);
 					audioBeatCounter = 0;
 					break;
 				case Transition.Modes.Pop:
 					scenes.Pop();
-				break;
+					break;
+			}
+
+			// run a single update when transition happens so stuff gets established
+			if (scenes.TryPeek(out var nextScene))
+			{
+				try
+				{
+					nextScene.Entered();
+					ModManager.Instance.OnSceneEntered(nextScene);
+					nextScene.Update();
+				}
+				catch (Exception e)
+				{
+					transitionStep = TransitionStep.None;
+					HandleError(e);
+				}
 			}
 
 			// don't let the game sit in a sceneless place
 			if (scenes.Count <= 0)
 				scenes.Push(new Overworld(false));
-
-			// run a single update when transition happens so stuff gets established
-			if (scenes.TryPeek(out var nextScene))
-			{
-				nextScene.Entered();
-				ModManager.Instance.OnSceneEntered(nextScene);
-				nextScene.Update();
-			}
 
 			// switch music
 			{
@@ -264,7 +341,7 @@ public class Game : Module
 						Music.SetCallback(audioEventCallback);
 				}
 
-				string lastWav = MusicWav != null && MusicWav.Value.IsPlaying && lastScene != null ? lastScene.MusicWav : string.Empty;
+				string lastWav = MusicWav is { IsPlaying: true } && lastScene != null ? lastScene.MusicWav : string.Empty;
 				string nextWav = nextScene?.MusicWav ?? string.Empty;
 				if (lastWav != nextWav)
 				{
@@ -289,7 +366,7 @@ public class Game : Module
 					}
 				}
 
-				string lastWav = AmbienceWav != null && AmbienceWav.Value.IsPlaying && lastScene != null ? lastScene.AmbienceWav : string.Empty;
+				string lastWav = AmbienceWav is { IsPlaying: true } && lastScene != null ? lastScene.AmbienceWav : string.Empty;
 				string nextWav = nextScene?.AmbienceWav ?? string.Empty;
 				if (lastWav != nextWav)
 				{
@@ -302,7 +379,7 @@ public class Game : Module
 			}
 
 			// in case new music was played
-			Save.Instance.SyncSettings();
+			Settings.SyncSettings();
 			transitionStep = TransitionStep.FadeIn;
 
 			WriteToLog();
@@ -335,12 +412,12 @@ public class Game : Module
 			}
 		}
 
-		
+
 		if (scene is not Celeste64.Startup)
 		{
 			// toggle fullsrceen
 			if ((Input.Keyboard.Alt && Input.Keyboard.Pressed(Keys.Enter)) || Input.Keyboard.Pressed(Keys.F4))
-				Save.Instance.ToggleFullscreen();
+				Settings.ToggleFullscreen();
 
 			// reload state
 			if (Input.Keyboard.Ctrl && Input.Keyboard.Pressed(Keys.R) && !IsMidTransition)
@@ -348,7 +425,6 @@ public class Game : Module
 				ReloadAssets();
 			}
 		}
-		ModManager.Instance.Update(Time.Delta);
 	}
 
 	internal void ReloadAssets()
@@ -358,7 +434,7 @@ public class Game : Module
 
 		if (IsMidTransition)
 			return;
-		
+
 		if (scene is World world)
 		{
 			Goto(new Transition()
@@ -386,14 +462,21 @@ public class Game : Module
 	public override void Render()
 	{
 		Graphics.Clear(Color.Black);
-        
-        imGuiManager.RenderHandlers();
+
+		imGuiManager.RenderHandlers();
 
 		if (transitionStep != TransitionStep.Perform && transitionStep != TransitionStep.Hold)
 		{
 			// draw the world to the target
 			if (scenes.TryPeek(out var scene))
-				scene.Render(target);
+				try
+				{
+					scene.Render(target);
+				}
+				catch (Exception e)
+				{
+					HandleError(e);
+				}
 
 			// draw screen wipe over top
 			if (transitionStep != TransitionStep.None && transition.ToBlack != null)
@@ -408,7 +491,7 @@ public class Game : Module
 				var scale = Math.Min(App.WidthInPixels / (float)target.Width, App.HeightInPixels / (float)target.Height);
 				batcher.SetSampler(new(TextureFilter.Nearest, TextureWrap.ClampToEdge, TextureWrap.ClampToEdge));
 				batcher.Image(target, App.SizeInPixels / 2, target.Bounds.Size / 2, Vec2.One * scale, 0, Color.White);
-                imGuiManager.RenderTexture(batcher);
+				imGuiManager.RenderTexture(batcher);
 				batcher.Render();
 				batcher.Clear();
 			}
@@ -418,7 +501,7 @@ public class Game : Module
 	// Fuji Custom
 	public static void WriteToLog()
 	{
-		if (!Save.Instance.WriteLog)
+		if (!Settings.WriteLog)
 		{
 			return;
 		}

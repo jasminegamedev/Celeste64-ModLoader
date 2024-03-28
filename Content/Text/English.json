@@ -10,6 +10,10 @@
 		"Restart": "Restart",
 		"Start": "Start",
 		"Exit": "Exit",
+		"Load": "Load",
+		"Create": "Create",
+		"Delete": "Delete",
+		"Copy": "Copy",
 		"RestartLevel": "Clear Save & Restart Level",
 		"PauseTitle": "Paused",
 		"PauseResume": "Resume",
@@ -20,6 +24,10 @@
 		"PauseOptions.desc": "Update the Game Options",
 		"PauseSaveQuit": "Save & Quit",
 		"PauseSaveQuit.desc": "Save & Quit to the Title Screen",
+		"PauseSaves": "Saves",
+		"PauseSaves.desc": "Open the Save Select Menu",
+		"PauseModsMenu" : "Mods",
+		"PauseModsMenu.desc" : "Open the Mods Menu",
 		"OptionsTitle": "Options",
 		"OptionsFullscreen": "Fullscreen",
 		"OptionsFullscreen.desc": "Control if the Game is Fullscreen or Windowed",
@@ -35,30 +43,38 @@
 		"OptionsInvertCamera.desc": "Control if the Camera X and Y axes are inverted",
 		"OptionsToggleOn": "ON",
 		"OptionsToggleOff": "OFF",
+		"OptionsYes": "Yes",
+		"OptionsNo": "No",
 
 		"Skin": "Skin",
 		"Skin.desc": "Choose a Skin to Wear",
+
+		"SaveCreateFile": "Create new file?" ,
+		"SaveDeleteFile": "Delete this file?" ,
+		"SaveDeleteDefaultFile": "Cannot fully delete default save file:'{0}'. Reset it to default instead?",
+		"SaveCopyFile": "Copy this file?" ,
 		"FujiOptions": "Fuji Options...",
 		"FujiOptions.desc": "Configure Options for the Fuji Mod Loader",
 		"FujiWriteLog": "Write Log File",
 		"FujiWriteLog.desc": "Control if the Game writes to the Log File",
 		"FujiEnableDebugMenu": "Enable Debug Menu (F6)",
 		"FujiEnableDebugMenu.desc": "Enable access to the Debug Menu by pressing F6",
+		"FujiAdditionalLog": "Enable Additional Logging",
+		"FujiAdditionalLog.desc": "Outputs more info to the console which may be useful to developers",
 		"FujiFailedToLoad": "Failed to load the following mods:",
 		"FujiOpenLogFile": "Open Log File",
 		"FujiOpenLogFile.desc": "Open the Game's Log File for more information",
 		"FujiContinueToMods": "Continue",
 		"FujiContinueToMods.desc": "Continue to the Mods Menu",
+		"FujiOverworldModSlideNote": "Use Up/Down to filter by mod",
 		"FailedToLoadMods": "Failed to load {0} mods. Check Mods Menu for details.",
-		"Mods": "Mods",
-		"Mods.desc": "Access Mod Info and Settings",
 		"ModEnabled": "Enabled",
 		"ModOptions": "Mod Options",
 		"ConfirmDisableMod": "Continue & Disable Mod",
-		"ModSafeDisableErrorMessage": "This mod can't be disabled because it would disable the level you're currently in.\nTry going to the main menu first."
+		"ModSafeDisableErrorMessage": "This mod can't be disabled because it would disable the level you're currently in.\nTry going to the main menu first.",
+		"QuitToMainMenu": "Quit to Main Menu"
 	},
-	"Dialog":
-	{
+	"Dialog": {
 		"Granny1": [
 			{
 				"Face": "granny/Laugh",
@@ -204,7 +220,6 @@
 				"Text": "That's not how I remember it."
 			}
 		],
-
 		"Theo1": [
 			{
 				"Face": "theo/Default",
@@ -379,7 +394,6 @@
 				"Text": "..."
 			}
 		],
-
 		"Baddy1": [
 			{
 				"Face": "madeline/Default",
@@ -587,7 +601,6 @@
 				"Text": "Maybe... maybe it'll be okay."
 			}
 		],
-
 		"Sign1": [
 			{
 				"Face": "signpost",
@@ -736,7 +749,6 @@
 				"Text": "I surely don't know, for\nI am but a humble signpost."
 			}
 		],
-
 		"CreditsSign": [
 			{
 				"Face": "signpost",

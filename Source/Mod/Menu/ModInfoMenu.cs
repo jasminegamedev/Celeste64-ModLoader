@@ -18,7 +18,7 @@ public class ModInfoMenu : Menu
 	{
 		Target = new Target(Overworld.CardWidth, Overworld.CardHeight);
 		Game.OnResolutionChanged += () => Target = new Target(Overworld.CardWidth, Overworld.CardHeight);
-		
+
 		RootMenu = rootMenu;
 		postcardImage = new(Assets.Textures["postcards/back-empty"]);
 		stampImage = Assets.Subtextures["stamp"];
@@ -34,13 +34,14 @@ public class ModInfoMenu : Menu
 		items.Clear();
 		Add(new Toggle(
 			"ModEnabled",
-			() => {
+			() =>
+			{
 				//If we are trying to disable the current mod, don't
 				if (Mod != null && Mod != ModManager.Instance.CurrentLevelMod)
 				{
-					Save.Instance.GetOrMakeMod(Mod.ModInfo.Id).Enabled = !Save.Instance.GetOrMakeMod(Mod.ModInfo.Id).Enabled;
+					ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled = !ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled;
 
-					if (Save.Instance.GetOrMakeMod(Mod.ModInfo.Id).Enabled)
+					if (ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled)
 					{
 						Mod.EnableDependencies(); // Also enable dependencies of the mod being enabled (if any).
 					}
@@ -48,12 +49,10 @@ public class ModInfoMenu : Menu
 					{
 						if (Mod.DisableSafe(true)) // If it is not safe to disable the mod
 						{
-							safeDisableErrorMenu = new Menu();
-
-							safeDisableErrorMenu.Title = Loc.Str("ModSafeDisableErrorMessage");
-
-							safeDisableErrorMenu.Add(new Option("Exit", () => {
-								Save.Instance.GetOrMakeMod(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation can't be done.
+							safeDisableErrorMenu = new Menu { Title = Loc.Str("ModSafeDisableErrorMessage") };
+							safeDisableErrorMenu.Add(new Option("Exit", () =>
+							{
+								ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation can't be done.
 
 								PopRootSubMenu();
 							}));
@@ -66,16 +65,17 @@ public class ModInfoMenu : Menu
 
 						if (Mod.GetDependents().Count > 0)
 						{
-							depWarningMenu = new Menu();
+							depWarningMenu = new Menu { Title = $"Warning, this mod is depended on by {Mod.GetDependents().Count} other mod(s).\nIf you disable this mod, those mods will also be disabled." };
 
-							depWarningMenu.Title = $"Warning, this mod is depended on by {Mod.GetDependents().Count} other mod(s).\nIf you disable this mod, those mods will also be disabled.";
-							depWarningMenu.Add(new Option("ConfirmDisableMod", () => {
+							depWarningMenu.Add(new Option("ConfirmDisableMod", () =>
+							{
 								Mod.DisableSafe(false);
 
 								RootMenu?.PopSubMenu();
 							}));
-							depWarningMenu.Add(new Option("Exit", () => {
-								Save.Instance.GetOrMakeMod(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation was cancelled.
+							depWarningMenu.Add(new Option("Exit", () =>
+							{
+								ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation was cancelled.
 
 								RootMenu?.PopSubMenu();
 							}));
@@ -88,14 +88,13 @@ public class ModInfoMenu : Menu
 				}
 				else
 				{
-					safeDisableErrorMenu = new Menu();
+					safeDisableErrorMenu = new Menu { Title = Loc.Str("ModSafeDisableErrorMessage") };
 
-					safeDisableErrorMenu.Title = Loc.Str("ModSafeDisableErrorMessage");
-
-					safeDisableErrorMenu.Add(new Option("Exit", () => {
+					safeDisableErrorMenu.Add(new Option("Exit", () =>
+					{
 						if (Mod != null)
 						{
-							Save.Instance.GetOrMakeMod(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation can't be done.
+							ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation can't be done.
 						}
 
 						RootMenu?.PopSubMenu();
@@ -104,7 +103,7 @@ public class ModInfoMenu : Menu
 					RootMenu?.PushSubMenu(safeDisableErrorMenu);
 				}
 			},
-			() => Mod != null ? Save.Instance.GetOrMakeMod(Mod.ModInfo.Id).Enabled : false)
+			() => Mod != null ? ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled : false)
 		);
 		if (modOptionsMenu.ShouldDisplay)
 		{
@@ -149,12 +148,12 @@ public class ModInfoMenu : Menu
 			batch.PopMatrix();
 
 			float imgScale = 0.9f;
-			Subtexture image = Mod.Subtextures.TryGetValue(Mod.ModInfo.Icon ?? "", out Subtexture value) ? value : strawberryImage;
+			var image = Mod.Subtextures.TryGetValue(Mod.ModInfo.Icon ?? "", out var value) ? value : strawberryImage;
 			float imgSizeMin = MathF.Min(postcardImage.Width, postcardImage.Height) / 6;
-			Vec2 stampImageSize = new Vec2(imgSizeMin / stampImage.Width, imgSizeMin / stampImage.Height);
-			Vec2 imageSize = new Vec2(imgSizeMin / image.Width, imgSizeMin / image.Height);
-			Vec2 stampPos = bounds.TopLeft - (new Vec2(imgSizeMin, imgSizeMin) * imgScale) / 2 + new Vec2(size.X / 5.5f, -size.Y / 4.7f);
-			Vec2 pos = bounds.TopLeft - (new Vec2(imgSizeMin, imgSizeMin) * imgScale) / 2 + new Vec2(size.X / 5.05f, -size.Y / 5.3f);
+			var stampImageSize = new Vec2(imgSizeMin / stampImage.Width, imgSizeMin / stampImage.Height);
+			var imageSize = new Vec2(imgSizeMin / image.Width, imgSizeMin / image.Height);
+			var stampPos = bounds.TopLeft - (new Vec2(imgSizeMin, imgSizeMin) * imgScale) / 2 + new Vec2(size.X / 5.5f, -size.Y / 4.7f);
+			var pos = bounds.TopLeft - (new Vec2(imgSizeMin, imgSizeMin) * imgScale) / 2 + new Vec2(size.X / 5.05f, -size.Y / 5.3f);
 			batch.Image(stampImage, (stampPos + new Vec2(imgSizeMin, imgSizeMin) * imgScale * 0.05f) * Game.RelativeScale, stampImageSize * imgScale * Game.RelativeScale, stampImageSize * imgScale * 1.3f * Game.RelativeScale, 0, Color.White);
 			batch.Image(image, (pos + new Vec2(imgSizeMin, imgSizeMin) * imgScale * 0.05f) * Game.RelativeScale, imageSize * imgScale * Game.RelativeScale, imageSize * imgScale * Game.RelativeScale, 0, Color.White);
 
