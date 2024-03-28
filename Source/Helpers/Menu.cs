@@ -14,7 +14,7 @@ public class Menu
 		public virtual bool Selectable { get; } = true;
 		public virtual bool Pressed() => false;
 		public virtual void Slide(int dir) { }
-		public virtual void GetKeyPress(Keys? key) { }
+		public virtual void GetKeyPress() { }
 
 		// LocString is the base localized string object, before any changes.
 		// This is kept separate from the label so we can get substrings from the LocString like the Description.
@@ -206,16 +206,32 @@ public class Menu
 		}
 	}
 
-	public class InputField(Loc.Localized locString, Action<Keys?> set, Func<string> get) : Item
+	public class InputField(Loc.Localized locString, Action<string> set, Func<string> get) : Item
 	{
 		public override Loc.Localized LocString => locString;
-		public override string Label => $"{LocString} : {get()}";
-		public override void GetKeyPress(Keys? key)
+
+		private string fieldText = get();
+		public override string Label => $"{LocString} : {fieldText}";
+
+		private Keys? key;
+		public override void GetKeyPress()
 		{
+			KeyboardHandler.Instance.ReadKeys();
+			key = KeyboardHandler.Instance.GetPressedKey();
+
 			Controls.Confirm.ConsumePress();
 			Controls.Cancel.ConsumePress();
 			if (key != null)
-				set(key);
+			{
+				if (key == Keys.Backspace || key == Keys.KeypadBackspace)
+				{
+					if (fieldText.Length > 0)
+						fieldText = fieldText.Remove(fieldText.Length - 1);
+				}
+				else
+					fieldText += KeyboardHandler.GetKeyName(key);
+				set(fieldText);
+			}
 		}
 	}
 
@@ -370,9 +386,6 @@ public class Menu
 
 	protected virtual void HandleInput()
 	{
-		KeyboardHandler.Instance.ReadKeys();
-		Keys? key = KeyboardHandler.Instance.GetPressedKey();
-
 		if (items.Count > 0)
 		{
 			var was = Index;
@@ -404,7 +417,7 @@ public class Menu
 			if (was != Index)
 				Audio.Play(step < 0 ? UpSound : DownSound);
 
-			items[Index].GetKeyPress(key);
+			items[Index].GetKeyPress();
 
 			if (Controls.Menu.Horizontal.Negative.Pressed)
 				items[Index].Slide(-1);

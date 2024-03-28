@@ -1,4 +1,6 @@
-﻿namespace Celeste64.Mod.Data;
+﻿using System.Text.RegularExpressions;
+
+namespace Celeste64.Mod.Data;
 
 internal sealed class SaveManager
 {
@@ -84,12 +86,15 @@ internal sealed class SaveManager
 	[DisallowHooks]
 	internal void ChangeFileName(string orignalFileName, string newFileName)
 	{
+		string invalidCharsPattern = "[\\/:*?\"<>|{}]";
+
 		foreach (string file in GetSaves())
 		{
 			if (file == orignalFileName)
 			{
 				if (!newFileName.EndsWith(".json"))
 					newFileName += ".json";
+				newFileName = Regex.Replace(newFileName, invalidCharsPattern, "_");
 				File.Move(Path.Join(App.UserPath, "Saves", file), Path.Join(App.UserPath, "Saves", newFileName));
 				if (file == Save.Instance.FileName)
 					LoadSaveByFileName(newFileName);

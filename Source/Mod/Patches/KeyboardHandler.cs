@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Celeste64.Mod;
 
@@ -6,32 +7,32 @@ class KeyboardHandler
 {
 	public static readonly Dictionary<string, string> KeyValues = new Dictionary<string, string>
 	{
-		{ "A", "A" },
-		{ "B", "B" },
-		{ "C", "C" },
-		{ "D", "D" },
-		{ "E", "E" },
-		{ "F", "F" },
-		{ "G", "G" },
-		{ "H", "H" },
-		{ "I", "I" },
-		{ "J", "J" },
-		{ "K", "K" },
-		{ "L", "L" },
-		{ "M", "M" },
-		{ "N", "N" },
-		{ "O", "O" },
-		{ "P", "P" },
-		{ "Q", "Q" },
-		{ "R", "R" },
-		{ "S", "S" },
-		{ "T", "T" },
-		{ "U", "U" },
-		{ "V", "V" },
-		{ "W", "W" },
-		{ "X", "X" },
-		{ "Y", "Y" },
-		{ "Z", "Z" },
+		{ "A", "a" },
+		{ "B", "b" },
+		{ "C", "c" },
+		{ "D", "d" },
+		{ "E", "e" },
+		{ "F", "f" },
+		{ "G", "g" },
+		{ "H", "h" },
+		{ "I", "i" },
+		{ "J", "j" },
+		{ "K", "k" },
+		{ "L", "l" },
+		{ "M", "m" },
+		{ "N", "n" },
+		{ "O", "o" },
+		{ "P", "p" },
+		{ "Q", "q" },
+		{ "R", "r" },
+		{ "S", "s" },
+		{ "T", "t" },
+		{ "U", "u" },
+		{ "V", "v" },
+		{ "W", "w" },
+		{ "X", "x" },
+		{ "Y", "y" },
+		{ "Z", "z" },
 		{ "D1", "1" },
 		{ "D2", "2" },
 		{ "D3", "3" },
@@ -42,7 +43,7 @@ class KeyboardHandler
 		{ "D8", "8" },
 		{ "D9", "9" },
 		{ "D0", "0" },
-		{ "Space", "_" },
+		{ "Space", " " },
 		{ "Minus", "-" },
 		{ "Equals", "=" },
 		{ "LeftBracket", "[" },
@@ -78,6 +79,87 @@ class KeyboardHandler
 		{ "KeypadLeftBrace", "{" },
 		{ "KeypadRightBrace", "}" },
 		{ "KeypadTab", "\t" },
+		{ "KeypadA", "a" },
+		{ "KeypadB", "b" },
+		{ "KeypadC", "c" },
+		{ "KeypadD", "d" },
+		{ "KeypadE", "e" },
+		{ "KeypadF", "f" }
+	};
+	public static readonly Dictionary<string, string> KeyValuesWithModifiers = new Dictionary<string, string>
+	{
+		{ "A", "A" },
+		{ "B", "B" },
+		{ "C", "C" },
+		{ "D", "D" },
+		{ "E", "E" },
+		{ "F", "F" },
+		{ "G", "G" },
+		{ "H", "H" },
+		{ "I", "I" },
+		{ "J", "J" },
+		{ "K", "K" },
+		{ "L", "L" },
+		{ "M", "M" },
+		{ "N", "N" },
+		{ "O", "O" },
+		{ "P", "P" },
+		{ "Q", "Q" },
+		{ "R", "R" },
+		{ "S", "S" },
+		{ "T", "T" },
+		{ "U", "U" },
+		{ "V", "V" },
+		{ "W", "W" },
+		{ "X", "X" },
+		{ "Y", "Y" },
+		{ "Z", "Z" },
+		{ "D1", "!" },
+		{ "D2", "@" },
+		{ "D3", "#" },
+		{ "D4", "$" },
+		{ "D5", "%" },
+		{ "D6", "^" },
+		{ "D7", "&" },
+		{ "D8", "*" },
+		{ "D9", "(" },
+		{ "D0", ")" },
+		{ "Space", " " },
+		{ "Minus", "_" },
+		{ "Equals", "+" },
+		{ "LeftBracket", "{" },
+		{ "RightBracket", "}" },
+		{ "Backslash", "|" },
+		{ "Semicolon", ":" },
+		{ "Apostrophe", "\"" },
+		{ "Tilde", "~" },
+		{ "Comma", "<" },
+		{ "Period", ">" },
+		{ "Slash", "?" },
+		{ "Keypad0", ")" },
+		{ "Keypad00", ")" },
+		{ "Keypad000", ")" },
+		{ "Keypad1", "!" },
+		{ "Keypad2", "@" },
+		{ "Keypad3", "#" },
+		{ "Keypad4", "$" },
+		{ "Keypad5", "%" },
+		{ "Keypad6", "^" },
+		{ "Keypad7", "&" },
+		{ "Keypad8", "*" },
+		{ "Keypad9", "(" },
+		{ "KeypadDivide", "/" },
+		{ "KeypadMultiply", "*" },
+		{ "KeypadMinus", "_" },
+		{ "KeypadPlus", "+" },
+		{ "KeypadPeroid", ">" },
+		{ "KeypadEquals", "+" },
+		{ "KeypadComma", "<" },
+		{ "KeypadLeftParen", "(" },
+		{ "KeypadRightParen", ")" },
+		{ "KeypadLeftBrace", "{" },
+		{ "KeypadRightBrace", "}" },
+		{ "KeypadTab", "\t" },
 		{ "KeypadA", "A" },
 		{ "KeypadB", "B" },
 		{ "KeypadC", "C" },
@@ -85,15 +167,26 @@ class KeyboardHandler
 		{ "KeypadE", "E" },
 		{ "KeypadF", "F" }
 	};
+
 	private Keys? previousKey;
 	public static KeyboardHandler Instance = new();
 
 	public static string GetKeyName(Keys? key)
 	{
-		if (KeyValues.ContainsKey(key.ToString()))
-			return KeyValues[key.ToString()];
+		if (Input.Keyboard.Shift)
+		{
+			if (KeyValuesWithModifiers.ContainsKey(key.ToString()))
+				return KeyValuesWithModifiers[key.ToString()];
+			else
+				return string.Empty;
+		}
 		else
-			return string.Empty;
+		{
+			if (KeyValues.ContainsKey(key.ToString()))
+				return KeyValues[key.ToString()];
+			else
+				return string.Empty;
+		}
 	}
 
 	public Keys? GetLastKey()

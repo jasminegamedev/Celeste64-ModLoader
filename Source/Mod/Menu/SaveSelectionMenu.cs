@@ -111,30 +111,24 @@ public class SaveSelectionMenu : Menu
 		{
 			for (int j = 0; j < columns && CurrentPageStart + index < saves.Count; j++)
 			{
-				if (saves[CurrentPageStart + index] == Save.Instance.FileName && index == currentRow * columns + currentColumn) RenderCurrentSelectedSave(batch, saves[CurrentPageStart + index], new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
-				else if (saves[CurrentPageStart + index] == Save.Instance.FileName) RenderSelectedSave(batch, saves[CurrentPageStart + index], new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
+				if (saves[CurrentPageStart + index] == Save.Instance.FileName && index == currentRow * columns + currentColumn) RenderCurrentSelectedSave(batch, saves[CurrentPageStart + index].Replace(".json", string.Empty), new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
+				else if (saves[CurrentPageStart + index] == Save.Instance.FileName) RenderSelectedSave(batch, saves[CurrentPageStart + index].Replace(".json", string.Empty), new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
 				else if (index == currentRow * columns + currentColumn)
 				{
-					RenderCurrentSave(batch, saves[CurrentPageStart + index], new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
+					RenderCurrentSave(batch, saves[CurrentPageStart + index].Replace(".json", string.Empty), new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
 				}
 				else
 				{
-					RenderSave(batch, saves[CurrentPageStart + index], new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
+					RenderSave(batch, saves[CurrentPageStart + index].Replace(".json", string.Empty), new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
 				}
 				index++;
 			}
 		}
 	}
 
-	void SetRename(Keys? key)
+	void SetRename(string name)
 	{
-		if (key == Keys.Backspace || key == Keys.KeypadBackspace)
-		{
-			if (renamedFileName.Length > 0)
-				renamedFileName = renamedFileName.Remove(renamedFileName.Length - 1);
-		}
-		else
-			renamedFileName += KeyboardHandler.GetKeyName(key).ToLower();
+		renamedFileName = name;
 	}
 
 	string GetRename()
