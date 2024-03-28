@@ -168,8 +168,34 @@ class KeyboardHandler
 		{ "KeypadF", "F" }
 	};
 
+	public static readonly List<string> KeyValuesList = KeyValues.Values.ToList();
+	public static readonly List<string> KeyValuesWithModifiersList = KeyValuesWithModifiers.Values.ToList();
+
+
 	private Keys? previousKey;
 	public static KeyboardHandler Instance = new();
+
+	public static List<string> TrimKeysList()
+	{
+		List<string> newKeysList = new List<string>();
+		foreach (string key in KeyValuesList)
+		{
+			if (key.Length == 1 && !newKeysList.Contains(key) && key != " " && key != "" && key != "\t")
+				newKeysList.Add(key);
+		}
+		return newKeysList;
+	}
+
+	public static List<string> TrimModifiedKeysList()
+	{
+		List<string> newKeysList = new List<string>();
+		foreach (string key in KeyValuesWithModifiersList)
+		{
+			if (key.Length == 1 && !newKeysList.Contains(key) && key != " " && key != "" && key != "\t")
+				newKeysList.Add(key);
+		}
+		return newKeysList;
+	}
 
 	public static string GetKeyName(Keys? key)
 	{
@@ -189,24 +215,9 @@ class KeyboardHandler
 		}
 	}
 
-	public Keys? GetLastKey()
-	{
-		return previousKey;
-	}
-
 	public Keys? GetPressedKey()
 	{
 		Keys? key = Input.Keyboard.FirstPressed();
 		return key;
 	}
-
-	public void ReadKeys()
-	{
-		Keys? key = Input.Keyboard.FirstPressed();
-		if (key == null)
-			key = previousKey;
-		else
-			previousKey = key;
-	}
-
 }

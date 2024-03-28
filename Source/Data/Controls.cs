@@ -12,6 +12,7 @@ public static class Controls
 	public static readonly VirtualButton Dash = new("Dash", .1f);
 	public static readonly VirtualButton Climb = new("Climb");
 	public static readonly VirtualButton Confirm = new("Confirm");
+	public static readonly VirtualButton ControlerConfirm = new("ControlerConfirm");
 	public static readonly VirtualButton Cancel = new("Cancel");
 	public static readonly VirtualButton Pause = new("Pause");
 	public static readonly VirtualButton CopyFile = new("CopyFile");
@@ -100,6 +101,8 @@ public static class Controls
 			it.BindTo(CreateFile);
 		foreach (var it in FindAction(config, "RenameFile"))
 			it.BindTo(RenameFile);
+		foreach (var it in FindAction(config, "ControlerConfirm"))
+			it.BindTo(ControlerConfirm);
 
 	}
 
@@ -118,6 +121,7 @@ public static class Controls
 		DeleteFile.Clear();
 		CreateFile.Clear();
 		RenameFile.Clear();
+		ControlerConfirm.Clear();
 	}
 
 	public static void Consume()
@@ -135,6 +139,7 @@ public static class Controls
 		DeleteFile.Consume();
 		CreateFile.Consume();
 		RenameFile.Consume();
+		ControlerConfirm.Consume();
 	}
 
 	private static readonly Dictionary<string, Dictionary<string, string>> prompts = [];
@@ -167,7 +172,7 @@ public static class Controls
 	{
 		// TODO: instead, query the button's actual bindings and look up a
 		// texture based on that! no time tho
-		if (button == Confirm)
+		if (button == Confirm || button == ControlerConfirm)
 			return GetPromptLocation("confirm");
 		else if (button == Cancel)
 			return GetPromptLocation("cancel");

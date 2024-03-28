@@ -268,9 +268,9 @@ public class SaveSelectionMenu : Menu
 		{
 			Menu newMenu = new Menu(this);
 			newMenu.Title = $"Rename this file: {saves[CurrentPageStart + CurrentIndex]}";
-			newMenu.Add(new InputField("NewName", (k) => SetRename(k), GetRename));
+			newMenu.Add(new InputField("NewName", (k) => SetRename(k), GetRename, newMenu));
 			newMenu.Add(new Option("OptionsYes", () => {
-				SaveManager.Instance.ChangeFileName(saves[CurrentPageStart + CurrentIndex], GetRename());
+				SaveManager.Instance.ChangeFileName(saves[CurrentPageStart + CurrentIndex], renamedFileName);
 				ResetSaves();
 				PopSubMenu();
 				renamedFileName = string.Empty;

@@ -206,7 +206,7 @@ public class Menu
 		}
 	}
 
-	public class InputField(Loc.Localized locString, Action<string> set, Func<string> get) : Item
+	public class InputField(Loc.Localized locString, Action<string> set, Func<string> get, Menu rootMenu) : Item
 	{
 		public override Loc.Localized LocString => locString;
 
@@ -216,7 +216,6 @@ public class Menu
 		private Keys? key;
 		public override void GetKeyPress()
 		{
-			KeyboardHandler.Instance.ReadKeys();
 			key = KeyboardHandler.Instance.GetPressedKey();
 
 			Controls.Confirm.ConsumePress();
@@ -232,6 +231,24 @@ public class Menu
 					fieldText += KeyboardHandler.GetKeyName(key);
 				set(fieldText);
 			}
+		}
+
+		private void SetFieldText(string text)
+		{
+			fieldText = text;
+			set(fieldText);
+		}
+
+		private string GetFieldText()
+		{
+			return fieldText;
+		}
+
+		public override bool Pressed()
+		{
+			OnScreenKeyboardMenu keyboardMenu = new OnScreenKeyboardMenu(rootMenu, (s) => SetFieldText(s), GetFieldText);
+			rootMenu.PushSubMenu(keyboardMenu);
+			return true;
 		}
 	}
 
@@ -424,7 +441,7 @@ public class Menu
 			if (Controls.Menu.Horizontal.Positive.Pressed)
 				items[Index].Slide(1);
 
-			if (Controls.Confirm.Pressed && items[Index].Pressed())
+			if (Controls.Confirm.Pressed && items[Index].Pressed() || Controls.ControlerConfirm.Pressed && items[Index].Pressed())
 				Controls.Consume();
 		}
 	}
