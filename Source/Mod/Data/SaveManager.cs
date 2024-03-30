@@ -95,6 +95,8 @@ internal sealed class SaveManager
 				if (!newFileName.EndsWith(".json"))
 					newFileName += ".json";
 				newFileName = Regex.Replace(newFileName, invalidCharsPattern, "_");
+				if (File.Exists(Path.Join(App.UserPath, "Saves", newFileName)))
+					return;
 				File.Move(Path.Join(App.UserPath, "Saves", file), Path.Join(App.UserPath, "Saves", newFileName));
 				if (file == Save.Instance.FileName)
 					LoadSaveByFileName(newFileName);
