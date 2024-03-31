@@ -85,8 +85,9 @@ internal sealed class SaveManager
 	}
 
 	[DisallowHooks]
-	internal void ChangeFileName(string originalFileName, string newFileName)
+	internal bool ChangeFileName(string originalFileName, string newFileName)
 	{
+		bool success = true;
 		string invalidCharsPattern = "[\\/:*?\"<>|{}]";
 
 		foreach (string file in GetSaves())
@@ -106,9 +107,13 @@ internal sealed class SaveManager
 				{
 					Log.Error($"Failed to rename save file {originalFileName} to {newFileName}");
 					Log.Error(e.ToString());
+
+					success = false;
 				}
 			}
 		}
+
+		return success;
 	}
 
 	[DisallowHooks]

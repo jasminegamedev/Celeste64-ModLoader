@@ -217,7 +217,7 @@ public class SaveSelectionMenu : Menu
 		if (Controls.DeleteFile.Pressed)
 		{
 			Menu newMenu = new Menu(this);
-			if (saves[CurrentPageStart + CurrentIndex] == Save.DefaultFileName)
+			if (saves.Count == 1 || saves[CurrentPageStart + CurrentIndex] == Save.Instance.FileName)
 			{
 				newMenu.Title = string.Format(Loc.Str("SaveDeleteDefaultFile"), saves[CurrentPageStart + CurrentIndex]);
 			}
@@ -229,9 +229,9 @@ public class SaveSelectionMenu : Menu
 			{
 				if (Game.Instance.IsMidTransition) return;
 				SaveManager.Instance.DeleteSave(saves[CurrentPageStart + CurrentIndex]);
-				if (saves[CurrentPageStart + CurrentIndex] == Save.Instance.FileName)
+				if ((saves[CurrentPageStart + CurrentIndex] == Save.Instance.FileName) || (saves.Count == 1))
 				{
-					// If we delete the current save, load default and force a reload
+					// If we delete the current save or the last remaining save, load default and force a reload
 					SaveManager.Instance.LoadSaveByFileName(Save.DefaultFileName);
 					Game.Instance.Goto(new Transition()
 					{
@@ -271,7 +271,11 @@ public class SaveSelectionMenu : Menu
 			newMenu.Add(new InputField("NewName", (k) => SetRename(k), GetRename, newMenu));
 			newMenu.Add(new Option("OptionsYes", () =>
 			{
-				SaveManager.Instance.ChangeFileName(saves[CurrentPageStart + CurrentIndex], renamedFileName);
+				bool renameSuccess = SaveManager.Instance.ChangeFileName(saves[CurrentPageStart + CurrentIndex], renamedFileName);
+				if (!renameSuccess)
+				{
+					Title = "Failed to rename... Check your log file for details\n(does the file already exist?)";
+				}
 				ResetSaves();
 				PopSubMenu();
 				renamedFileName = string.Empty;
