@@ -171,8 +171,6 @@ class KeyboardHandler
 	public static readonly List<string> KeyValuesList = KeyValues.Values.ToList();
 	public static readonly List<string> KeyValuesWithModifiersList = KeyValuesWithModifiers.Values.ToList();
 
-
-	private Keys? previousKey;
 	public static KeyboardHandler Instance = new();
 
 	public static List<string> TrimKeysList()
@@ -199,17 +197,21 @@ class KeyboardHandler
 
 	public static string GetKeyName(Keys? key)
 	{
+		string? keyString = key.ToString();
+
+		if (keyString == null) return string.Empty;
+
 		if (Input.Keyboard.Shift)
 		{
-			if (KeyValuesWithModifiers.ContainsKey(key.ToString()))
-				return KeyValuesWithModifiers[key.ToString()];
+			if (KeyValuesWithModifiers.ContainsKey(keyString))
+				return KeyValuesWithModifiers[keyString];
 			else
 				return string.Empty;
 		}
 		else
 		{
-			if (KeyValues.ContainsKey(key.ToString()))
-				return KeyValues[key.ToString()];
+			if (KeyValues.ContainsKey(keyString))
+				return KeyValues[keyString];
 			else
 				return string.Empty;
 		}
