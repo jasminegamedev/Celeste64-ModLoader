@@ -13,6 +13,7 @@ internal sealed class SaveManager
 			return File.ReadAllText(Path.Join(App.UserPath, "Saves", "save.metadata"));
 		else
 		{
+			Directory.CreateDirectory(Path.Join(App.UserPath, "Saves")); // Perform upgrade path for first-time launch 
 			File.WriteAllText(Path.Join(App.UserPath, "Saves", "save.metadata"), Save.DefaultFileName);
 			return Save.DefaultFileName;
 		}
