@@ -260,8 +260,8 @@ public class SaveSelectionMenu : Menu
 				ResetSaves();
 				PopSubMenu();
 			}));
-			PushSubMenu(newMenu);
 			newMenu.Add(new Option("OptionsNo", () => PopSubMenu()));
+			PushSubMenu(newMenu);
 		}
 
 		if (Controls.RenameFile.Pressed)
@@ -269,17 +269,19 @@ public class SaveSelectionMenu : Menu
 			Menu newMenu = new Menu(this);
 			newMenu.Title = $"Rename this file: {saves[CurrentPageStart + CurrentIndex]}";
 			newMenu.Add(new InputField("NewName", (k) => SetRename(k), GetRename, newMenu));
-			newMenu.Add(new Option("OptionsYes", () => {
+			newMenu.Add(new Option("OptionsYes", () =>
+			{
 				SaveManager.Instance.ChangeFileName(saves[CurrentPageStart + CurrentIndex], renamedFileName);
 				ResetSaves();
 				PopSubMenu();
 				renamedFileName = string.Empty;
 			}));
-			PushSubMenu(newMenu);
-			newMenu.Add(new Option("OptionsNo", () => {
+			newMenu.Add(new Option("OptionsNo", () =>
+			{
 				renamedFileName = string.Empty;
 				PopSubMenu();
 			}));
+			PushSubMenu(newMenu);
 		}
 	}
 
