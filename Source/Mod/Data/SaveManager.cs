@@ -85,20 +85,28 @@ internal sealed class SaveManager
 	}
 
 	[DisallowHooks]
-	internal void ChangeFileName(string orignalFileName, string newFileName)
+	internal void ChangeFileName(string originalFileName, string newFileName)
 	{
 		string invalidCharsPattern = "[\\/:*?\"<>|{}]";
 
 		foreach (string file in GetSaves())
 		{
-			if (file == orignalFileName)
+			if (file == originalFileName)
 			{
-				if (!newFileName.EndsWith(".json"))
-					newFileName += ".json";
-				newFileName = Regex.Replace(newFileName, invalidCharsPattern, "_");
-				File.Move(Path.Join(App.UserPath, "Saves", file), Path.Join(App.UserPath, "Saves", newFileName));
-				if (file == Save.Instance.FileName)
-					LoadSaveByFileName(newFileName);
+				try
+				{
+					if (!newFileName.EndsWith(".json"))
+						newFileName += ".json";
+					newFileName = Regex.Replace(newFileName, invalidCharsPattern, "_");
+					File.Move(Path.Join(App.UserPath, "Saves", file), Path.Join(App.UserPath, "Saves", newFileName));
+					if (file == Save.Instance.FileName)
+						LoadSaveByFileName(newFileName);
+				}
+				catch (Exception e)
+				{
+					Log.Error($"Failed to rename save file {originalFileName} to {newFileName}");
+					Log.Error(e.ToString());
+				}
 			}
 		}
 	}
