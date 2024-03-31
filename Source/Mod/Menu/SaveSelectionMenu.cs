@@ -267,14 +267,14 @@ public class SaveSelectionMenu : Menu
 		if (Controls.RenameFile.Pressed)
 		{
 			Menu newMenu = new Menu(this);
-			newMenu.Title = $"Rename this file: {saves[CurrentPageStart + CurrentIndex]}";
+			newMenu.Title = string.Format(Loc.Str("SaveRenameFile"), saves[CurrentPageStart + CurrentIndex]);
 			newMenu.Add(new InputField("NewName", (k) => SetRename(k), GetRename, newMenu));
 			newMenu.Add(new Option("OptionsYes", () =>
 			{
 				bool renameSuccess = SaveManager.Instance.ChangeFileName(saves[CurrentPageStart + CurrentIndex], renamedFileName);
 				if (!renameSuccess)
 				{
-					Title = "Failed to rename... Check your log file for details\n(does the file already exist?)";
+					Title = new Loc.Localized("SaveRenameFailed");
 				}
 				ResetSaves();
 				PopSubMenu();

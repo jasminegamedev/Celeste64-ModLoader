@@ -53,6 +53,8 @@
 		"SaveDeleteFile": "Delete this file?",
 		"SaveDeleteDefaultFile": "The file {0} cannot be deleted.\n\nThis may happen because the file is the only existing file,\nor because it is currently loaded.\n\nDo you want to reset to the default file instead?",
 		"SaveCopyFile": "Copy this file?",
+		"SaveRenameFile": "Renaming file: {0}",
+		"SaveRenameFailed": "Failed to rename... Check your log file for details\n(does the file already exist?)",
 		"FujiOptions": "Fuji Options...",
 		"FujiOptions.desc": "Configure Options for the Fuji Mod Loader",
 		"FujiWriteLog": "Write Log File",
