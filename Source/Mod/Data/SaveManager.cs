@@ -139,6 +139,10 @@ internal sealed class SaveManager
 	[DisallowHooks]
 	internal void LoadSaveByFileName(string fileName)
 	{
+		if (!GetSaves().Contains(fileName)) // Make file if it doesn't exist yet
+		{
+			NewSave(fileName);
+		}
 		Save.LoadSaveByFileName(fileName);
 		Instance.SetLastLoadedSave(fileName);
 	}
