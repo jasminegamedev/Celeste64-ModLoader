@@ -441,7 +441,7 @@ public class Menu
 			if (Controls.Menu.Horizontal.Positive.Pressed)
 				items[Index].Slide(1);
 
-			if (Controls.Confirm.Pressed && items[Index].Pressed() || Controls.ControlerConfirm.Pressed && items[Index].Pressed())
+			if (Controls.Confirm.Pressed && items[Index].Pressed() || Controls.ControllerConfirm.Pressed && items[Index].Pressed())
 				Controls.Consume();
 		}
 	}
