@@ -355,7 +355,7 @@ public class Overworld : Scene
 					{
 						Title = Loc.Str("PauseModsMenu")
 					};
-					
+
 					pauseMenu.Add(new Menu.Submenu("PauseOptions", pauseMenu, optionsMenu));
 					pauseMenu.Add(new Menu.Submenu("PauseSaves", pauseMenu, savesMenu));
 					pauseMenu.Add(new Menu.Submenu("PauseModsMenu", pauseMenu, modMenu));
@@ -432,6 +432,15 @@ public class Overworld : Scene
 		}
 		else if (Paused)
 		{
+			/*
+			* Edge case handler for the OSK, since it has a special case for pressing Enter.
+			* Enter also happens to be a default binding for pausing. I wish I was kidding.
+			*/
+			if ((KeyboardHandler.Instance.GetPressedKey() is Keys.Enter or Keys.Enter2 or Keys.KeypadEnter) && pauseMenu?.CurrentMenu is OnScreenKeyboardMenu)
+			{
+				return;
+			}
+
 			if (Controls.Pause.ConsumePress() || (pauseMenu is { IsInMainMenu: true } && Controls.Cancel.ConsumePress()))
 			{
 				if (pauseMenu != null)
