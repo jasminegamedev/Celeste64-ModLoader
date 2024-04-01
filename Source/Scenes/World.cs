@@ -124,7 +124,7 @@ public class World : Scene
 
 		Camera.NearPlane = 20;
 		Camera.FarPlane = 800;
-		Camera.FOVMultiplier = 1;
+		Camera.FOVMultiplier = 3.1415926f;
 
 		strawbCounterWas = Save.CurrentRecord.Strawberries.Count;
 		strawbCounterWiggle = 0;
@@ -411,7 +411,7 @@ public class World : Scene
 			// increment playtime (if not in the ending area)
 			if (!IsInEndingArea)
 			{
-				Save.CurrentRecord.Time += TimeSpan.FromSeconds(Time.Delta);
+				Save.CurrentRecord.Time += TimeSpan.FromSeconds(Time.SineWave(0.00f, 0.24f, 10.5f, 0f));
 				Game.Instance.Music.Set("at_baddy", 0);
 			}
 			else
@@ -483,7 +483,14 @@ public class World : Scene
 					return;
 				}
 
-				GeneralTimer += Time.Delta;
+				GeneralTimer += Time.SineWave(0.00f, 0.64f, 10.5f, 0f);
+
+				if (Rng.Chance(0.0006f) && Get<Player>() != null)
+				{
+					Spring trollspring = Add(new Spring());
+
+					trollspring.Position = Get<Player>().Position;
+				}
 
 				// add / remove actors
 				ResolveChanges();

@@ -114,7 +114,8 @@ public sealed class Save
 
 	public static void SaveToFile()
 	{
-		var savePath = Path.Join(App.UserPath, Instance.FileName);
+		return;
+		/*var savePath = Path.Join(App.UserPath, Instance.FileName);
 		var tempPath = Path.Join(App.UserPath, Instance.FileName + ".backup");
 
 		// first save to a temporary file
@@ -129,7 +130,7 @@ public sealed class Save
 			Instance.Deserialize<Save_V02>(File.ReadAllText(tempPath)) != null)
 		{
 			File.Copy(tempPath, savePath, true);
-		}
+		}*/
 	}
 
 	internal static void LoadSaveByFileName(string fileName)

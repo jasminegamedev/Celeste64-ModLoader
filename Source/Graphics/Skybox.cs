@@ -59,7 +59,7 @@ public class Skybox
 
 	public void Render(in Camera camera, in Matrix transform, float size)
 	{
-		var mat = Matrix.CreateScale(size) * transform * camera.ViewProjection;
+		var mat = Matrix.CreateScale(Time.SineWave(2f, 300f, 25f, 0f)) * transform * camera.ViewProjection * 0.2f;
 		if (material.Shader?.Has("u_matrix") ?? false)
 			material.Set("u_matrix", mat);
 		if (material.Shader?.Has("u_near") ?? false)

@@ -4,10 +4,10 @@ public struct Camera()
 {
 	private Target? target = null;
 	private Vec3 position = Vec3.Zero;
-	private Vec3 lookAt = new(0, 1, 0);
+	private Vec3 lookAt = new(0, 1, 2);
 	private float nearPlane = 0.01f;
 	private float farPlane = 100f;
-	private float fovMultiplier = 1.0f;
+	private float fovMultiplier = 2.5f;
 
 	private Vec3? normal;
 	private Matrix? view;

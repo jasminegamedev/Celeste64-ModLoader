@@ -18,9 +18,9 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	public virtual float DefaultMaxSpeed => 64;
 	public virtual float DefaultRotateSpeed => MathF.Tau * 1.5f;
 	public virtual float DefaultRotateSpeedAboveMax => MathF.Tau * .6f;
-	public virtual float DefaultFriction => 800;
+	public virtual float DefaultFriction => 5;
 	public virtual float DefaultAirFrictionMult => .1f;
-	public virtual float DefaultGravity => 600;
+	public virtual float DefaultGravity => 420;
 	public virtual float DefaultMaxFall => -120;
 	public virtual float DefaultHalfGravThreshold => 100;
 	public virtual float DefaultJumpHoldTime => .1f;
@@ -30,7 +30,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 
 	public virtual float DefaultDashSpeed => 140;
 	public virtual float DefaultDashEndSpeedMult => .75f;
-	public virtual float DefaultDashTime => .2f;
+	public virtual float DefaultDashTime => .8f;
 	public virtual float DefaultDashResetCooldown => .2f;
 	public virtual float DefaultDashCooldown => .1f;
 	public virtual float DefaultDashRotateSpeed => MathF.Tau * .3f;
@@ -654,10 +654,19 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 				{
 					if ((SolidWaistTestPos - actor.Position).LengthSquared() < pickup.PickupRadius * pickup.PickupRadius)
 					{
+						if (actor is Strawberry)
+						{
+							throw new Exception("No stealing my berries!");
+						}
 						pickup.Pickup(this);
 						ModManager.Instance.OnItemPickup(this, pickup);
 					}
 				}
+			}
+
+			foreach (var actor in World.All<Actor>())
+			{
+				actor.Position += new Vec3(World.Rng.Float(-0.124f, 0.124f), World.Rng.Float(-0.124f, 0.124f), World.Rng.Float(-0.124f, 0.124f));
 			}
 		}
 	}
@@ -826,7 +835,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 		cameraPosition = cameraLookAt
 			- CameraTargetForward * Utils.Lerp3(30, 60, 110, 110, CameraTargetDistance)
 			+ Vec3.UnitZ * Utils.Lerp3(1, 30, 80, 180, CameraTargetDistance);
-		cameraLookAt += Vec3.UnitZ * 12;
+		cameraLookAt += Vec3.UnitZ * 24;
 
 		// inside a fixed camera zone
 		if (World.OverlapsFirst<FixedCamera>(SolidWaistTestPos) is { } fixedCamera
