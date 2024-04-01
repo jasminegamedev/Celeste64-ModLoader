@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Celeste64.Mod.Patches;
+using System;
 
 namespace Celeste64.Mod;
 
@@ -16,18 +17,35 @@ public class OnScreenKeyboardMenu : Menu
 
 	private int CurrentPageStart => currentPage * columns * rows;
 	private int CurrentIndex => currentRow * columns + currentColumn;
-	bool shiftMode;
+
+	private bool shiftMode;
+	private bool allowShift;
 
 	string setText = string.Empty;
 
-	InputField Owner;
+	private InputField Owner;
 
-	internal OnScreenKeyboardMenu(Menu? rootMenu, InputField owner)
+	private Dictionary<string, string> KeyValueType;
+	private Dictionary<string, string> KeyValueShiftType;
+
+	private List<string> KeyValueTypeList;
+	private List<string> KeyValueShiftTypeList;
+
+
+	internal OnScreenKeyboardMenu(Menu? rootMenu, InputField owner, Dictionary<string, string> keyboardType, bool allowShiftMode=true)
 	{
 		Target = new Target(Overworld.CardWidth, Overworld.CardHeight);
 		Game.OnResolutionChanged += () => Target = new Target(Overworld.CardWidth, Overworld.CardHeight);
 		GameTarget = new Target(Game.Width, Game.Height);
 		RootMenu = rootMenu;
+
+		KeyValueType = keyboardType;
+		KeyValueShiftType = KeyboardHandler.GetShiftDict(KeyValueType);
+		
+		KeyValueTypeList = KeyboardHandler.KeyValuesToList(KeyValueType);
+		KeyValueShiftTypeList = KeyboardHandler.KeyValuesToList(KeyValueShiftType);
+
+		allowShift = allowShiftMode;
 
 		Owner = owner;
 	}
@@ -80,17 +98,17 @@ public class OnScreenKeyboardMenu : Menu
 		Vec2 offset = new Vec2(20, 20);
 
 		int index = 0;
-		for (int i = 0; i < rows && CurrentPageStart + index < (!shiftMode ? KeyboardHandler.TrimKeysList().Count : KeyboardHandler.TrimModifiedKeysList().Count); i++)
+		for (int i = 0; i < rows && CurrentPageStart + index < (KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList).Count); i++)
 		{
-			for (int j = 0; j < columns && CurrentPageStart + index < (!shiftMode ? KeyboardHandler.TrimKeysList().Count : KeyboardHandler.TrimModifiedKeysList().Count); j++)
+			for (int j = 0; j < columns && CurrentPageStart + index < (KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList).Count); j++)
 			{
 				if (index == currentRow * columns + currentColumn)
 				{
-					RenderCurrentCharacter(batch, !shiftMode ? KeyboardHandler.TrimKeysList()[CurrentPageStart + index] : KeyboardHandler.TrimModifiedKeysList()[CurrentPageStart + index], new Vec2(j, i) * offset, size);
+					RenderCurrentCharacter(batch, KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList)[CurrentPageStart + index], new Vec2(j, i) * offset, size);
 				}
 				else
 				{
-					RenderCharacter(batch, !shiftMode ? KeyboardHandler.TrimKeysList()[CurrentPageStart + index] : KeyboardHandler.TrimModifiedKeysList()[CurrentPageStart + index], new Vec2(j, i) * offset, size);
+					RenderCharacter(batch, KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList)[CurrentPageStart + index], new Vec2(j, i) * offset, size);
 				}
 				index++;
 			}
@@ -103,19 +121,19 @@ public class OnScreenKeyboardMenu : Menu
 		{
 			if (currentColumn == columns - 1)
 			{
-				if (((currentPage + 1) * columns * rows) + (currentRow * columns) < (!shiftMode ? KeyboardHandler.TrimKeysList().Count : KeyboardHandler.TrimModifiedKeysList().Count))
+				if (((currentPage + 1) * columns * rows) + (currentRow * columns) < KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList).Count)
 				{
 					currentPage++;
 					currentColumn = 0;
 				}
-				else if ((currentPage + 1) * columns * rows < (!shiftMode ? KeyboardHandler.TrimKeysList().Count : KeyboardHandler.TrimModifiedKeysList().Count))
+				else if ((currentPage + 1) * columns * rows < KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList).Count)
 				{
 					currentPage++;
 					currentColumn = 0;
 					currentRow = 0;
 				}
 			}
-			else if (CurrentPageStart + CurrentIndex + 1 < (!shiftMode ? KeyboardHandler.TrimKeysList().Count : KeyboardHandler.TrimModifiedKeysList().Count))
+			else if (CurrentPageStart + CurrentIndex + 1 < KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList).Count)
 			{
 				currentColumn += 1;
 			}
@@ -138,7 +156,7 @@ public class OnScreenKeyboardMenu : Menu
 			Audio.Play(DownSound);
 		}
 
-		if (Controls.Menu.Vertical.Positive.Pressed && (currentRow + 1) < rows && CurrentPageStart + CurrentIndex + columns < (!shiftMode ? KeyboardHandler.TrimKeysList().Count : KeyboardHandler.TrimModifiedKeysList().Count))
+		if (Controls.Menu.Vertical.Positive.Pressed && (currentRow + 1) < rows && CurrentPageStart + CurrentIndex + columns < KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList).Count)
 		{
 			currentRow += 1;
 			Audio.Play(DownSound);
@@ -152,7 +170,7 @@ public class OnScreenKeyboardMenu : Menu
 		* The next four controls are only relevant to gamepads.
 		* We check if a keyboard key is pressed to avoid conflicts.
 		*/
-		if (Controls.CopyFile.Pressed && KeyboardHandler.Instance.GetPressedKey() == null)
+		if (Controls.CopyFile.Pressed && KeyboardHandler.Instance.GetPressedKey() == null && allowShift)
 			shiftMode = !shiftMode;
 
 		if (Controls.RenameFile.Pressed && setText.Length > 0 && KeyboardHandler.Instance.GetPressedKey() == null)
@@ -162,14 +180,7 @@ public class OnScreenKeyboardMenu : Menu
 
 		if (Controls.Confirm.Pressed && KeyboardHandler.Instance.GetPressedKey() == null)
 		{
-			if (shiftMode)
-			{
-				setText += KeyboardHandler.TrimModifiedKeysList()[CurrentPageStart + CurrentIndex];
-			}
-			else
-			{
-				setText += KeyboardHandler.TrimKeysList()[CurrentPageStart + CurrentIndex];
-			}
+			setText += KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList)[CurrentPageStart + CurrentIndex];
 			Audio.Play(UpSound);
 		}
 
@@ -210,8 +221,10 @@ public class OnScreenKeyboardMenu : Menu
 				if (setText.Length > 0)
 					setText = setText.Remove(setText.Length - 1);
 			}
-			else
+			else if (KeyValueTypeList.Contains(KeyboardHandler.GetKeyName(key)))
+			{
 				setText += KeyboardHandler.GetKeyName(key);
+			}
 		}
 	}
 }

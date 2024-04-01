@@ -5,7 +5,7 @@ namespace Celeste64.Mod;
 
 class KeyboardHandler
 {
-	public static readonly Dictionary<string, string> KeyValues = new Dictionary<string, string>
+	public static readonly Dictionary<string, string> AllCharachtersList = new Dictionary<string, string>
 	{
 		{ "A", "a" },
 		{ "B", "b" },
@@ -86,7 +86,7 @@ class KeyboardHandler
 		{ "KeypadE", "e" },
 		{ "KeypadF", "f" }
 	};
-	public static readonly Dictionary<string, string> KeyValuesWithModifiers = new Dictionary<string, string>
+	private static readonly Dictionary<string, string> AllCharactersShiftList = new Dictionary<string, string>
 	{
 		{ "A", "A" },
 		{ "B", "B" },
@@ -168,26 +168,130 @@ class KeyboardHandler
 		{ "KeypadF", "F" }
 	};
 
-	public static readonly List<string> KeyValuesList = KeyValues.Values.ToList();
-	public static readonly List<string> KeyValuesWithModifiersList = KeyValuesWithModifiers.Values.ToList();
+	public static readonly Dictionary<string, string> AlphabetValues = new Dictionary<string, string>
+	{
+		{ "A", "a" },
+		{ "B", "b" },
+		{ "C", "c" },
+		{ "D", "d" },
+		{ "E", "e" },
+		{ "F", "f" },
+		{ "G", "g" },
+		{ "H", "h" },
+		{ "I", "i" },
+		{ "J", "j" },
+		{ "K", "k" },
+		{ "L", "l" },
+		{ "M", "m" },
+		{ "N", "n" },
+		{ "O", "o" },
+		{ "P", "p" },
+		{ "Q", "q" },
+		{ "R", "r" },
+		{ "S", "s" },
+		{ "T", "t" },
+		{ "U", "u" },
+		{ "V", "v" },
+		{ "W", "w" },
+		{ "X", "x" },
+		{ "Y", "y" },
+		{ "Z", "z" },
+	};
+	public static readonly Dictionary<string, string> NumberRowValues = new Dictionary<string, string>
+	{
+		{ "D1", "1" },
+		{ "D2", "2" },
+		{ "D3", "3" },
+		{ "D4", "4" },
+		{ "D5", "5" },
+		{ "D6", "6" },
+		{ "D7", "7" },
+		{ "D8", "8" },
+		{ "D9", "9" },
+		{ "D0", "0" }
+	};
+
+	public static readonly Dictionary<string, string> AlphabetKeypadValues = new Dictionary<string, string>
+	{
+		{ "A", "a" },
+		{ "B", "b" },
+		{ "C", "c" },
+		{ "D", "d" },
+		{ "E", "e" },
+		{ "F", "f" },
+		{ "G", "g" },
+		{ "H", "h" },
+		{ "I", "i" },
+		{ "J", "j" },
+		{ "K", "k" },
+		{ "L", "l" },
+		{ "M", "m" },
+		{ "N", "n" },
+		{ "O", "o" },
+		{ "P", "p" },
+		{ "Q", "q" },
+		{ "R", "r" },
+		{ "S", "s" },
+		{ "T", "t" },
+		{ "U", "u" },
+		{ "V", "v" },
+		{ "W", "w" },
+		{ "X", "x" },
+		{ "Y", "y" },
+		{ "Z", "z" },
+		{ "KeypadA", "a" },
+		{ "KeypadB", "b" },
+		{ "KeypadC", "c" },
+		{ "KeypadD", "d" },
+		{ "KeypadE", "e" },
+		{ "KeypadF", "f" }
+	};
+	public static readonly Dictionary<string, string> NumberWithKeypadValues = new Dictionary<string, string>
+	{
+		{ "D1", "1" },
+		{ "D2", "2" },
+		{ "D3", "3" },
+		{ "D4", "4" },
+		{ "D5", "5" },
+		{ "D6", "6" },
+		{ "D7", "7" },
+		{ "D8", "8" },
+		{ "D9", "9" },
+		{ "D0", "0" },
+		{ "Keypad0", "0" },
+		{ "Keypad1", "1" },
+		{ "Keypad2", "2" },
+		{ "Keypad3", "3" },
+		{ "Keypad4", "4" },
+		{ "Keypad5", "5" },
+		{ "Keypad6", "6" },
+		{ "Keypad7", "7" },
+		{ "Keypad8", "8" },
+		{ "Keypad9", "9" }
+	};
 
 	public static KeyboardHandler Instance = new();
 
-	public static List<string> TrimKeysList()
+	public static Dictionary<string, string> GetShiftDict(Dictionary<string, string> dict)
 	{
-		List<string> newKeysList = new List<string>();
-		foreach (string key in KeyValuesList)
+		Dictionary<string, string> shiftDict = new Dictionary<string, string>();
+		foreach (string key in dict.Keys)
 		{
-			if (key.Length == 1 && !newKeysList.Contains(key) && key != " " && key != "" && key != "\t")
-				newKeysList.Add(key);
+			if (AllCharactersShiftList.ContainsKey(key))
+				shiftDict.Add(key, AllCharactersShiftList[key]);
 		}
-		return newKeysList;
+		return shiftDict;
 	}
 
-	public static List<string> TrimModifiedKeysList()
+	public static List<string> KeyValuesToList(Dictionary<string, string> dict)
+	{
+		return dict.Values.ToList();
+	}
+
+	public static List<string> TrimKeyList(List<string> keysList)
 	{
 		List<string> newKeysList = new List<string>();
-		foreach (string key in KeyValuesWithModifiersList)
+		foreach (string key in keysList)
 		{
 			if (key.Length == 1 && !newKeysList.Contains(key) && key != " " && key != "" && key != "\t")
 				newKeysList.Add(key);
@@ -203,15 +307,15 @@ class KeyboardHandler
 
 		if (Input.Keyboard.Shift)
 		{
-			if (KeyValuesWithModifiers.ContainsKey(keyString))
-				return KeyValuesWithModifiers[keyString];
+			if (AllCharactersShiftList.ContainsKey(keyString))
+				return AllCharactersShiftList[keyString];
 			else
 				return string.Empty;
 		}
 		else
 		{
-			if (KeyValues.ContainsKey(keyString))
-				return KeyValues[keyString];
+			if (AllCharachtersList.ContainsKey(keyString))
+				return AllCharachtersList[keyString];
 			else
 				return string.Empty;
 		}
