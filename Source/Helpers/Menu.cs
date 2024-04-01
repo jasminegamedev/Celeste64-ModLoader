@@ -206,49 +206,44 @@ public class Menu
 		}
 	}
 
-	public class InputField(Loc.Localized locString, Action<string> set, Func<string> get, Menu rootMenu) : Item
+	public class InputField : Item
 	{
-		public override Loc.Localized LocString => locString;
+		public OnScreenKeyboardMenu keyboardMenu;
 
-		private string fieldText = get();
-		public override string Label => $"{LocString} : {fieldText}";
+		private Action<string> setter;
+		private Func<string> getter;
 
-		private Keys? key;
-		public override void GetKeyPress()
-		{
-			key = KeyboardHandler.Instance.GetPressedKey();
+		public Menu RootMenu { get; protected set; }
 
-			Controls.Confirm.ConsumePress();
-			Controls.Cancel.ConsumePress();
-			if (key != null)
-			{
-				if (key == Keys.Backspace || key == Keys.KeypadBackspace)
-				{
-					if (fieldText.Length > 0)
-						fieldText = fieldText.Remove(fieldText.Length - 1);
-				}
-				else
-					fieldText += KeyboardHandler.GetKeyName(key);
-				set(fieldText);
-			}
-		}
+		private string fieldText;
+		public override string Label => $"{LocString} : {getter()}";
 
-		private void SetFieldText(string text)
+		public void SetFieldText(string text)
 		{
 			fieldText = text;
-			set(fieldText);
+			setter(fieldText);
 		}
 
-		private string GetFieldText()
+		public string GetFieldText()
 		{
-			return fieldText;
+			return getter();
 		}
 
 		public override bool Pressed()
 		{
-			OnScreenKeyboardMenu keyboardMenu = new OnScreenKeyboardMenu(rootMenu, (s) => SetFieldText(s), GetFieldText);
-			rootMenu.PushSubMenu(keyboardMenu);
+			RootMenu.PushSubMenu(keyboardMenu);
 			return true;
+		}
+
+		public InputField(Loc.Localized locString, Action<string> set, Func<string> get, Menu rootMenu)
+		{
+			LocString = locString;
+			setter = set;
+			getter = get;
+			RootMenu = rootMenu;
+			fieldText = getter();
+
+			keyboardMenu = new OnScreenKeyboardMenu(rootMenu, this);
 		}
 	}
 
@@ -264,7 +259,7 @@ public class Menu
 	public string DownSound = Sfx.ui_move;
 
 	public bool IsInMainMenu => submenus.Count <= 0;
-	protected Menu CurrentMenu => GetDeepestActiveSubmenu(this);
+	public Menu CurrentMenu => GetDeepestActiveSubmenu(this);
 
 	protected virtual int maxItemsCount { get; set; } = 12;
 	protected int scrolledAmount = 0;
@@ -441,7 +436,7 @@ public class Menu
 			if (Controls.Menu.Horizontal.Positive.Pressed)
 				items[Index].Slide(1);
 
-			if (Controls.Confirm.Pressed && items[Index].Pressed() || Controls.ControlerConfirm.Pressed && items[Index].Pressed())
+			if (Controls.Confirm.Pressed && items[Index].Pressed() || Controls.ControllerConfirm.Pressed && items[Index].Pressed())
 				Controls.Consume();
 		}
 	}

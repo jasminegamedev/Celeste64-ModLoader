@@ -217,7 +217,7 @@ public class SaveSelectionMenu : Menu
 		if (Controls.DeleteFile.Pressed)
 		{
 			Menu newMenu = new Menu(this);
-			if (saves[CurrentPageStart + CurrentIndex] == Save.DefaultFileName)
+			if (saves.Count == 1 || saves[CurrentPageStart + CurrentIndex] == Save.Instance.FileName)
 			{
 				newMenu.Title = string.Format(Loc.Str("SaveDeleteDefaultFile"), saves[CurrentPageStart + CurrentIndex]);
 			}
@@ -229,9 +229,9 @@ public class SaveSelectionMenu : Menu
 			{
 				if (Game.Instance.IsMidTransition) return;
 				SaveManager.Instance.DeleteSave(saves[CurrentPageStart + CurrentIndex]);
-				if (saves[CurrentPageStart + CurrentIndex] == Save.Instance.FileName)
+				if ((saves[CurrentPageStart + CurrentIndex] == Save.Instance.FileName) || (saves.Count == 1))
 				{
-					// If we delete the current save, load default and force a reload
+					// If we delete the current save or the last remaining save, load default and force a reload
 					SaveManager.Instance.LoadSaveByFileName(Save.DefaultFileName);
 					Game.Instance.Goto(new Transition()
 					{
@@ -260,26 +260,32 @@ public class SaveSelectionMenu : Menu
 				ResetSaves();
 				PopSubMenu();
 			}));
-			PushSubMenu(newMenu);
 			newMenu.Add(new Option("OptionsNo", () => PopSubMenu()));
+			PushSubMenu(newMenu);
 		}
 
 		if (Controls.RenameFile.Pressed)
 		{
 			Menu newMenu = new Menu(this);
-			newMenu.Title = $"Rename this file: {saves[CurrentPageStart + CurrentIndex]}";
+			newMenu.Title = string.Format(Loc.Str("SaveRenameFile"), saves[CurrentPageStart + CurrentIndex]);
 			newMenu.Add(new InputField("NewName", (k) => SetRename(k), GetRename, newMenu));
-			newMenu.Add(new Option("OptionsYes", () => {
-				SaveManager.Instance.ChangeFileName(saves[CurrentPageStart + CurrentIndex], renamedFileName);
+			newMenu.Add(new Option("OptionsYes", () =>
+			{
+				bool renameSuccess = SaveManager.Instance.ChangeFileName(saves[CurrentPageStart + CurrentIndex], renamedFileName);
+				if (!renameSuccess)
+				{
+					Title = new Loc.Localized("SaveRenameFailed");
+				}
 				ResetSaves();
 				PopSubMenu();
 				renamedFileName = string.Empty;
 			}));
-			PushSubMenu(newMenu);
-			newMenu.Add(new Option("OptionsNo", () => {
+			newMenu.Add(new Option("OptionsNo", () =>
+			{
 				renamedFileName = string.Empty;
 				PopSubMenu();
 			}));
+			PushSubMenu(newMenu);
 		}
 	}
 

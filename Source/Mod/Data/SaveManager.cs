@@ -13,6 +13,7 @@ internal sealed class SaveManager
 			return File.ReadAllText(Path.Join(App.UserPath, "Saves", "save.metadata"));
 		else
 		{
+			Directory.CreateDirectory(Path.Join(App.UserPath, "Saves")); // Perform upgrade path for first-time launch 
 			File.WriteAllText(Path.Join(App.UserPath, "Saves", "save.metadata"), Save.DefaultFileName);
 			return Save.DefaultFileName;
 		}
@@ -84,24 +85,35 @@ internal sealed class SaveManager
 	}
 
 	[DisallowHooks]
-	internal void ChangeFileName(string orignalFileName, string newFileName)
+	internal bool ChangeFileName(string originalFileName, string newFileName)
 	{
+		bool success = true;
 		string invalidCharsPattern = "[\\/:*?\"<>|{}]";
 
 		foreach (string file in GetSaves())
 		{
-			if (file == orignalFileName)
+			if (file == originalFileName)
 			{
-				if (!newFileName.EndsWith(".json"))
-					newFileName += ".json";
-				newFileName = Regex.Replace(newFileName, invalidCharsPattern, "_");
-				if (File.Exists(Path.Join(App.UserPath, "Saves", newFileName)))
-					return;
-				File.Move(Path.Join(App.UserPath, "Saves", file), Path.Join(App.UserPath, "Saves", newFileName));
-				if (file == Save.Instance.FileName)
-					LoadSaveByFileName(newFileName);
+				try
+				{
+					if (!newFileName.EndsWith(".json"))
+						newFileName += ".json";
+					newFileName = Regex.Replace(newFileName, invalidCharsPattern, "_");
+					File.Move(Path.Join(App.UserPath, "Saves", file), Path.Join(App.UserPath, "Saves", newFileName));
+					if (file == Save.Instance.FileName)
+						LoadSaveByFileName(newFileName);
+				}
+				catch (Exception e)
+				{
+					Log.Error($"Failed to rename save file {originalFileName} to {newFileName}");
+					Log.Error(e.ToString());
+
+					success = false;
+				}
 			}
 		}
+
+		return success;
 	}
 
 	[DisallowHooks]
@@ -127,6 +139,10 @@ internal sealed class SaveManager
 	[DisallowHooks]
 	internal void LoadSaveByFileName(string fileName)
 	{
+		if (!GetSaves().Contains(fileName)) // Make file if it doesn't exist yet
+		{
+			NewSave(fileName);
+		}
 		Save.LoadSaveByFileName(fileName);
 		Instance.SetLastLoadedSave(fileName);
 	}

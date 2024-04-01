@@ -17,20 +17,19 @@ public class OnScreenKeyboardMenu : Menu
 	private int CurrentPageStart => currentPage * columns * rows;
 	private int CurrentIndex => currentRow * columns + currentColumn;
 	bool shiftMode;
-	Action<string> setter;
-	Func<string> getter;
 
 	string setText = string.Empty;
 
-	internal OnScreenKeyboardMenu(Menu? rootMenu, Action<string> set, Func<string> get)
+	InputField Owner;
+
+	internal OnScreenKeyboardMenu(Menu? rootMenu, InputField owner)
 	{
 		Target = new Target(Overworld.CardWidth, Overworld.CardHeight);
 		Game.OnResolutionChanged += () => Target = new Target(Overworld.CardWidth, Overworld.CardHeight);
 		GameTarget = new Target(Game.Width, Game.Height);
 		RootMenu = rootMenu;
-		setter = set;
-		getter = get;
-		setText = get();
+
+		Owner = owner;
 	}
 
 	public override void Initialized()
@@ -39,6 +38,13 @@ public class OnScreenKeyboardMenu : Menu
 		currentColumn = 0;
 		currentRow = 0;
 		currentPage = 0;
+
+		setText = Owner.GetFieldText();
+	}
+
+	public override void Closed()
+	{
+		Owner.SetFieldText(setText);
 	}
 
 	private void RenderCharacter(Batcher batch, string character, Vec2 pos, Vec2 size)
@@ -58,7 +64,7 @@ public class OnScreenKeyboardMenu : Menu
 	{
 		batch.PushMatrix(Matrix3x2.CreateScale(1.1f) * Matrix3x2.CreateTranslation((pos + new Vec2(size.X * 0.4f - 20, size.Y * 0.4f - 20)) * Game.RelativeScale));
 		batch.Text(Language.Current.SpriteFont, character, Vec2.Zero, new Vec2(0.5f, 0), Color.Black);
-		
+
 		batch.PopMatrix();
 
 		batch.PushMatrix(Matrix3x2.CreateScale(0.9f) * Matrix3x2.CreateTranslation((pos + new Vec2(size.X * 0.4f - 20, size.Y * 0.4f - 20)) * Game.RelativeScale));
@@ -81,7 +87,7 @@ public class OnScreenKeyboardMenu : Menu
 				if (index == currentRow * columns + currentColumn)
 				{
 					RenderCurrentCharacter(batch, !shiftMode ? KeyboardHandler.TrimKeysList()[CurrentPageStart + index] : KeyboardHandler.TrimModifiedKeysList()[CurrentPageStart + index], new Vec2(j, i) * offset, size);
-				}	
+				}
 				else
 				{
 					RenderCharacter(batch, !shiftMode ? KeyboardHandler.TrimKeysList()[CurrentPageStart + index] : KeyboardHandler.TrimModifiedKeysList()[CurrentPageStart + index], new Vec2(j, i) * offset, size);
@@ -142,39 +148,70 @@ public class OnScreenKeyboardMenu : Menu
 			currentRow -= 1;
 			Audio.Play(DownSound);
 		}
-		if (Controls.CopyFile.Pressed)
+		/*
+		* The next four controls are only relevant to gamepads.
+		* We check if a keyboard key is pressed to avoid conflicts.
+		*/
+		if (Controls.CopyFile.Pressed && KeyboardHandler.Instance.GetPressedKey() == null)
 			shiftMode = !shiftMode;
 
-		if (Controls.RenameFile.Pressed && setText.Length > 0)
+		if (Controls.RenameFile.Pressed && setText.Length > 0 && KeyboardHandler.Instance.GetPressedKey() == null)
 		{
 			setText = setText.Remove(setText.Length - 1);
-			setter(setText);
 		}
 
-		if (Controls.Confirm.Pressed)
+		if (Controls.Confirm.Pressed && KeyboardHandler.Instance.GetPressedKey() == null)
 		{
 			if (shiftMode)
 			{
 				setText += KeyboardHandler.TrimModifiedKeysList()[CurrentPageStart + CurrentIndex];
-				setter(setText);
 			}
 			else
 			{
 				setText += KeyboardHandler.TrimKeysList()[CurrentPageStart + CurrentIndex];
-				setter(setText);
 			}
 			Audio.Play(UpSound);
 		}
+
+		if (Controls.Cancel.ConsumePress() && KeyboardHandler.Instance.GetPressedKey() == null)
+		{
+			Owner.RootMenu.PopSubMenu();
+		}
+
+		if (KeyboardHandler.Instance.GetPressedKey() is Keys.Enter or Keys.Enter2 or Keys.KeypadEnter)
+		{
+			Owner.RootMenu.PopSubMenu();
+		}
+
+		ReadKey();
 	}
 
 	protected override void RenderItems(Batcher batch)
 	{
 		batch.PushMatrix(new Vec2(GameTarget.Bounds.TopLeft.X, GameTarget.Bounds.TopLeft.Y), false);
 
-		if (getter().Length == 0)
+		if (setText.Length == 0)
 			batch.Text(Language.Current.SpriteFont, "Enter text", new Vec2(GameTarget.Bounds.TopCenter.X - Language.Current.SpriteFont.WidthOf("Enter text") / 2, GameTarget.Bounds.TopCenter.Y + 96), Color.CornflowerBlue * 0.6f);
 
-		batch.Text(Language.Current.SpriteFont, getter(), new Vec2(GameTarget.Bounds.TopCenter.X - Language.Current.SpriteFont.WidthOf(getter()) / 2, GameTarget.Bounds.TopCenter.Y + 96), Color.CornflowerBlue);
+		batch.Text(Language.Current.SpriteFont, setText, new Vec2(GameTarget.Bounds.TopCenter.X - Language.Current.SpriteFont.WidthOf(setText) / 2, GameTarget.Bounds.TopCenter.Y + 96), Color.CornflowerBlue);
+		batch.Text(Language.Current.SpriteFont, Loc.Str("OSKUserInstructions"), new Vec2(GameTarget.Bounds.TopCenter.X - Language.Current.SpriteFont.WidthOf(Loc.Str("OSKUserInstructions")) / 2, GameTarget.Bounds.TopCenter.Y + 284), Color.CornflowerBlue);
 		RenderCharacters(batch);
+	}
+
+	private Keys? key;
+	public void ReadKey()
+	{
+		key = KeyboardHandler.Instance.GetPressedKey();
+
+		if (key != null)
+		{
+			if (key == Keys.Backspace || key == Keys.KeypadBackspace)
+			{
+				if (setText.Length > 0)
+					setText = setText.Remove(setText.Length - 1);
+			}
+			else
+				setText += KeyboardHandler.GetKeyName(key);
+		}
 	}
 }

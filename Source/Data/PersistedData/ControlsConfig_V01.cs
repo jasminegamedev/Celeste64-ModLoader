@@ -39,7 +39,7 @@ public class ControlsConfig_V01 : PersistedData
 				new(Buttons.South) { NotFor = Gamepads.Nintendo },
 				new(Buttons.East) { OnlyFor = Gamepads.Nintendo },
 			],
-			["ControlerConfirm"] = [
+			["ControllerConfirm"] = [
 				new(Buttons.South) { NotFor = Gamepads.Nintendo },
 				new(Buttons.East) { OnlyFor = Gamepads.Nintendo },
 			],
