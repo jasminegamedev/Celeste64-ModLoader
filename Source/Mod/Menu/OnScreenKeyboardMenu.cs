@@ -149,7 +149,7 @@ public class OnScreenKeyboardMenu : Menu
 			Audio.Play(DownSound);
 		}
 		/*
-		* The next three controls are only relevant to gamepads.
+		* The next four controls are only relevant to gamepads.
 		* We check if a keyboard key is pressed to avoid conflicts.
 		*/
 		if (Controls.CopyFile.Pressed && KeyboardHandler.Instance.GetPressedKey() == null)
@@ -171,6 +171,11 @@ public class OnScreenKeyboardMenu : Menu
 				setText += KeyboardHandler.TrimKeysList()[CurrentPageStart + CurrentIndex];
 			}
 			Audio.Play(UpSound);
+		}
+
+		if (Controls.Cancel.ConsumePress() && KeyboardHandler.Instance.GetPressedKey() == null)
+		{
+			Owner.RootMenu.PopSubMenu();
 		}
 
 		if (KeyboardHandler.Instance.GetPressedKey() is Keys.Enter or Keys.Enter2 or Keys.KeypadEnter)
