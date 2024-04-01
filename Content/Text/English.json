@@ -55,6 +55,7 @@
 		"SaveCopyFile": "Copy this file?",
 		"SaveRenameFile": "Renaming file: {0}",
 		"SaveRenameFailed": "Failed to rename... Check your log file for details\n(does the file already exist?)",
+		"OSKUserInstructions": "Press Enter on keyboard, or Back on controller to confirm.",
 		"FujiOptions": "Fuji Options...",
 		"FujiOptions.desc": "Configure Options for the Fuji Mod Loader",
 		"FujiWriteLog": "Write Log File",

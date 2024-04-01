@@ -194,6 +194,7 @@ public class OnScreenKeyboardMenu : Menu
 			batch.Text(Language.Current.SpriteFont, "Enter text", new Vec2(GameTarget.Bounds.TopCenter.X - Language.Current.SpriteFont.WidthOf("Enter text") / 2, GameTarget.Bounds.TopCenter.Y + 96), Color.CornflowerBlue * 0.6f);
 
 		batch.Text(Language.Current.SpriteFont, setText, new Vec2(GameTarget.Bounds.TopCenter.X - Language.Current.SpriteFont.WidthOf(setText) / 2, GameTarget.Bounds.TopCenter.Y + 96), Color.CornflowerBlue);
+		batch.Text(Language.Current.SpriteFont, Loc.Str("OSKUserInstructions"), new Vec2(GameTarget.Bounds.TopCenter.X - Language.Current.SpriteFont.WidthOf(Loc.Str("OSKUserInstructions")) / 2, GameTarget.Bounds.TopCenter.Y + 284), Color.CornflowerBlue);
 		RenderCharacters(batch);
 	}
 
