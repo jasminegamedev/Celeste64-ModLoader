@@ -272,7 +272,11 @@ public class Overworld : Scene
 	public override void Update()
 	{
 		slide += (index - slide) * (1 - MathF.Pow(.001f, Time.Delta));
-		wobble += (Controls.Camera.Value - wobble) * (1 - MathF.Pow(.1f, Time.Delta));
+
+		if (!Paused)
+			wobble += (Controls.Camera.Value - wobble) * (1 - MathF.Pow(.1f, Time.Delta));
+		else
+			wobble = new Vec2(0, 0);
 		Calc.Approach(ref cameraCloseUpEase, state == States.Entering ? 1 : 0, Time.Delta);
 		Calc.Approach(ref selectedEase, state != States.Selecting ? 1 : 0, 8 * Time.Delta);
 
