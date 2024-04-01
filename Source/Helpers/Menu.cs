@@ -243,7 +243,7 @@ public class Menu
 			RootMenu = rootMenu;
 			fieldText = getter();
 
-			keyboardMenu = new OnScreenKeyboardMenu(rootMenu, this, KeyboardHandler.NumberWithKeypadValues);
+			keyboardMenu = new OnScreenKeyboardMenu(rootMenu, this, KeyboardHandler.AllCharachtersList);
 		}
 	}
 
