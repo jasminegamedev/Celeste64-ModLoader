@@ -27,7 +27,7 @@ public class Overworld : Scene
 		public float HighlightEase;
 		public float SelectionEase;
 
-		public Entry(LevelInfo level, GameMod mod)
+		public Entry(LevelInfo level, GameMod? mod)
 		{
 			Level = level;
 			Target = new Target(CardWidth, CardHeight);
@@ -441,6 +441,11 @@ public class Overworld : Scene
 			{
 				return;
 			}
+			
+			if (pauseMenu != null)
+			{
+				pauseMenu.Update();
+			}
 
 			if (Controls.Pause.ConsumePress() || (pauseMenu is { IsInMainMenu: true } && Controls.Cancel.ConsumePress()))
 			{
@@ -609,8 +614,6 @@ public class Overworld : Scene
 
 		if (Paused && pauseMenu != null)
 		{
-			pauseMenu.Update();
-
 			batch.Rect(bounds, Color.Black * 0.70f);
 
 			pauseMenu.Render(batch, bounds.Center);
