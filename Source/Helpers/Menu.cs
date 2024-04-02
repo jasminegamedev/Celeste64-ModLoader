@@ -14,7 +14,6 @@ public class Menu
 		public virtual bool Selectable { get; } = true;
 		public virtual bool Pressed() => false;
 		public virtual void Slide(int dir) { }
-		public virtual void GetKeyPress() { }
 
 		// LocString is the base localized string object, before any changes.
 		// This is kept separate from the label so we can get substrings from the LocString like the Description.
@@ -235,15 +234,15 @@ public class Menu
 			return true;
 		}
 
-		public InputField(Loc.Localized locString, Action<string> set, Func<string> get, Menu rootMenu)
+		public InputField(Loc.Localized locString, Action<string> set, Func<string> get, Menu rootMenu, Dictionary<string, string>? characters = null)
 		{
 			LocString = locString;
 			setter = set;
 			getter = get;
 			RootMenu = rootMenu;
 			fieldText = getter();
-
-			keyboardMenu = new OnScreenKeyboardMenu(rootMenu, this, KeyboardHandler.AllCharachtersList);
+			if (characters == null) characters = KeyboardHandler.AllCharactersList;
+			keyboardMenu = new OnScreenKeyboardMenu(rootMenu, this, characters);
 		}
 	}
 
@@ -428,8 +427,6 @@ public class Menu
 
 			if (was != Index)
 				Audio.Play(step < 0 ? UpSound : DownSound);
-
-			items[Index].GetKeyPress();
 
 			if (Controls.Menu.Horizontal.Negative.Pressed)
 				items[Index].Slide(-1);

@@ -1,7 +1,4 @@
-﻿using Celeste64.Mod.Patches;
-using System;
-
-namespace Celeste64.Mod;
+﻿namespace Celeste64.Mod;
 
 public class OnScreenKeyboardMenu : Menu
 {
@@ -21,7 +18,7 @@ public class OnScreenKeyboardMenu : Menu
 	private bool shiftMode;
 	private bool allowShift;
 
-	string setText = string.Empty;
+	private string textValue = string.Empty;
 
 	private InputField Owner;
 
@@ -31,8 +28,7 @@ public class OnScreenKeyboardMenu : Menu
 	private List<string> KeyValueTypeList;
 	private List<string> KeyValueShiftTypeList;
 
-
-	internal OnScreenKeyboardMenu(Menu? rootMenu, InputField owner, Dictionary<string, string> keyboardType, bool allowShiftMode=true)
+	internal OnScreenKeyboardMenu(Menu? rootMenu, InputField owner, Dictionary<string, string> keyboardType, bool allowShiftMode = true)
 	{
 		Target = new Target(Overworld.CardWidth, Overworld.CardHeight);
 		Game.OnResolutionChanged += () => Target = new Target(Overworld.CardWidth, Overworld.CardHeight);
@@ -41,7 +37,7 @@ public class OnScreenKeyboardMenu : Menu
 
 		KeyValueType = keyboardType;
 		KeyValueShiftType = KeyboardHandler.GetShiftDict(KeyValueType);
-		
+
 		KeyValueTypeList = KeyboardHandler.KeyValuesToList(KeyValueType);
 		KeyValueShiftTypeList = KeyboardHandler.KeyValuesToList(KeyValueShiftType);
 
@@ -57,12 +53,12 @@ public class OnScreenKeyboardMenu : Menu
 		currentRow = 0;
 		currentPage = 0;
 
-		setText = Owner.GetFieldText();
+		textValue = Owner.GetFieldText();
 	}
 
 	public override void Closed()
 	{
-		Owner.SetFieldText(setText);
+		Owner.SetFieldText(textValue);
 	}
 
 	private void RenderCharacter(Batcher batch, string character, Vec2 pos, Vec2 size)
@@ -173,14 +169,14 @@ public class OnScreenKeyboardMenu : Menu
 		if (Controls.CopyFile.Pressed && KeyboardHandler.Instance.GetPressedKey() == null && allowShift)
 			shiftMode = !shiftMode;
 
-		if (Controls.RenameFile.Pressed && setText.Length > 0 && KeyboardHandler.Instance.GetPressedKey() == null)
+		if (Controls.RenameFile.Pressed && textValue.Length > 0 && KeyboardHandler.Instance.GetPressedKey() == null)
 		{
-			setText = setText.Remove(setText.Length - 1);
+			textValue = textValue.Remove(textValue.Length - 1);
 		}
 
 		if (Controls.Confirm.Pressed && KeyboardHandler.Instance.GetPressedKey() == null)
 		{
-			setText += KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList)[CurrentPageStart + CurrentIndex];
+			textValue += KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList)[CurrentPageStart + CurrentIndex];
 			Audio.Play(UpSound);
 		}
 
@@ -201,29 +197,28 @@ public class OnScreenKeyboardMenu : Menu
 	{
 		batch.PushMatrix(new Vec2(GameTarget.Bounds.TopLeft.X, GameTarget.Bounds.TopLeft.Y), false);
 
-		if (setText.Length == 0)
+		if (textValue.Length == 0)
 			batch.Text(Language.Current.SpriteFont, "Enter text", new Vec2(GameTarget.Bounds.TopCenter.X - Language.Current.SpriteFont.WidthOf("Enter text") / 2, GameTarget.Bounds.TopCenter.Y + 96), Color.CornflowerBlue * 0.6f);
 
-		batch.Text(Language.Current.SpriteFont, setText, new Vec2(GameTarget.Bounds.TopCenter.X - Language.Current.SpriteFont.WidthOf(setText) / 2, GameTarget.Bounds.TopCenter.Y + 96), Color.CornflowerBlue);
+		batch.Text(Language.Current.SpriteFont, textValue, new Vec2(GameTarget.Bounds.TopCenter.X - Language.Current.SpriteFont.WidthOf(textValue) / 2, GameTarget.Bounds.TopCenter.Y + 96), Color.CornflowerBlue);
 		batch.Text(Language.Current.SpriteFont, Loc.Str("OSKUserInstructions"), new Vec2(GameTarget.Bounds.TopCenter.X - Language.Current.SpriteFont.WidthOf(Loc.Str("OSKUserInstructions")) / 2, GameTarget.Bounds.TopCenter.Y + 284), Color.CornflowerBlue);
 		RenderCharacters(batch);
 	}
 
-	private Keys? key;
 	public void ReadKey()
 	{
-		key = KeyboardHandler.Instance.GetPressedKey();
+		Keys? key = KeyboardHandler.Instance.GetPressedKey();
 
 		if (key != null)
 		{
 			if (key == Keys.Backspace || key == Keys.KeypadBackspace)
 			{
-				if (setText.Length > 0)
-					setText = setText.Remove(setText.Length - 1);
+				if (textValue.Length > 0)
+					textValue = textValue.Remove(textValue.Length - 1);
 			}
 			else if (KeyValueTypeList.Contains(KeyboardHandler.GetKeyName(key)))
 			{
-				setText += KeyboardHandler.GetKeyName(key);
+				textValue += KeyboardHandler.GetKeyName(key);
 			}
 		}
 	}

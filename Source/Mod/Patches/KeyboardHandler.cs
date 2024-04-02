@@ -1,11 +1,8 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
-
-namespace Celeste64.Mod;
+﻿namespace Celeste64.Mod;
 
 class KeyboardHandler
 {
-	public static readonly Dictionary<string, string> AllCharachtersList = new Dictionary<string, string>
+	public static readonly Dictionary<string, string> AllCharactersList = new Dictionary<string, string>
 	{
 		{ "A", "a" },
 		{ "B", "b" },
@@ -71,7 +68,7 @@ class KeyboardHandler
 		{ "KeypadMultiply", "*" },
 		{ "KeypadMinus", "-" },
 		{ "KeypadPlus", "+" },
-		{ "KeypadPeroid", "." },
+		{ "KeypadPeriod", "." },
 		{ "KeypadEquals", "=" },
 		{ "KeypadComma", "," },
 		{ "KeypadLeftParen", "(" },
@@ -86,6 +83,7 @@ class KeyboardHandler
 		{ "KeypadE", "e" },
 		{ "KeypadF", "f" }
 	};
+
 	private static readonly Dictionary<string, string> AllCharactersShiftList = new Dictionary<string, string>
 	{
 		{ "A", "A" },
@@ -152,7 +150,7 @@ class KeyboardHandler
 		{ "KeypadMultiply", "*" },
 		{ "KeypadMinus", "_" },
 		{ "KeypadPlus", "+" },
-		{ "KeypadPeroid", ">" },
+		{ "KeypadPeriod", ">" },
 		{ "KeypadEquals", "+" },
 		{ "KeypadComma", "<" },
 		{ "KeypadLeftParen", "(" },
@@ -197,6 +195,7 @@ class KeyboardHandler
 		{ "Y", "y" },
 		{ "Z", "z" },
 	};
+
 	public static readonly Dictionary<string, string> NumberRowValues = new Dictionary<string, string>
 	{
 		{ "D1", "1" },
@@ -246,6 +245,7 @@ class KeyboardHandler
 		{ "KeypadE", "e" },
 		{ "KeypadF", "f" }
 	};
+
 	public static readonly Dictionary<string, string> NumberWithKeypadValues = new Dictionary<string, string>
 	{
 		{ "D1", "1" },
@@ -268,6 +268,22 @@ class KeyboardHandler
 		{ "Keypad7", "7" },
 		{ "Keypad8", "8" },
 		{ "Keypad9", "9" }
+	};
+
+	public static readonly Dictionary<string, string> SpecialCharacterKeyValues = new Dictionary<string, string>
+	{
+		{ "Space", " " },
+		{ "Minus", "-" },
+		{ "Equals", "=" },
+		{ "LeftBracket", "[" },
+		{ "RightBracket", "]" },
+		{ "Backslash", "\\" },
+		{ "Semicolon", ";" },
+		{ "Apostrophe", "'" },
+		{ "Tilde", "~" },
+		{ "Comma", "," },
+		{ "Period", "." },
+		{ "Slash", "/" },
 	};
 
 	public static KeyboardHandler Instance = new();
@@ -314,8 +330,8 @@ class KeyboardHandler
 		}
 		else
 		{
-			if (AllCharachtersList.ContainsKey(keyString))
-				return AllCharachtersList[keyString];
+			if (AllCharactersList.ContainsKey(keyString))
+				return AllCharactersList[keyString];
 			else
 				return string.Empty;
 		}

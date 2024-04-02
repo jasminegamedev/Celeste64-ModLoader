@@ -1,6 +1,5 @@
 ﻿using Celeste64.Mod;
 using Celeste64.Mod.Data;
-using System.Diagnostics;
 
 namespace Celeste64;
 
@@ -126,12 +125,12 @@ public class SaveSelectionMenu : Menu
 		}
 	}
 
-	void SetRename(string name)
+	private void SetRename(string name)
 	{
 		renamedFileName = name;
 	}
 
-	string GetRename()
+	private string GetRename()
 	{
 		return renamedFileName;
 	}
@@ -268,7 +267,13 @@ public class SaveSelectionMenu : Menu
 		{
 			Menu newMenu = new Menu(this);
 			newMenu.Title = string.Format(Loc.Str("SaveRenameFile"), saves[CurrentPageStart + CurrentIndex]);
-			newMenu.Add(new InputField("NewName", (k) => SetRename(k), GetRename, newMenu));
+			Dictionary<string, string> characters = KeyboardHandler.AlphabetValues.Concat(KeyboardHandler.NumberRowValues).ToDictionary();
+			characters.Add("Space", " ");
+			newMenu.Add(new InputField(
+				"NewName",
+				(k) => SetRename(k),
+				GetRename,
+				newMenu, characters));
 			newMenu.Add(new Option("OptionsYes", () =>
 			{
 				bool renameSuccess = SaveManager.Instance.ChangeFileName(saves[CurrentPageStart + CurrentIndex], renamedFileName);

@@ -1,12 +1,9 @@
-﻿using System.Text.RegularExpressions;
-
-namespace Celeste64.Mod.Data;
+﻿namespace Celeste64.Mod.Data;
 
 internal sealed class SaveManager
 {
 	internal static SaveManager Instance = new();
 
-	[DisallowHooks]
 	internal string GetLastLoadedSave()
 	{
 		if (File.Exists(Path.Join(App.UserPath, "Saves", "save.metadata")))
@@ -26,7 +23,6 @@ internal sealed class SaveManager
 			File.WriteAllText(Path.Join(App.UserPath, "Saves", "save.metadata"), save_name);
 	}
 
-	[DisallowHooks]
 	internal List<string> GetSaves()
 	{
 		List<string> saves = new List<string>();
@@ -53,7 +49,6 @@ internal sealed class SaveManager
 		return saves;
 	}
 
-	[DisallowHooks]
 	internal void CopySave(string filename)
 	{
 		if (File.Exists(Path.Join(App.UserPath, "Saves", filename)))
@@ -63,7 +58,6 @@ internal sealed class SaveManager
 		}
 	}
 
-	[DisallowHooks]
 	internal void NewSave(string? name = null)
 	{
 		if (string.IsNullOrEmpty(name)) name = $"save_{GetSaveCount()}.json";
@@ -84,11 +78,9 @@ internal sealed class SaveManager
 		}
 	}
 
-	[DisallowHooks]
 	internal bool ChangeFileName(string originalFileName, string newFileName)
 	{
 		bool success = true;
-		string invalidCharsPattern = "[\\/:*?\"<>|{}]";
 
 		foreach (string file in GetSaves())
 		{
@@ -98,7 +90,6 @@ internal sealed class SaveManager
 				{
 					if (!newFileName.EndsWith(".json"))
 						newFileName += ".json";
-					newFileName = Regex.Replace(newFileName, invalidCharsPattern, "_");
 					File.Move(Path.Join(App.UserPath, "Saves", file), Path.Join(App.UserPath, "Saves", newFileName));
 					if (file == Save.Instance.FileName)
 						LoadSaveByFileName(newFileName);
@@ -116,13 +107,11 @@ internal sealed class SaveManager
 		return success;
 	}
 
-	[DisallowHooks]
 	internal int GetSaveCount()
 	{
 		return GetSaves().Count;
 	}
 
-	[DisallowHooks]
 	internal void DeleteSave(string save)
 	{
 		if (File.Exists(Path.Join(App.UserPath, "Saves", save)))
@@ -136,7 +125,6 @@ internal sealed class SaveManager
 		}
 	}
 
-	[DisallowHooks]
 	internal void LoadSaveByFileName(string fileName)
 	{
 		if (!GetSaves().Contains(fileName)) // Make file if it doesn't exist yet

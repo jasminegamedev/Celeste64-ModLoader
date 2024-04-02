@@ -1,5 +1,3 @@
-using Celeste64.Mod;
-
 namespace Celeste64;
 
 public class GameOptionsMenu : Menu
