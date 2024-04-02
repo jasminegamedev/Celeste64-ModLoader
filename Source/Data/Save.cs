@@ -114,8 +114,8 @@ public sealed class Save
 
 	public static void SaveToFile()
 	{
-		var savePath = Path.Join(App.UserPath, "Saves", DefaultFileName);
-		var tempPath = Path.Join(App.UserPath, "Saves", DefaultFileName + ".backup");
+		var savePath = Path.Join(App.UserPath, "Saves", Instance.FileName);
+		var tempPath = Path.Join(App.UserPath, "Saves", Instance.FileName + ".backup");
 
 		// first save to a temporary file
 		{
