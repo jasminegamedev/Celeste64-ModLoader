@@ -1,4 +1,6 @@
-﻿namespace Celeste64.Mod;
+﻿using System.ComponentModel;
+
+namespace Celeste64.Mod;
 
 public class OnScreenKeyboardMenu : Menu
 {
@@ -63,6 +65,8 @@ public class OnScreenKeyboardMenu : Menu
 
 	private void RenderCharacter(Batcher batch, string character, Vec2 pos, Vec2 size)
 	{
+		if (character == " ")
+			character = Loc.Str("KeyboardSpace");
 		batch.PushMatrix(Matrix3x2.CreateScale(1.1f) * Matrix3x2.CreateTranslation((pos + new Vec2(size.X * 0.4f - 20, size.Y * 0.4f - 20)) * Game.RelativeScale));
 		batch.Text(Language.Current.SpriteFont, character, Vec2.Zero, new Vec2(0.5f, 0), Color.Black);
 
@@ -76,6 +80,8 @@ public class OnScreenKeyboardMenu : Menu
 
 	private void RenderCurrentCharacter(Batcher batch, string character, Vec2 pos, Vec2 size)
 	{
+		if (character == " ")
+			character = Loc.Str("KeyboardSpace");
 		batch.PushMatrix(Matrix3x2.CreateScale(1.1f) * Matrix3x2.CreateTranslation((pos + new Vec2(size.X * 0.4f - 20, size.Y * 0.4f - 20)) * Game.RelativeScale));
 		batch.Text(Language.Current.SpriteFont, character, Vec2.Zero, new Vec2(0.5f, 0), Color.Black);
 
@@ -100,11 +106,13 @@ public class OnScreenKeyboardMenu : Menu
 			{
 				if (index == currentRow * columns + currentColumn)
 				{
-					RenderCurrentCharacter(batch, KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList)[CurrentPageStart + index], new Vec2(j, i) * offset, size);
+					string keyName = KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList)[CurrentPageStart + index];
+					RenderCurrentCharacter(batch, keyName, new Vec2(j, i) * offset, size);
 				}
 				else
 				{
-					RenderCharacter(batch, KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList)[CurrentPageStart + index], new Vec2(j, i) * offset, size);
+					string keyName = KeyboardHandler.TrimKeyList(!shiftMode ? KeyValueTypeList : KeyValueShiftTypeList)[CurrentPageStart + index];
+					RenderCharacter(batch, keyName, new Vec2(j, i) * offset, size);
 				}
 				index++;
 			}

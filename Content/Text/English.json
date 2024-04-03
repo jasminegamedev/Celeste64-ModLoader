@@ -81,7 +81,8 @@
 		"ModOptions": "Mod Options",
 		"ConfirmDisableMod": "Continue & Disable Mod",
 		"ModSafeDisableErrorMessage": "This mod can't be disabled because it would disable the level you're currently in.\nTry going to the main menu first.",
-		"QuitToMainMenu": "Quit to Main Menu"
+		"QuitToMainMenu": "Quit to Main Menu",
+		"KeyboardSpace": "Space"
 	},
 	"Dialog": {
 		"Granny1": [

@@ -309,7 +309,7 @@ class KeyboardHandler
 		List<string> newKeysList = new List<string>();
 		foreach (string key in keysList)
 		{
-			if (key.Length == 1 && !newKeysList.Contains(key) && key != " " && key != "" && key != "\t")
+			if (!newKeysList.Contains(key) && key != "" && key != "\t")
 				newKeysList.Add(key);
 		}
 		return newKeysList;
