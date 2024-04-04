@@ -49,12 +49,24 @@ public class EditorWorld : World
 	private readonly Dictionary<ActorDefinition, Actor[]> actorsFromDefinition = new();
 	private readonly Dictionary<Actor, ActorDefinition> definitionFromActors = new();
 
-	internal Tool CurrentTool;
-	
+	private Tool? currentTool;
+	public Tool CurrentTool
+	{
+		get => currentTool!;
+		internal set
+		{
+			currentTool?.OnDeselectTool(this);
+			currentTool = value;
+			currentTool.OnSelectTool(this);
+		}
+	}
+
 	private Vec3 cameraPos = new(0, -10, 0);
 	private Vec2 cameraRot = new(0, 0);
 
 	private readonly Batcher3D batch3D = new();
+	
+	public Vec3 MouseRay { get; private set; }
 
 	private SelectionTarget? dragTarget = null;
 	private Vec2 dragMouseStart = Vec2.Zero;
@@ -290,10 +302,33 @@ public class EditorWorld : World
 		Camera.Position = cameraPos;
 		Camera.LookAt = cameraPos + forward;
 
+		// Calculate mouse ray from camera
+		if (Camera.Target is not null &&
+		    Matrix.Invert(Camera.Projection, out var inverseProj) &&
+		    Matrix.Invert(Camera.View, out var inverseView))
+		{
+			// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
+			var scale = Math.Min(App.WidthInPixels / (float)Camera.Target.Width, App.HeightInPixels / (float)Camera.Target.Height);
+			var imageRelativeDir = Input.Mouse.Position - (App.SizeInPixels / 2 - Camera.Target.Bounds.Size / 2 * scale);
+			// Convert into normalized-device-coordinates
+			var ndcDir = imageRelativeDir / (Camera.Target.Bounds.Size / 2 * scale) - Vec2.One;
+			// Flip Y, since up is negative in NDC coords
+			ndcDir.Y *= -1.0f;
+			var clipDir = new Vec4(ndcDir, -1.0f, 1.0f);
+			var eyeDir = Vec4.Transform(clipDir, inverseProj);
+			// We only care about XY, so we set ZW to "forward"
+			eyeDir.Z = -1.0f;
+			eyeDir.W = 0.0f;
+			var worldDir = Vec4.Transform(eyeDir, inverseView);
+			MouseRay = new Vec3(worldDir.X, worldDir.Y, worldDir.Z).Normalized();
+		}
+		
 		// Shoot ray cast for selection
 		if (CurrentTool.EnableSelection)
 			SelectionRaycast();
 
+		CurrentTool.Update(this);
+		
 		// Update actors of definitions
 		foreach (var def in Definitions.Where(def => def.Dirty))
 		{
@@ -332,33 +367,13 @@ public class EditorWorld : World
 
 	private void SelectionRaycast()
 	{
-		if (ImGuiManager.WantCaptureMouse ||
-		    Camera.Target is null ||
-		    !Matrix.Invert(Camera.Projection, out var inverseProj) ||
-		    !Matrix.Invert(Camera.View, out var inverseView))
-		{
+		if (ImGuiManager.WantCaptureMouse)
 			return;
-		}
 		
-		// The top-left of the image might not be the top-left of the window, when using non 16:9 aspect ratios
-		var scale = Math.Min(App.WidthInPixels / (float)Camera.Target.Width, App.HeightInPixels / (float)Camera.Target.Height);
-		var imageRelativePos = Input.Mouse.Position - (App.SizeInPixels / 2 - Camera.Target.Bounds.Size / 2 * scale);
-		// Convert into normalized-device-coordinates
-		var ndcPos = imageRelativePos / (Camera.Target.Bounds.Size / 2 * scale) - Vec2.One;
-		// Flip Y, since up is negative in NDC coords
-		ndcPos.Y *= -1.0f;
-		var clipPos = new Vec4(ndcPos, -1.0f, 1.0f);
-		var eyePos = Vec4.Transform(clipPos, inverseProj);
-		// We only care about XY, so we set ZW to "forward"
-		eyePos.Z = -1.0f;
-		eyePos.W = 0.0f;
-		var worldPos = Vec4.Transform(eyePos, inverseView);
-		var direction = new Vec3(worldPos.X, worldPos.Y, worldPos.Z).Normalized();
-
 		// Continue/Stop dragging
 		if (Input.Mouse.LeftDown && dragTarget is not null)
 		{
-			dragTarget.Dragged(Input.Mouse.Position - dragMouseStart, direction);
+			dragTarget.Dragged(Input.Mouse.Position - dragMouseStart, MouseRay);
 			return;
 		}
 
@@ -390,7 +405,7 @@ public class EditorWorld : World
 			
 			foreach (var target in selectionTargets)
 			{
-				if (!ModUtils.RayIntersectOBB(Camera.Position, direction, target.Bounds, target.Transform, out float dist) || dist >= closestDist)
+				if (!ModUtils.RayIntersectOBB(Camera.Position, MouseRay, target.Bounds, target.Transform, out float dist) || dist >= closestDist)
 					continue;
 				
 				closest = target;
@@ -423,7 +438,7 @@ public class EditorWorld : World
 		
 		if (Input.Mouse.LeftPressed)
 		{
-			if (ActorRayCast(Camera.Position, direction, 10000.0f, out var hit, ignoreBackfaces: false))
+			if (ActorRayCast(Camera.Position, MouseRay, 10000.0f, out var hit, ignoreBackfaces: false))
 				Selected = hit.Actor is not null && definitionFromActors.TryGetValue(hit.Actor, out var def) ? def : null;
 			else
 				Selected = null;
