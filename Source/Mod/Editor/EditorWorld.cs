@@ -10,8 +10,14 @@ public class EditorWorld : World
 		new EditorMenuBar(),
 
 		new ActorSelectionWindow(),
+			
 		new EditActorWindow(),
 		new EnvironmentSettingsWindow(),
+	];
+	
+	internal readonly Tool[] Tools = [
+		new MoveTool(),
+		new PlaceActorTool(),
 	];
 
 	public static EditorWorld Current => (Game.Scene as EditorWorld)!;
@@ -20,6 +26,7 @@ public class EditorWorld : World
 	public ReadOnlyDictionary<ActorDefinition, Actor[]> ActorsFromDefinition => actorsFromDefinition.AsReadOnly();
 	public ReadOnlyDictionary<Actor, ActorDefinition> DefinitionFromActors => definitionFromActors.AsReadOnly();
 
+	public event Action<ActorDefinition?>? OnDefinitionSelected;
 	public event Action<SelectionTarget?> OnTargetSelected = target => {};
 	
 	private ActorDefinition? selectedDefinition = null;
@@ -29,31 +36,9 @@ public class EditorWorld : World
 		{
 			if (selectedDefinition == value)
 				return;
-			
+
 			selectedDefinition = value;
-			gizmo = null;
-
-			if (selectedDefinition is null)
-				return;
-			
-			var positionProp = selectedDefinition
-				.GetType()
-				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-				.FirstOrDefault(prop =>
-					!prop.HasAttr<IgnorePropertyAttribute>() &&
-					prop.GetCustomAttribute<SpecialPropertyAttribute>() is { Value: SpecialPropertyType.PositionXYZ });
-
-			if (positionProp is null || positionProp.GetGetMethod() is not { } getMethod || positionProp.GetSetMethod() is not { } setMethod)
-				return;
-
-			gizmo = new PositionGizmo(
-				() => (Vec3)getMethod.Invoke(selectedDefinition, [])!,
-				newValue =>
-				{
-					setMethod.Invoke(selectedDefinition, [newValue]);
-					selectedDefinition.Dirty = true;
-				},
-				scale: 1.0f);
+			OnDefinitionSelected?.Invoke(value);
 		}
 		get => selectedDefinition;
 	}
@@ -63,13 +48,13 @@ public class EditorWorld : World
 	private readonly Dictionary<ActorDefinition, Actor[]> actorsFromDefinition = new();
 	private readonly Dictionary<Actor, ActorDefinition> definitionFromActors = new();
 
+	internal Tool CurrentTool;
+	
 	private Vec3 cameraPos = new(0, -10, 0);
 	private Vec2 cameraRot = new(0, 0);
 
 	private readonly Batcher3D batch3D = new();
 
-	// TODO: Temporary!
-	private Gizmo? gizmo;
 	private SelectionTarget? dragTarget = null;
 	private Vec2 dragMouseStart = Vec2.Zero;
 
@@ -90,6 +75,10 @@ public class EditorWorld : World
 			// Mark all definitions as dirty to ensure they will get added
 			def.Dirty = true;
 		}
+		
+		// Select default tool
+		// TODO: Maybe save the last selected tool from the previous session?
+		CurrentTool = Tools[0];
 	}
 	
 	public void AddDefinition(ActorDefinition definition)
@@ -222,6 +211,12 @@ public class EditorWorld : World
 		{
 			foreach (var selectionType in def.SelectionTypes)
 				selectionType.Awake();		
+		}
+		
+		// Awake all tools
+		foreach (var tool in Tools)
+		{
+			tool.Awake(this);
 		}
 	}
 	public override void Exited()
@@ -380,10 +375,7 @@ public class EditorWorld : World
 			selectionTargets.AddRange(selType.Targets);
 			selectionTargets.AddRange(selType.Gizmos.SelectMany(static gizmo => gizmo.SelectionTargets));
 		} 
-		if (gizmo is not null)
-		{
-			selectionTargets.AddRange(gizmo.SelectionTargets);
-		}
+		selectionTargets.AddRange(CurrentTool.Gizmos.SelectMany(static gizmo => gizmo.SelectionTargets));
 		
 		// Un-hover everything
 		foreach (var target in selectionTargets)
@@ -629,7 +621,6 @@ public class EditorWorld : World
 		// Render gizmos on-top
 		target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
 		{
-			gizmo?.Render(batch3D);
 			if (Selected is not null && Selected.SelectionTypes.Length > 0)
 			{
 				// TODO: Allow for selecting different types
@@ -638,7 +629,12 @@ public class EditorWorld : World
 				{
 					g.Render(batch3D);
 				}
-			} 
+			}
+
+			foreach (var gizmo in CurrentTool.Gizmos)
+			{
+				gizmo.Render(batch3D);
+			}
 		}
 		batch3D.Render(ref state);
 		batch3D.Clear();
