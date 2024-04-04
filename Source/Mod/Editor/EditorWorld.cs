@@ -9,6 +9,7 @@ public class EditorWorld : World
 	internal readonly ImGuiHandler[] Handlers = [
 		new EditorMenuBar(),
 
+		new ActorSelectionWindow(),
 		new EditActorWindow(),
 		new EnvironmentSettingsWindow(),
 	];
