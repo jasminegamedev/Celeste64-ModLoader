@@ -1,4 +1,5 @@
 ﻿using Celeste64.Mod;
+using Celeste64.Mod.Editor;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
@@ -12,7 +13,8 @@ public static class Assets
 	public const string AssetFolder = "Content";
 
 	public const string MapsFolder = "Maps";
-	public const string MapsExtension = "map";
+	public const string MapsExtensionSledge = "map";
+	public const string MapsExtensionFuji = "bin";
 
 	public const string TexturesFolder = "Textures";
 	public const string TexturesExtension = "png";
@@ -112,7 +114,7 @@ public static class Assets
 		Music.Clear();
 		Audio.Unload();
 
-		Map.ModActorFactories.Clear();
+		SledgeMap.ModActorFactories.Clear();
 		ModLoader.RegisterAllMods();
 
 		var maps = new ConcurrentBag<(Map, GameMod)>();
@@ -126,7 +128,7 @@ public static class Assets
 		// NOTE: Make sure to update ModManager.OnModFileChanged() as well, for hot-reloading to work!
 
 		var globalFs = ModManager.Instance.GlobalFilesystem;
-		foreach (var (file, mod) in globalFs.FindFilesInDirectoryRecursiveWithMod(MapsFolder, MapsExtension))
+		foreach (var (file, mod) in globalFs.FindFilesInDirectoryRecursiveWithMod(MapsFolder, MapsExtensionSledge))
 		{
 			// Skip the "autosave" folder
 			if (file.StartsWith($"{MapsFolder}/autosave", StringComparison.OrdinalIgnoreCase))
@@ -135,7 +137,23 @@ public static class Assets
 			tasks.Add(Task.Run(() =>
 			{
 				if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file,
-						stream => new Map(GetResourceNameFromVirt(file, MapsFolder), file, stream), out var map))
+						stream => new SledgeMap(GetResourceNameFromVirt(file, MapsFolder), file, stream), out var map))
+				{
+					maps.Add((map, mod));
+				}
+			}));
+		}
+		foreach (var (file, mod) in globalFs.FindFilesInDirectoryRecursiveWithMod(MapsFolder, MapsExtensionFuji))
+		{
+			// Skip the "autosave" folder
+			if (file.StartsWith($"{MapsFolder}/autosave", StringComparison.OrdinalIgnoreCase))
+				continue;
+
+			tasks.Add(Task.Run(() =>
+			{
+				var fullPath = mod.Filesystem is FolderModFilesystem fs ? fs.VirtToRealPath(file) : null;
+				if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file,
+						stream => new FujiMap(GetResourceNameFromVirt(file, MapsFolder), file, stream, fullPath), out var map))
 				{
 					maps.Add((map, mod));
 				}
@@ -251,8 +269,8 @@ public static class Assets
 				Levels.AddRange(levels);
 			}
 
-			// if (mod.Filesystem != null && mod.Filesystem.TryOpenFile("Dialog.json", 
-			// 	    stream => JsonSerializer.Deserialize(stream, DialogLineDictContext.Default.DictionaryStringListDialogLine) ?? [], 
+			// if (mod.Filesystem != null && mod.Filesystem.TryOpenFile("Dialog.json",
+			// 	    stream => JsonSerializer.Deserialize(stream, DialogLineDictContext.Default.DictionaryStringListDialogLine) ?? [],
 			// 	    out var dialog))
 			// {
 			// 	foreach (var (key, value) in dialog)

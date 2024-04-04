@@ -97,7 +97,7 @@ public sealed class ModManager
 
 			// Important assets taken from Assets.Load()
 			// TODO: Support non-toplevel mods?
-			if ((dir.StartsWith(Assets.MapsFolder) && extension == $".{Assets.MapsExtension}" && !dir.StartsWith($"{Assets.MapsFolder}/autosave")) ||
+			if ((dir.StartsWith(Assets.MapsFolder) && extension is $".{Assets.MapsExtensionSledge}" or $".{Assets.MapsExtensionFuji}" && !dir.StartsWith($"{Assets.MapsFolder}/autosave")) ||
 				(dir.StartsWith(Assets.TexturesFolder) && extension == $".{Assets.TexturesExtension}") ||
 				(dir.StartsWith(Assets.FacesFolder) && extension == $".{Assets.FacesExtension}") ||
 				(dir.StartsWith(Assets.ModelsFolder) && extension == $".{Assets.ModelsExtension}") ||

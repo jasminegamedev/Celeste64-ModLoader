@@ -1,7 +1,29 @@
-﻿namespace Celeste64;
+using Celeste64.Mod.Editor;
 
-public class SpikeBlock : Attacher, IHaveModels
+namespace Celeste64;
+
+public class SpikeBlock() : Attacher(typeof(Definition)), IHaveModels
 {
+	public class Definition : ActorDefinition
+	{
+		[SpecialProperty(SpecialPropertyType.PositionXYZ)]
+		public Vec3 Position { get; set; } = Vec3.Zero;
+		public Vec3 Rotation { get; set; } = Vec3.Zero;
+		public Vec3 Size { get; set; } = new Vec3(50.0f, 10.0f, 100.0f);
+
+		public override Actor[] Load(World.WorldType type)
+		{
+			return [new SpikeBlock
+			{
+				Position = Position,
+				RotationXYZ = Rotation * Calc.DegToRad,
+				LocalBounds = new BoundingBox(-Size / 2.0f, Size / 2.0f)
+			}];
+		}
+	}
+
+	private Definition Data => (Definition)_Data!;
+
 	public SimpleModel? Model;
 	public Vec3 Direction;
 

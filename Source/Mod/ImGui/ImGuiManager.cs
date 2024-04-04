@@ -1,3 +1,4 @@
+using Celeste64.Mod.Editor;
 using ImGuiNET;
 
 namespace Celeste64.Mod;
@@ -16,6 +17,7 @@ public class ImGuiManager
 
 	private readonly ImGuiRenderer renderer;
 	private static FujiDebugMenu debugMenu = new FujiDebugMenu();
+	private static DemoWindowHandler demoWindow = new DemoWindowHandler() { Visible = false };
 	private static IEnumerable<ImGuiHandler> Handlers => ModManager.Instance.EnabledMods.SelectMany(mod => mod.ImGuiHandlers);
 
 	internal ImGuiManager()
@@ -26,32 +28,58 @@ public class ImGuiManager
 
 	internal void UpdateHandlers()
 	{
+		// Reset so that ImGui itself actually receives the inputs
+		WantCaptureKeyboard = false;
+		WantCaptureMouse = false;
+
 		renderer.Update();
 
 		if (debugMenu.Active)
 			debugMenu.Update();
+		
+		if (Input.Keyboard.Pressed(Keys.F2))
+			demoWindow.Visible = !demoWindow.Visible;
+
+		if (Game.Scene is EditorWorld editor)
+		{
+			foreach (var handler in editor.Handlers)
+			{
+				if (handler.Active) handler.Update();
+			}
+		}
 
 		foreach (var handler in Handlers)
 		{
 			if (handler.Active) handler.Update();
 		}
+
+		var io = ImGui.GetIO();
+		WantCaptureKeyboard = io.WantCaptureKeyboard;
+		WantCaptureMouse = io.WantCaptureMouse;
 	}
 
 	internal void RenderHandlers()
 	{
 		renderer.BeforeRender();
+
 		if (debugMenu.Visible)
 			debugMenu.Render();
+		if (demoWindow.Visible)
+			demoWindow.Render();
+
+		if (Game.Scene is EditorWorld editor)
+		{
+			foreach (var handler in editor.Handlers)
+			{
+				if (handler.Visible) handler.Render();
+			}
+		}
 
 		foreach (var handler in Handlers)
 		{
 			if (handler.Visible) handler.Render();
 		}
 		renderer.AfterRender();
-
-		var io = ImGui.GetIO();
-		WantCaptureKeyboard = io.WantCaptureKeyboard;
-		WantCaptureMouse = io.WantCaptureMouse;
 	}
 
 	internal void RenderTexture(Batcher batch)

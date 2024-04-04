@@ -1,4 +1,5 @@
 using Celeste64.Mod;
+using Celeste64.Mod.Editor;
 using System.Diagnostics;
 using ModelEntry = (Celeste64.Actor Actor, Celeste64.Model Model);
 
@@ -8,6 +9,9 @@ public class World : Scene
 {
 	public enum EntryReasons { Entered, Returned, Respawned }
 	public readonly record struct EntryInfo(string Map, string CheckPoint, bool Submap, EntryReasons Reason);
+
+	public enum WorldType { Game, Editor }
+	public readonly WorldType Type;
 
 	public Camera Camera = new();
 	public Rng Rng = new(0);
@@ -25,14 +29,14 @@ public class World : Scene
 	private readonly Dictionary<Type, Queue<Actor>> recycled = [];
 	private readonly List<Type> trackedTypes = [];
 
-	private readonly List<ModelEntry> models = [];
-	private readonly List<Sprite> sprites = [];
+	protected readonly List<ModelEntry> models = [];
+	protected readonly List<Sprite> sprites = [];
 
-	private Target? postTarget;
-	private readonly Material postMaterial = new();
-	private readonly Batcher batch = new();
-	private readonly List<Skybox> skyboxes = [];
-	private readonly SpriteRenderer spriteRenderer = new();
+	protected Target? postTarget;
+	protected readonly Material postMaterial = new();
+	protected readonly Batcher batch = new();
+	protected readonly List<Skybox> skyboxes = [];
+	protected readonly SpriteRenderer spriteRenderer = new();
 
 	// Pause Menu, only drawn when actually paused
 	private Menu pauseMenu = new();
@@ -59,12 +63,13 @@ public class World : Scene
 		}
 	}
 
-	private readonly Stopwatch debugUpdTimer = new();
-	private readonly Stopwatch debugRndTimer = new();
-	private readonly Stopwatch debugFpsTimer = new();
-	private TimeSpan lastDebugRndTime;
-	private int debugUpdateCount;
-	public static bool DebugDraw { get; private set; } = false;
+	protected readonly Stopwatch debugUpdTimer = new();
+	protected readonly Stopwatch debugRndTimer = new();
+	protected readonly Stopwatch debugFpsTimer = new();
+	protected TimeSpan lastDebugRndTime;
+	protected int debugUpdateCount;
+
+	public static bool DebugDraw { get; protected set; } = false;
 
 	public Map? Map { get; private set; }
 
@@ -100,6 +105,7 @@ public class World : Scene
 		})));
 
 		Entry = entry;
+		Type = this is EditorWorld ? WorldType.Editor : WorldType.Game;
 
 		var stopwatch = Stopwatch.StartNew();
 
@@ -130,6 +136,7 @@ public class World : Scene
 		strawbCounterWiggle = 0;
 
 		// setup pause menu
+		if (Type == WorldType.Game) // Don't create pause menu in the editor
 		{
 			Menu optionsMenu = new GameOptionsMenu(pauseMenu);
 
@@ -173,24 +180,10 @@ public class World : Scene
 		}
 
 		// environment
+		if (Type == WorldType.Game) // Editor will create environment effects by itself
 		{
 			if (map.SnowAmount > 0)
 				Add(new Snow(map.SnowAmount, map.SnowWind));
-
-			if (!string.IsNullOrEmpty(map.Skybox))
-			{
-				// single skybox
-				if (Assets.Textures.TryGetValue($"skyboxes/{map.Skybox}", out var skybox))
-				{
-					skyboxes.Add(new(skybox));
-				}
-				// group
-				else
-				{
-					while (Assets.Textures.TryGetValue($"skyboxes/{map.Skybox}_{skyboxes.Count}", out var nextSkybox))
-						skyboxes.Add(new(nextSkybox));
-				}
-			}
 
 			// Fuji Custom: Allows playing music and ambience from wav files if available.
 			// Otherwise, uses fmod events like normal.
@@ -215,14 +208,30 @@ public class World : Scene
 				AmbienceWav = "";
 				Ambience = $"event:/sfx/ambience/{map.Ambience}";
 			}
+
+			if (!string.IsNullOrEmpty(map.Skybox))
+			{
+				// single skybox
+				if (Assets.Textures.TryGetValue($"skyboxes/{map.Skybox}", out var skybox))
+				{
+					skyboxes.Add(new(skybox));
+				}
+				// group
+				else
+				{
+					while (Assets.Textures.TryGetValue($"skyboxes/{map.Skybox}_{skyboxes.Count}", out var nextSkybox))
+						skyboxes.Add(new(nextSkybox));
+				}
+			}
 		}
 
-		ModManager.Instance.OnPreMapLoaded(this, map);
-
-		// load content
-		map.Load(this);
-
-		ModManager.Instance.OnWorldLoaded(this);
+		if (Type == WorldType.Game) // The editor handles loading itself
+		{
+			ModManager.Instance.OnPreMapLoaded(this, map);
+			// load content
+			map.Load(this);
+			ModManager.Instance.OnWorldLoaded(this);
+		}
 
 		if (Entry.Reason == EntryReasons.Entered)
 		{
@@ -316,7 +325,7 @@ public class World : Scene
 		return list;
 	}
 
-	private void ResolveChanges()
+	protected void ResolveChanges()
 	{
 		// resolve adding/removing actors
 		while (adding.Count > 0 || destroying.Count > 0)
@@ -394,6 +403,16 @@ public class World : Scene
 			{
 				pauseMenu.Update();
 			}
+		}
+
+		// Toggle to editor
+		if (Input.Keyboard.Pressed(Keys.F3))
+		{
+			Game.Scene!.Exited();
+			Game.Instance.scenes.Pop();
+			Game.Instance.scenes.Push(new EditorWorld(Entry));
+			Game.Scene!.Entered();
+			return;
 		}
 
 		if (Panicked)
@@ -984,7 +1003,7 @@ public class World : Scene
 		debugRndTimer.Stop();
 	}
 
-	private void ApplyPostEffects()
+	protected void ApplyPostEffects()
 	{
 		// perform post processing effects
 		if (Camera.Target != null)
@@ -1018,7 +1037,7 @@ public class World : Scene
 		}
 	}
 
-	private void RenderModels(ref RenderState state, List<ModelEntry> models, ModelFlags flags)
+	protected void RenderModels(ref RenderState state, List<ModelEntry> models, ModelFlags flags)
 	{
 		foreach (var it in models)
 		{

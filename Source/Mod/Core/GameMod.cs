@@ -54,7 +54,7 @@ public abstract class GameMod
 	// This is here to give mods easier access to these objects, so they don't have to get them themselves
 	// Warning, these may be null if they haven't been initialized yet, so you should always do a null check before using them.
 	public Game? Game => Game.Instance;
-	public World? World => Game?.World;
+	public World? World => Game.Scene as World;
 	public Map? Map => World?.Map;
 	public Player? Player => World?.Get<Player>();
 
@@ -494,11 +494,11 @@ public abstract class GameMod
 	/// </summary>
 	/// <param name="name"></param>
 	/// <param name="factory"></param>
-	public void AddActorFactory(string name, Map.ActorFactory factory)
+	public void AddActorFactory(string name, SledgeMap.ActorFactory factory)
 	{
-		if (Map.ModActorFactories.TryAdd(name, factory))
+		if (SledgeMap.ModActorFactories.TryAdd(name, factory))
 		{
-			OnUnloadedCleanup += () => Map.ModActorFactories.Remove(name);
+			OnUnloadedCleanup += () => SledgeMap.ModActorFactories.Remove(name);
 		}
 		else
 		{

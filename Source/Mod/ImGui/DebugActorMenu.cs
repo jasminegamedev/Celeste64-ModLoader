@@ -26,7 +26,7 @@ internal class DebugActorMenu : ImGuiHandler
 
 	public override void Render()
 	{
-		if (Visible && Game.Instance.Scene is World world && world.Get<Player>() is { } player)
+		if (Visible && Game.Scene is World world && world.Get<Player>() is { } player)
 		{
 			if (actorPropertiesWindowVisible)
 			{

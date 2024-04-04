@@ -1,7 +1,84 @@
+using Celeste64.Mod;
+using Celeste64.Mod.Editor;
+using ImGuiNET;
+using System.Runtime.InteropServices;
+
 namespace Celeste64;
 
 public class Solid : Actor, IHaveModels
 {
+	public class Definition : GeometryDefinition
+	{
+		protected override Matrix Transform => Matrix.CreateTranslation(Position);
+		
+		[SpecialProperty(SpecialPropertyType.PositionXYZ)]
+		public Vec3 Position { get; set; }
+		
+		public override Actor[] Load(World.WorldType type)
+		{
+			// Calculate bounds
+			var bounds = new BoundingBox();
+			foreach (var face in Faces)
+			{
+				var faceMin = face.Select(idx => Vertices[idx]).Aggregate(Vec3.Min);
+				var faceMax = face.Select(idx => Vertices[idx]).Aggregate(Vec3.Max);
+				bounds = new BoundingBox(Vec3.Min(bounds.Min, faceMin), Vec3.Max(bounds.Max, faceMax)); 
+			}
+			
+			// Generate visual / collision mesh
+			var colliderVertices = new List<Vec3>();
+			var colliderFaces = new List<Face>();
+			
+			var meshVertices = new List<Vertex>();
+			var meshIndices = new List<int>();
+			
+			foreach (var face in Faces)
+			{
+				int vertexIndex = colliderVertices.Count;
+				var plane = Plane.CreateFromVertices(Vertices[face[0]], Vertices[face[1]], Vertices[face[2]]);
+				
+				colliderFaces.Add(new Face
+				{
+					Plane = plane,
+					VertexStart = vertexIndex,
+					VertexCount = face.Count
+				});
+				
+				// Triangulate the mesh
+				for (int i = 0; i < face.Count - 2; i++)
+				{
+					meshIndices.Add(vertexIndex + 0);
+					meshIndices.Add(vertexIndex + i + 1);
+					meshIndices.Add(vertexIndex + i + 2);
+				}
+				
+				// The center of the bounding box should always be <0, 0, 0>
+				colliderVertices.AddRange(face.Select(idx => Vertices[idx] - bounds.Center));
+				meshVertices.AddRange(face.Select(idx => new Vertex(
+					position: Vertices[idx] - bounds.Center,
+					texcoord: Vec2.Zero,
+					color: Vec3.One,
+					normal: plane.Normal)));
+			}
+			
+			var solid = new Solid();
+			solid.Model.Mesh.SetVertices<Vertex>(CollectionsMarshal.AsSpan(meshVertices));
+			solid.Model.Mesh.SetIndices<int>(CollectionsMarshal.AsSpan(meshIndices));
+			solid.Model.Materials.Add(new DefaultMaterial(Assets.Textures["wall"]));
+			solid.Model.Parts.Add(new SimpleModel.Part(0, 0, meshIndices.Count));
+			
+			solid.LocalBounds = new BoundingBox(
+            	colliderVertices.Aggregate(Vec3.Min),
+            	colliderVertices.Aggregate(Vec3.Max)
+            );
+			solid.LocalVertices = colliderVertices.ToArray();
+			solid.LocalFaces =  colliderFaces.ToArray();
+			solid.Position = Position + bounds.Center;
+			
+			return [solid];
+		}
+	}
+	
 	/// <summary>
 	/// If we're currently solid
 	/// </summary>

@@ -1,4 +1,5 @@
-﻿using Celeste64.Mod;
+using Celeste64.Mod;
+using Celeste64.Mod.Editor;
 using Celeste64.Mod.Patches;
 using System.Diagnostics;
 using System.Text;
@@ -78,7 +79,7 @@ public class Game : Module
 	private static Game? instance;
 	public static Game Instance => instance ?? throw new Exception("Game isn't running");
 
-	private readonly Stack<Scene> scenes = new();
+	internal readonly Stack<Scene> scenes = new();
 	private Target target = new(Width, Height, [TextureFormat.Color, TextureFormat.Depth24Stencil8]);
 	private readonly Batcher batcher = new();
 	private Transition transition;
@@ -95,7 +96,7 @@ public class Game : Module
 	public SoundHandle? AmbienceWav;
 	public SoundHandle? MusicWav;
 
-	public Scene? Scene => scenes.TryPeek(out var scene) ? scene : null;
+	public static Scene? Scene => Instance.scenes.TryPeek(out var scene) ? scene : null;
 	public World? World => Scene as World;
 
 	internal bool NeedsReload = false;
@@ -185,7 +186,7 @@ public class Game : Module
 
 	private void HandleError(Exception e)
 	{
-		if (scenes.Peek() is GameErrorMessage)
+		if (Scene is GameErrorMessage)
 		{
 			throw e; // If we're already on the error message screen, accept our fate: it's a fatal crash!
 		}
@@ -440,7 +441,18 @@ public class Game : Module
 		if (IsMidTransition)
 			return;
 
-		if (scene is World world)
+		if (scene is EditorWorld editor)
+		{
+			Goto(new Transition()
+			{
+				Mode = Transition.Modes.Replace,
+				Scene = () => new EditorWorld(editor.Entry),
+				ToPause = true,
+				ToBlack = new AngledWipe(),
+				PerformAssetReload = true
+			});
+		}
+		else if (scene is World world)
 		{
 			Goto(new Transition()
 			{

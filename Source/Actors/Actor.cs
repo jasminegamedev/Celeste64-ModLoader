@@ -1,3 +1,5 @@
+using Celeste64.Mod.Editor;
+
 namespace Celeste64;
 
 public class Actor
@@ -11,6 +13,18 @@ public class Actor
 	protected BoundingBox localBounds;
 	protected BoundingBox worldBounds;
 	protected bool dirty = true;
+
+	public readonly Type? DefinitionType;
+	public readonly ActorDefinition? _Data;
+
+	protected Actor(Type? definitionType = null)
+	{
+		DefinitionType = definitionType;
+		if (DefinitionType != null)
+		{
+			_Data = Activator.CreateInstance(DefinitionType) as ActorDefinition;
+		}
+	}
 
 	/// <summary>
 	/// Optional GroupName, used by Strawberries to check what unlocks them. Can

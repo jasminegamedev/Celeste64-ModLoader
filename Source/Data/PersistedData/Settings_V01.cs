@@ -70,6 +70,10 @@ public sealed class Settings_V01 : PersistedData
 	/// </summary>
 	public bool EnableQuickStart { get; set; } = true;
 
+	/// <summary>
+	/// Fuji Custom - Settings for the in-game editor
+	/// </summary>
+	public EditorSettings_V01 Editor { get; set; } = new();
 
 	public override JsonTypeInfo GetTypeInfo()
 	{

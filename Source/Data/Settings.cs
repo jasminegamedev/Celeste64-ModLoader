@@ -75,6 +75,11 @@ public sealed class Settings
 	/// Fuji Custom - Whether the QuickStart feature is enabled
 	/// </summary>
 	public static bool EnableQuickStart => Instance.EnableQuickStart;
+	
+	/// <summary>
+	/// Fuji Custom - Settings for the in-game editor
+	/// </summary>
+	public static EditorSettings_V01 Editor => Instance.Editor;
 
 	public static void ToggleFullscreen()
 	{

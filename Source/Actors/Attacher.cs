@@ -1,6 +1,6 @@
 ﻿namespace Celeste64;
 
-public abstract class Attacher : Actor, IRidePlatforms
+public abstract class Attacher(Type? definitionType = null) : Actor(definitionType), IRidePlatforms
 {
 	public virtual Vec3 AttachNormal => -Vec3.UnitZ;
 	public virtual Vec3 AttachOrigin => Position;
