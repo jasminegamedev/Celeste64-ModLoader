@@ -17,6 +17,7 @@ public class ImGuiManager
 
 	private readonly ImGuiRenderer renderer;
 	private static FujiDebugMenu debugMenu = new FujiDebugMenu();
+	private static DemoWindowHandler demoWindow = new DemoWindowHandler() { Visible = false };
 	private static IEnumerable<ImGuiHandler> Handlers => ModManager.Instance.EnabledMods.SelectMany(mod => mod.ImGuiHandlers);
 
 	internal ImGuiManager()
@@ -35,6 +36,9 @@ public class ImGuiManager
 
 		if (debugMenu.Active)
 			debugMenu.Update();
+		
+		if (Input.Keyboard.Pressed(Keys.F2))
+			demoWindow.Visible = !demoWindow.Visible;
 
 		if (Game.Scene is EditorWorld editor)
 		{
@@ -60,6 +64,8 @@ public class ImGuiManager
 
 		if (debugMenu.Visible)
 			debugMenu.Render();
+		if (demoWindow.Visible)
+			demoWindow.Render();
 
 		if (Game.Scene is EditorWorld editor)
 		{
