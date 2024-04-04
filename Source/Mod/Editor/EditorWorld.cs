@@ -361,6 +361,9 @@ public class EditorWorld : World
 		if (Input.Keyboard.Pressed(Keys.F1))
 			DebugDraw = !DebugDraw;
 
+		if (Settings.Editor.PlayAnimations)
+			GeneralTimer += Time.Delta;
+		
 		// add / remove actors
 		ResolveChanges();
 	}

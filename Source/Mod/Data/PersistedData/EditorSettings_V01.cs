@@ -14,6 +14,7 @@ public sealed class EditorSettings_V01 : PersistedData
 	// View
 	public bool RenderSnow { get; set; } = false;
 	public bool RenderSkybox { get; set; } = true;
+	public bool PlayAnimations { get; set; } = true;
 
 	public const float MinRenderDistance = 500.0f;
 	public const float MaxRenderDistance = 5000.0f;

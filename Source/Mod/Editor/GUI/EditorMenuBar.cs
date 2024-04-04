@@ -28,10 +28,14 @@ public class EditorMenuBar : ImGuiHandler
 			bool snow = Settings.Editor.RenderSnow;
 			changed |= ImGui.Checkbox("Show Snow", ref snow);
 			Settings.Editor.RenderSnow = snow;
-
+			
 			bool skybox = Settings.Editor.RenderSkybox;
 			changed |= ImGui.Checkbox("Show Skybox", ref skybox);
 			Settings.Editor.RenderSkybox = skybox;
+			
+			bool anim = Settings.Editor.PlayAnimations;
+			changed |= ImGui.Checkbox("Play Animations", ref anim);
+			Settings.Editor.PlayAnimations = anim;
 
 			float renderDistance = Settings.Editor.RenderDistance;
 			changed |= ImGui.DragFloat("Render Distance", ref renderDistance, v_speed: 10.0f, v_min: EditorSettings_V01.MinRenderDistance, v_max: EditorSettings_V01.MaxRenderDistance);
