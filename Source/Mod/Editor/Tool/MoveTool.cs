@@ -6,6 +6,7 @@ public class MoveTool : Tool
 {
 	public override string Name => "Move";
 	public override Gizmo[] Gizmos => gizmo == null ? [] : [gizmo];
+	public override bool EnableSelection => true;
 
 	private Gizmo? gizmo;
 	

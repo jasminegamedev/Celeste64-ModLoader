@@ -291,7 +291,8 @@ public class EditorWorld : World
 		Camera.LookAt = cameraPos + forward;
 
 		// Shoot ray cast for selection
-		SelectionRaycast();
+		if (CurrentTool.EnableSelection)
+			SelectionRaycast();
 
 		// Update actors of definitions
 		foreach (var def in Definitions.Where(def => def.Dirty))
@@ -541,83 +542,86 @@ public class EditorWorld : World
 		const float selectedBoundsInflate = 0.25f;
 
 		// Render selected actors bounding box
-		foreach (var selected in SelectedActors)
+		if (CurrentTool.EnableSelection)
 		{
-			var matrix = selected.Matrix;
-			var bounds = selected.LocalBounds.Inflate(selectedBoundsInflate);
+			foreach (var selected in SelectedActors)
+            {
+            	var matrix = selected.Matrix;
+            	var bounds = selected.LocalBounds.Inflate(selectedBoundsInflate);
+    
+            	batch3D.Box(bounds.Min, bounds.Max, selectedLocalBoundsFillColor, matrix);
+            }
+            batch3D.Render(ref state);
+            batch3D.Clear();
 
-			batch3D.Box(bounds.Min, bounds.Max, selectedLocalBoundsFillColor, matrix);
+			// Render outline on-top of everything else
+			target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
+			foreach (var selected in SelectedActors)
+			{
+				// Scale thickness based on distance
+				var lineThickness = Vec3.Distance(Camera.Position, selected.WorldBounds.Center) * 0.001f;
+
+				// Transformed local bounds
+				var matrix = selected.Matrix;
+				var bounds = selected.LocalBounds.Inflate(selectedBoundsInflate);
+				var v000 = bounds.Min;
+				var v100 = bounds.Min with { X = bounds.Max.X };
+				var v010 = bounds.Min with { Y = bounds.Max.Y };
+				var v001 = bounds.Min with { Z = bounds.Max.Z };
+				var v011 = bounds.Max with { X = bounds.Min.X };
+				var v101 = bounds.Max with { Y = bounds.Min.Y };
+				var v110 = bounds.Max with { Z = bounds.Min.Z };
+				var v111 = bounds.Max;
+
+				batch3D.Line(v000, v100, selectedLocalBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v000, v010, selectedLocalBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v000, v001, selectedLocalBoundsOutlineColor, matrix, lineThickness);
+
+				batch3D.Line(v111, v011, selectedLocalBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v111, v101, selectedLocalBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v111, v110, selectedLocalBoundsOutlineColor, matrix, lineThickness);
+
+				batch3D.Line(v010, v011, selectedLocalBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v010, v110, selectedLocalBoundsOutlineColor, matrix, lineThickness);
+
+				batch3D.Line(v101, v100, selectedLocalBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v101, v001, selectedLocalBoundsOutlineColor, matrix, lineThickness);
+
+				batch3D.Line(v100, v110, selectedLocalBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v001, v011, selectedLocalBoundsOutlineColor, matrix, lineThickness);
+
+				// World bounds
+				matrix = Matrix.Identity;
+				bounds = selected.WorldBounds.Inflate(selectedBoundsInflate);
+				v000 = bounds.Min;
+				v100 = bounds.Min with { X = bounds.Max.X };
+				v010 = bounds.Min with { Y = bounds.Max.Y };
+				v001 = bounds.Min with { Z = bounds.Max.Z };
+				v011 = bounds.Max with { X = bounds.Min.X };
+				v101 = bounds.Max with { Y = bounds.Min.Y };
+				v110 = bounds.Max with { Z = bounds.Min.Z };
+				v111 = bounds.Max;
+
+				batch3D.Line(v000, v100, selectedWorldBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v000, v010, selectedWorldBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v000, v001, selectedWorldBoundsOutlineColor, matrix, lineThickness);
+
+				batch3D.Line(v111, v011, selectedWorldBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v111, v101, selectedWorldBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v111, v110, selectedWorldBoundsOutlineColor, matrix, lineThickness);
+
+				batch3D.Line(v010, v011, selectedWorldBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v010, v110, selectedWorldBoundsOutlineColor, matrix, lineThickness);
+
+				batch3D.Line(v101, v100, selectedWorldBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v101, v001, selectedWorldBoundsOutlineColor, matrix, lineThickness);
+
+				batch3D.Line(v100, v110, selectedWorldBoundsOutlineColor, matrix, lineThickness);
+				batch3D.Line(v001, v011, selectedWorldBoundsOutlineColor, matrix, lineThickness);
+			}
+			batch3D.Render(ref state);
+			batch3D.Clear();
 		}
-		batch3D.Render(ref state);
-		batch3D.Clear();
-
-		// Render outline on-top of everything else
-		target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
-		foreach (var selected in SelectedActors)
-		{
-			// Scale thickness based on distance
-			var lineThickness = Vec3.Distance(Camera.Position, selected.WorldBounds.Center) * 0.001f;
-
-			// Transformed local bounds
-			var matrix = selected.Matrix;
-			var bounds = selected.LocalBounds.Inflate(selectedBoundsInflate);
-			var v000 = bounds.Min;
-			var v100 = bounds.Min with { X = bounds.Max.X };
-			var v010 = bounds.Min with { Y = bounds.Max.Y };
-			var v001 = bounds.Min with { Z = bounds.Max.Z };
-			var v011 = bounds.Max with { X = bounds.Min.X };
-			var v101 = bounds.Max with { Y = bounds.Min.Y };
-			var v110 = bounds.Max with { Z = bounds.Min.Z };
-			var v111 = bounds.Max;
-
-			batch3D.Line(v000, v100, selectedLocalBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v000, v010, selectedLocalBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v000, v001, selectedLocalBoundsOutlineColor, matrix, lineThickness);
-
-			batch3D.Line(v111, v011, selectedLocalBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v111, v101, selectedLocalBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v111, v110, selectedLocalBoundsOutlineColor, matrix, lineThickness);
-
-			batch3D.Line(v010, v011, selectedLocalBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v010, v110, selectedLocalBoundsOutlineColor, matrix, lineThickness);
-
-			batch3D.Line(v101, v100, selectedLocalBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v101, v001, selectedLocalBoundsOutlineColor, matrix, lineThickness);
-
-			batch3D.Line(v100, v110, selectedLocalBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v001, v011, selectedLocalBoundsOutlineColor, matrix, lineThickness);
-
-			// World bounds
-			matrix = Matrix.Identity;
-			bounds = selected.WorldBounds.Inflate(selectedBoundsInflate);
-			v000 = bounds.Min;
-			v100 = bounds.Min with { X = bounds.Max.X };
-			v010 = bounds.Min with { Y = bounds.Max.Y };
-			v001 = bounds.Min with { Z = bounds.Max.Z };
-			v011 = bounds.Max with { X = bounds.Min.X };
-			v101 = bounds.Max with { Y = bounds.Min.Y };
-			v110 = bounds.Max with { Z = bounds.Min.Z };
-			v111 = bounds.Max;
-
-			batch3D.Line(v000, v100, selectedWorldBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v000, v010, selectedWorldBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v000, v001, selectedWorldBoundsOutlineColor, matrix, lineThickness);
-
-			batch3D.Line(v111, v011, selectedWorldBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v111, v101, selectedWorldBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v111, v110, selectedWorldBoundsOutlineColor, matrix, lineThickness);
-
-			batch3D.Line(v010, v011, selectedWorldBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v010, v110, selectedWorldBoundsOutlineColor, matrix, lineThickness);
-
-			batch3D.Line(v101, v100, selectedWorldBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v101, v001, selectedWorldBoundsOutlineColor, matrix, lineThickness);
-
-			batch3D.Line(v100, v110, selectedWorldBoundsOutlineColor, matrix, lineThickness);
-			batch3D.Line(v001, v011, selectedWorldBoundsOutlineColor, matrix, lineThickness);
-		}
-		batch3D.Render(ref state);
-		batch3D.Clear();
 
 		// Render gizmos on-top
 		target.Clear(Color.Black, 1.0f, 0, ClearMask.Depth);
