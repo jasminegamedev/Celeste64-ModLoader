@@ -94,7 +94,7 @@ public class World : Scene
 			Game.OpenLog();
 		}));
 
-		badMapWarningMenu.Add(new Menu.Option("Exit", () => Game.Instance.Goto(new Transition()
+		badMapWarningMenu.Add(new Menu.Option("QuitToMainMenu", () => Game.Instance.Goto(new Transition()
 		{
 			Mode = Transition.Modes.Replace,
 			Scene = () => new Overworld(true),
@@ -111,7 +111,7 @@ public class World : Scene
 
 		if (Assets.Maps.ContainsKey(entry.Map) == false)
 		{
-			Panic($"Sorry, the map {entry.Map} does not exist.\nCheck your mod's Levels.json and Maps folder.");
+			Panic(new Exception(), $"Sorry, the map {entry.Map} does not exist.\nCheck your mod's Levels.json and Maps folder.", Panicked);
 
 			return;
 		}
@@ -121,7 +121,7 @@ public class World : Scene
 
 		if (Map.isMalformed == true)
 		{
-			Panic($"Sorry, the map {entry.Map} appears to be broken/corrupted\nIt failed to load because:\n{Map.readExceptionMessage}\nMore information may be available in the logs.");
+			Panic(new Exception(), $"Sorry, the map {entry.Map} appears to be broken/corrupted\nIt failed to load because:\n{Map.readExceptionMessage}\nMore information may be available in the logs.", Panicked);
 
 			return;
 		}
@@ -142,7 +142,7 @@ public class World : Scene
 
 			var modMenu = new ModSelectionMenu(pauseMenu)
 			{
-				Title = "Mods Menu"
+				Title = Loc.Str("PauseModsMenu")
 			};
 
 			pauseMenu.Title = Loc.Str("PauseTitle");
@@ -162,11 +162,11 @@ public class World : Scene
 					() => Assets.EnabledSkins.Select(x => x.Name).ToList(),
 					0,
 					() => Assets.EnabledSkins.Count,
-					() => Save.Instance.GetSkin().Name, Save.Instance.SetSkinName)
+					() => Save.GetSkin().Name, Save.SetSkinName)
 				);
 			}
 			pauseMenu.Add(new Menu.Submenu("PauseOptions", pauseMenu, optionsMenu));
-			pauseMenu.Add(new Menu.Submenu("Mods", pauseMenu, modMenu));
+			pauseMenu.Add(new Menu.Submenu("PauseModsMenu", pauseMenu, modMenu));
 			pauseMenu.Add(new Menu.Option("PauseSaveQuit", () => Game.Instance.Goto(new Transition()
 			{
 				Mode = Transition.Modes.Replace,
@@ -233,7 +233,15 @@ public class World : Scene
 			ModManager.Instance.OnWorldLoaded(this);
 		}
 
-		Log.Info($"Loaded Map '{Entry.Map}' in {stopwatch.ElapsedMilliseconds}ms");
+		if (Entry.Reason == EntryReasons.Entered)
+		{
+			Log.Info($"Strawb Count: {adding.Where(x => x is Strawberry).Count()}");
+			Log.Info($"Loaded Map '{ModManager.Instance.CurrentLevelMod?.ModInfo.Id}:{Entry.Map}' in {stopwatch.ElapsedMilliseconds}ms");
+		}
+		else
+		{
+			if (Settings.EnableAdditionalLogging) Log.Info($"Respawned in {stopwatch.ElapsedMilliseconds}ms");
+		}
 	}
 
 	public override void Disposed()
@@ -377,7 +385,7 @@ public class World : Scene
 	{
 		if (Get<Player>() is { } player)
 		{
-			player.SetSkin(Save.Instance.GetSkin());
+			player.SetSkin(Save.GetSkin());
 		}
 	}
 
@@ -521,7 +529,7 @@ public class World : Scene
 			Log.Error($"--- ERROR in the map {currentModName}:{Entry.Map}. More details below ---");
 			Log.Error(err.ToString());
 
-			Panic($"Oops, critical error :(\n{err.Message}\nYou can try to recover from this error by pressing Retry,\nbut we can't promise stability!");
+			Panic(err, $"Oops, critical error :(\n{err.Message}\nYou can try to recover from this error by pressing Retry,\nbut we can't promise stability!", Panicked);
 		} // We wrap most of Update() in a try-catch to hopefully catch errors that occur during gameplay.
 	}
 
@@ -543,10 +551,10 @@ public class World : Scene
 			var ply = Get<Player>();
 			if (ply != null)
 			{
-				if (ply.Skin != Save.Instance.GetSkin())
+				if (ply.Skin != Save.GetSkin())
 				{
-					ply.SetSkin(Save.Instance.GetSkin());
-					ModManager.Instance.OnPlayerSkinChange(ply, Save.Instance.GetSkin());
+					ply.SetSkin(Save.GetSkin());
+					ModManager.Instance.OnPlayerSkinChange(ply, Save.GetSkin());
 				}
 			}
 		}
@@ -641,7 +649,7 @@ public class World : Scene
 		return closest.HasValue;
 	}
 
-	public StackList8<WallHit> SolidWallCheck(in Vec3 point, float radius)
+	public StackList8<WallHit> SolidWallCheck(in Vec3 point, float radius, Func<Solid, bool>? predicate = null)
 	{
 		var radiusSquared = radius * radius;
 		var flatPlane = new Plane(Vec3.UnitZ, point.Z);
@@ -656,6 +664,9 @@ public class World : Scene
 				continue;
 
 			if (!solid.WorldBounds.Inflate(radius).Contains(point))
+				continue;
+
+			if (predicate != null && !predicate(solid))
 				continue;
 
 			var verts = solid.WorldVertices;
@@ -715,9 +726,9 @@ public class World : Scene
 		return hits;
 	}
 
-	public bool SolidWallCheckNearest(in Vec3 point, float radius, out WallHit hit)
+	public bool SolidWallCheckNearest(in Vec3 point, float radius, out WallHit hit, Func<Solid, bool>? predicate = null)
 	{
-		var hits = SolidWallCheck(point, radius);
+		var hits = SolidWallCheck(point, radius, predicate);
 		if (hits.Count > 0)
 		{
 			var closest = hits[0];
@@ -736,9 +747,9 @@ public class World : Scene
 		}
 	}
 
-	public bool SolidWallCheckClosestToNormal(in Vec3 point, float radius, Vec3 normal, out WallHit hit)
+	public bool SolidWallCheckClosestToNormal(in Vec3 point, float radius, Vec3 normal, out WallHit hit, Func<Solid, bool>? predicate = null)
 	{
-		var hits = SolidWallCheck(point, radius);
+		var hits = SolidWallCheck(point, radius, predicate);
 		if (hits.Count > 0)
 		{
 			hit = hits[0];
@@ -946,7 +957,7 @@ public class World : Scene
 			// stats
 			{
 				var at = bounds.TopLeft + new Vec2(4, 8) * Game.RelativeScale;
-				if (IsInEndingArea || Save.Instance.SpeedrunTimer)
+				if (IsInEndingArea || Settings.SpeedrunTimer)
 				{
 					UI.Timer(batch, Save.CurrentRecord.Time, at);
 					at.Y += UI.IconSize + 4 * Game.RelativeScale;
@@ -1038,8 +1049,13 @@ public class World : Scene
 		}
 	}
 
-	private void Panic(string reason)
+	private void Panic(Exception error, string reason, bool level)
 	{
+		if (level)
+		{
+			throw error;
+		}
+
 		Audio.Play(Sfx.main_menu_restart_cancel);
 
 		Panicked = true;

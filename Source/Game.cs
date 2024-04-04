@@ -64,8 +64,12 @@ public class Game : Module
 		}
 	}
 
-	public static int Width => (int)(DefaultWidth * _resolutionScale);
-	public static int Height => (int)(DefaultHeight * _resolutionScale);
+	public static bool IsDynamicRes;
+
+	public static int Width => IsDynamicRes ? App.WidthInPixels : (int)(DefaultWidth * _resolutionScale);
+	public static int Height => IsDynamicRes ? App.HeightInPixels : (int)(DefaultHeight * _resolutionScale);
+	private int Height_old = (int)(DefaultHeight * _resolutionScale);
+	private int Width_old = (int)(DefaultWidth * _resolutionScale);
 
 	/// <summary>
 	/// Used by various rendering elements to proportionally scale if you change the default game resolution
@@ -99,6 +103,11 @@ public class Game : Module
 
 	public Game()
 	{
+		if (IsDynamicRes)
+		{
+			Log.Warning("Dynamic resolution is an experimental feature. Certain UI elements may not be adjusted correctly.");
+		}
+
 		OnResolutionChanged += () =>
 		{
 			target.Dispose();
@@ -108,6 +117,12 @@ public class Game : Module
 		// If this isn't stored, the delegate will get GC'd and everything will crash :)
 		audioEventCallback = MusicTimelineCallback;
 		imGuiManager = new ImGuiManager();
+	}
+
+	public void SetResolutionScale(int scale)
+	{
+		ResolutionScale = scale;
+		Settings.SetResolutionScale(scale);
 	}
 
 	public override void Startup()
@@ -151,6 +166,7 @@ public class Game : Module
 
 	public void Goto(Transition next)
 	{
+		if (IsMidTransition) return;
 		Debug.Assert(
 			transitionStep == TransitionStep.None ||
 			transitionStep == TransitionStep.FadeIn);
@@ -162,19 +178,63 @@ public class Game : Module
 			Music.Stop();
 	}
 
+	public void UnsafelySetScene(Scene next)
+	{
+		scenes.Clear();
+		scenes.Push(next);
+	}
+
+	private void HandleError(Exception e)
+	{
+		if (scenes.Peek() is GameErrorMessage)
+		{
+			throw e; // If we're already on the error message screen, accept our fate: it's a fatal crash!
+		}
+
+		scenes.Clear();
+		Log.Error("== ERROR ==\n\n" + e.ToString());
+		WriteToLog();
+		UnsafelySetScene(new GameErrorMessage(e));
+	}
+
 	public override void Update()
 	{
+		if (IsDynamicRes)
+		{
+			if (Height_old != Height || Width_old != Width)
+			{
+				OnResolutionChanged.Invoke();
+			}
+
+			Height_old = Height;
+			Width_old = Width;
+		}
+
 		imGuiManager.UpdateHandlers();
 
-		// update top scene
-		if (scenes.TryPeek(out var scene))
-		{
-			var pausing =
-				transitionStep == TransitionStep.FadeIn && transition.FromPause ||
-				transitionStep == TransitionStep.FadeOut && transition.ToPause;
+		scenes.TryPeek(out var scene); // gets the top scene
 
-			if (!pausing)
-				scene.Update();
+		// update top scene
+		try
+		{
+			if (scene != null)
+			{
+				var pausing =
+					transitionStep == TransitionStep.FadeIn && transition.FromPause ||
+					transitionStep == TransitionStep.FadeOut && transition.ToPause;
+
+				if (!pausing)
+					scene.Update();
+			}
+
+			if (!(scene is GameErrorMessage))
+			{
+				ModManager.Instance.Update(Time.Delta);
+			}
+		}
+		catch (Exception e)
+		{
+			HandleError(e);
 		}
 
 		// handle transitions
@@ -207,9 +267,25 @@ public class Game : Module
 			// exit last scene
 			if (scenes.TryPeek(out var lastScene))
 			{
-				lastScene?.Exited();
-				if (transition.Mode != Transition.Modes.Push)
-					lastScene?.Disposed();
+				try
+				{
+					lastScene?.Exited();
+					if (transition.Mode != Transition.Modes.Push)
+						lastScene?.Disposed();
+				}
+				catch (Exception e)
+				{
+					transitionStep = TransitionStep.None;
+					HandleError(e);
+				}
+			}
+
+			// perform game save between transitions
+			if (transition.Saving)
+			{
+				Save.SaveToFile();
+				Settings.SaveToFile();
+				ModSettings.SaveToFile();
 			}
 
 			// reload assets if requested
@@ -217,10 +293,6 @@ public class Game : Module
 			{
 				Assets.Load();
 			}
-
-			// perform game save between transitions
-			if (transition.Saving)
-				Save.Instance.SaveToFile();
 
 			// perform transition
 			switch (transition.Mode)
@@ -241,17 +313,27 @@ public class Game : Module
 					break;
 			}
 
-			// don't let the game sit in a sceneless place
-			if (scenes.Count <= 0)
-				scenes.Push(new Overworld(false));
-
 			// run a single update when transition happens so stuff gets established
 			if (scenes.TryPeek(out var nextScene))
 			{
-				nextScene.Entered();
-				ModManager.Instance.OnSceneEntered(nextScene);
-				nextScene.Update();
+				if (Settings.EnableAdditionalLogging) Log.Info("Switching scene: " + nextScene.GetType());
+				
+				try
+				{
+					nextScene.Entered();
+					ModManager.Instance.OnSceneEntered(nextScene);
+					nextScene.Update();
+				}
+				catch (Exception e)
+				{
+					transitionStep = TransitionStep.None;
+					HandleError(e);
+				}
 			}
+
+			// don't let the game sit in a sceneless place
+			if (scenes.Count <= 0)
+				scenes.Push(new Overworld(false));
 
 			// switch music
 			{
@@ -303,7 +385,7 @@ public class Game : Module
 			}
 
 			// in case new music was played
-			Save.Instance.SyncSettings();
+			Settings.SyncSettings();
 			transitionStep = TransitionStep.FadeIn;
 
 			WriteToLog();
@@ -341,7 +423,7 @@ public class Game : Module
 		{
 			// toggle fullsrceen
 			if ((Input.Keyboard.Alt && Input.Keyboard.Pressed(Keys.Enter)) || Input.Keyboard.Pressed(Keys.F4))
-				Save.Instance.ToggleFullscreen();
+				Settings.ToggleFullscreen();
 
 			// reload state
 			if (Input.Keyboard.Ctrl && Input.Keyboard.Pressed(Keys.R) && !IsMidTransition)
@@ -349,7 +431,6 @@ public class Game : Module
 				ReloadAssets();
 			}
 		}
-		ModManager.Instance.Update(Time.Delta);
 	}
 
 	internal void ReloadAssets()
@@ -405,7 +486,14 @@ public class Game : Module
 		{
 			// draw the world to the target
 			if (scenes.TryPeek(out var scene))
-				scene.Render(target);
+				try
+				{
+					scene.Render(target);
+				}
+				catch (Exception e)
+				{
+					HandleError(e);
+				}
 
 			// draw screen wipe over top
 			if (transitionStep != TransitionStep.None && transition.ToBlack != null)
@@ -430,7 +518,7 @@ public class Game : Module
 	// Fuji Custom
 	public static void WriteToLog()
 	{
-		if (!Save.Instance.WriteLog)
+		if (!Settings.WriteLog)
 		{
 			return;
 		}

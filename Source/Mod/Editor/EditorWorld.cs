@@ -123,13 +123,13 @@ public class EditorWorld : World
 
 	internal void RefreshEnvironment()
 	{
-		Camera.FarPlane = Save.Instance.Editor.RenderDistance;
-		Game.ResolutionScale = Save.Instance.Editor.ResolutionType switch
+		Camera.FarPlane = Settings.Editor.RenderDistance;
+		Game.ResolutionScale = Settings.Editor.ResolutionType switch
 		{
-			Save.EditorSettings.Resolution.Game => 1.0f,
-			Save.EditorSettings.Resolution.Double => 2.0f,
-			Save.EditorSettings.Resolution.HD => 3.0f,
-			Save.EditorSettings.Resolution.Native => Math.Max(App.Width / (float)Game.DefaultWidth, App.Height / (float)Game.DefaultHeight),
+			EditorSettings_V01.Resolution.Game => 1.0f,
+			EditorSettings_V01.Resolution.Double => 2.0f,
+			EditorSettings_V01.Resolution.HD => 3.0f,
+			EditorSettings_V01.Resolution.Native => Math.Max(App.Width / (float)Game.DefaultWidth, App.Height / (float)Game.DefaultHeight),
 			_ => throw new ArgumentOutOfRangeException(),
 		};
 
@@ -140,14 +140,14 @@ public class EditorWorld : World
 
 		if (Get<Snow>() is { } snow)
 			Destroy(snow);
-		if (Map.SnowAmount > 0 && Save.Instance.Editor.RenderSnow)
+		if (Map.SnowAmount > 0 && Settings.Editor.RenderSnow)
 		{
 			Add(new Snow(Map.SnowAmount, Map.SnowWind));
 		}
 
 		Game.Instance.Music.Stop();
 		Game.Instance.MusicWav?.Stop();
-		if (Save.Instance.Editor.PlayMusic)
+		if (Settings.Editor.PlayMusic)
 		{
 			if (Map.Music != null && Assets.Music.ContainsKey(Map.Music))
 			{
@@ -172,7 +172,7 @@ public class EditorWorld : World
 
 		Game.Instance.Ambience.Stop();
 		Game.Instance.AmbienceWav?.Stop();
-		if (Save.Instance.Editor.PlayAmbience)
+		if (Settings.Editor.PlayAmbience)
 		{
 			if (Map.Ambience != null && Assets.Music.ContainsKey(Map.Ambience))
 			{
@@ -196,7 +196,7 @@ public class EditorWorld : World
 			Game.Instance.AmbienceWav = Audio.PlayMusic(AmbienceWav);
 
 		skyboxes.Clear();
-		if (!string.IsNullOrEmpty(Map.Skybox) && Save.Instance.Editor.RenderSkybox)
+		if (!string.IsNullOrEmpty(Map.Skybox) && Settings.Editor.RenderSkybox)
 		{
 			// single skybox
 			if (Assets.Textures.TryGetValue($"skyboxes/{Map.Skybox}", out var skybox))

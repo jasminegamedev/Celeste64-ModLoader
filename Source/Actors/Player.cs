@@ -229,7 +229,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	public static Vec3 StoredCameraForward;
 	public static float StoredCameraDistance;
 
-	public enum States { Normal, Dashing, Skidding, Climbing, StrawbGet, FeatherStart, Feather, Respawn, Dead, StrawbReveal, Cutscene, Bubble, Cassette, DebugFly };
+	public enum States { Normal, Dashing, Skidding, Climbing, StrawbGet, FeatherStart, Feather, Respawn, Dead, StrawbReveal, Cutscene, Bubble, Cassette, LoadingZone, DebugFly };
 	public enum Events { Land };
 	public enum JumpType { Jumped, WallJumped, SkidJumped, DashJumped };
 
@@ -300,6 +300,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 		=> StateMachine.State != States.StrawbGet
 		&& StateMachine.State != States.Bubble
 		&& StateMachine.State != States.Cassette
+		&& StateMachine.State != States.LoadingZone
 		&& StateMachine.State != States.StrawbReveal
 		&& StateMachine.State != States.Respawn
 		&& StateMachine.State != States.Dead
@@ -309,6 +310,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 		=> StateMachine.State != States.StrawbReveal
 		&& StateMachine.State != States.StrawbGet
 		&& StateMachine.State != States.Cassette
+		&& StateMachine.State != States.LoadingZone
 		&& StateMachine.State != States.Dead
 		&& GetCurrentCustomState() is not { IsAbleToPause: false };
 
@@ -322,7 +324,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 		PointShadowAlpha = 1.0f;
 		LocalBounds = new BoundingBox(new Vec3(0, 0, 10), 10);
 		UpdateOffScreen = true;
-		Skin = Save.Instance.GetSkin();
+		Skin = Save.GetSkin();
 
 		// setup model
 		{
@@ -359,6 +361,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 		StateMachine.InitState(States.Dead, StDeadUpdate, StDeadEnter);
 		StateMachine.InitState(States.Bubble, null, null, StBubbleExit, StBubbleRoutine);
 		StateMachine.InitState(States.Cassette, null, null, StCassetteExit, StCassetteRoutine);
+		StateMachine.InitState(States.LoadingZone, null, null, StLoadingZoneExit, StLoadingZoneRoutine);
 		StateMachine.InitState(States.DebugFly, StDebugFlyUpdate, StDebugFlyEnter, StDebugFlyExit);
 		// Register custom player states
 		var nextId = CustomPlayerStateRegistry.BaseId;
@@ -518,11 +521,11 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	{
 		// only update camera if not dead
 		if (StateMachine.State != States.Respawn && StateMachine.State != States.Dead &&
-			StateMachine.State != States.StrawbReveal && StateMachine.State != States.Cassette)
+			StateMachine.State != States.StrawbReveal && StateMachine.State != States.Cassette && StateMachine.State != States.LoadingZone)
 		{
 			// Rotate Camera
 			{
-				var invertX = Save.Instance.InvertCamera == Save.InvertCameraOptions.X || Save.Instance.InvertCamera == Save.InvertCameraOptions.Both;
+				var invertX = Settings.InvertCamera == InvertCameraOptions.X || Settings.InvertCamera == InvertCameraOptions.Both;
 				var rot = new Vec2(CameraTargetForward.X, CameraTargetForward.Y).Angle();
 				rot -= Controls.Camera.Value.X * Time.Delta * 4 * (invertX ? -1 : 1);
 
@@ -533,7 +536,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 			// Move Camera in / out
 			if (Controls.Camera.Value.Y != 0)
 			{
-				var invertY = Save.Instance.InvertCamera == Save.InvertCameraOptions.Y || Save.Instance.InvertCamera == Save.InvertCameraOptions.Both;
+				var invertY = Settings.InvertCamera == InvertCameraOptions.Y || Settings.InvertCamera == InvertCameraOptions.Both;
 				CameraTargetDistance += Controls.Camera.Value.Y * Time.Delta * (invertY ? -1 : 1);
 				CameraTargetDistance = Calc.Clamp(CameraTargetDistance, 0, 1);
 			}
@@ -569,6 +572,14 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 				Kill();
 				return;
 			}
+		}
+
+		if (StateMachine.State != States.Cassette &&
+			StateMachine.State != States.LoadingZone &&
+			World.OverlapsFirst<LoadingZone>(SolidWaistTestPos) is { } loadingZone)
+		{
+			EnterLoadingZone(loadingZone);
+			return;
 		}
 
 		// enter cutscene
@@ -1160,11 +1171,11 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 
 	public virtual bool ClimbCheckAt(Vec3 offset, out WallHit hit)
 	{
-		if (World.SolidWallCheckClosestToNormal(SolidWaistTestPos + offset, ClimbCheckDist, -new Vec3(TargetFacing, 0), out hit)
+		if (World.SolidWallCheckClosestToNormal(SolidWaistTestPos + offset, ClimbCheckDist, -new Vec3(TargetFacing, 0), out hit, static solid => solid.IsClimbable)
 		&& (RelativeMoveInput == Vec2.Zero || Vec2.Dot(hit.Normal.XY().Normalized(), RelativeMoveInput) <= -0.5f)
-		&& (hit.Actor is not Solid || hit.Actor is Solid { IsClimbable: true }) && ClimbNormalCheck(hit.Normal)
-		&& World.SolidRayCast(SolidWaistTestPos, -hit.Normal, ClimbCheckDist + 2, out var rayHit) && ClimbNormalCheck(rayHit.Normal)
-		&& (rayHit.Actor is not Solid || rayHit.Actor is Solid { IsClimbable: true }))
+		&& ClimbNormalCheck(hit.Normal)
+		// Prevent climbing if we're facing a non-climbable solid
+		&& !(World.SolidRayCast(SolidWaistTestPos + offset, new Vec3(TargetFacing, 0), ClimbCheckDist + 1.0f, out var nonClimbableHit) && nonClimbableHit.Actor is Solid { IsClimbable: false }))
 			return true;
 		return false;
 	}
@@ -1207,7 +1218,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	public virtual bool WallJumpCheck()
 	{
 		if (Controls.Jump.Pressed
-		&& World.SolidWallCheckClosestToNormal(SolidWaistTestPos, ClimbCheckDist, -new Vec3(TargetFacing, 0), out var hit))
+		&& World.SolidWallCheckClosestToNormal(SolidWaistTestPos, ClimbCheckDist, -new Vec3(TargetFacing, 0), out var hit) && hit.Actor is Solid { CanWallJump: true })
 		{
 			Controls.Jump.ConsumePress();
 			Position += (hit.Pushout * (WallPushoutDist / ClimbCheckDist));
@@ -2453,12 +2464,68 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 
 	#endregion
 
+	// Copied from Cassette State Logic
+	#region Loading Zone State
+
+	public LoadingZone? loadingZone;
+
+	public virtual void EnterLoadingZone(LoadingZone it)
+	{
+		if (StateMachine.State != States.LoadingZone)
+		{
+			loadingZone = it;
+			StateMachine.State = States.LoadingZone;
+			Model.Rate = 0;
+			Stop();
+			Game.Instance.Ambience.Stop();
+			Audio.StopBus(Sfx.bus_gameplay_world, false);
+		}
+	}
+
+	public virtual CoEnumerator StLoadingZoneRoutine()
+	{
+		if (loadingZone != null)
+		{
+			if (Assets.Maps.ContainsKey(loadingZone.Map))
+			{
+				Game.Instance.Goto(new Transition()
+				{
+					Mode = Transition.Modes.Push,
+					Scene = () => new World(new(loadingZone.Map, loadingZone.CheckpointName, loadingZone.IsSubmap, World.EntryReasons.Entered)),
+					ToPause = true,
+					ToBlack = new SpotlightWipe(),
+					StopMusic = true
+				});
+			}
+		}
+
+		yield return 1.0f;
+
+		Audio.Play(Sfx.sfx_cassette_exit, Position);
+
+		StateMachine.State = States.Normal;
+		velocity = Vec3.UnitZ * 25;
+		HoldJumpSpeed = velocity.Z;
+		THoldJump = .1f;
+		AutoJump = true;
+	}
+
+	public virtual void StLoadingZoneExit()
+	{
+		loadingZone = null;
+		Model.Rate = 1;
+	}
+
+	#endregion
+
 	#region Normal State
 
 	public virtual void StDebugFlyEnter()
 	{
 		THoldJump = 0;
 		TFootstep = FootstepInterval;
+		Model.Rate = 0;
+		Velocity = Vec3.Zero;
 	}
 
 	public virtual void StDebugFlyExit()
@@ -2505,11 +2572,11 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 
 		if (Controls.Jump.Down)
 		{
-			Position = new Vector3(Position.X, Position.Y, Position.Z + 1);
+			Position = new Vector3(Position.X, Position.Y, Position.Z + 1.5f);
 		}
 		if (Controls.Dash.Down)
 		{
-			Position = new Vector3(Position.X, Position.Y, Position.Z - 1);
+			Position = new Vector3(Position.X, Position.Y, Position.Z - 1.5f);
 		}
 
 		if (Controls.Move.Value != Vec2.Zero && TNoMove <= 0)
@@ -2573,7 +2640,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 			}
 		}
 
-		if (!OnGround && !Dead && PointShadowAlpha > 0 && !InBubble && Save.Instance.ZGuide)
+		if (!OnGround && !Dead && PointShadowAlpha > 0 && !InBubble && Settings.ZGuide)
 		{
 			var distance = 1000.0f;
 			if (World.SolidRayCast(Position, -Vec3.UnitZ, distance, out var hit))

@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Celeste64.Mod.Data;
 
 namespace Celeste64;
 
@@ -14,13 +14,17 @@ public class Startup : Scene
 	{
 		// load save file
 		{
-			var saveFile = Path.Join(App.UserPath, Save.FileName);
+			SaveManager.Instance.LoadSaveByFileName(SaveManager.Instance.GetLastLoadedSave());
+		}
 
-			if (File.Exists(saveFile))
-				Save.Instance = Save.Deserialize(File.ReadAllText(saveFile)) ?? new();
-			else
-				Save.Instance = new();
-			Save.Instance.SyncSettings();
+		// load settings file
+		{
+			Settings.LoadSettingsByFileName(Settings.DefaultFileName);
+		}
+
+		// load mod settings file
+		{
+			ModSettings.LoadModSettingsByFileName(ModSettings.DefaultFileName);
 		}
 
 		// load assets
@@ -33,42 +37,26 @@ public class Startup : Scene
 
 		// try to load controls, or overwrite with defaults if they don't exist
 		{
-			var controlsFile = Path.Join(App.UserPath, ControlsConfig.FileName);
-
-			ControlsConfig? controls = null;
-			if (File.Exists(controlsFile))
-			{
-				try
-				{
-					controls = JsonSerializer.Deserialize(File.ReadAllText(controlsFile), ControlsConfigContext.Default.ControlsConfig);
-				}
-				catch
-				{
-					controls = null;
-				}
-			}
-
-			// create defaults if not found
-			if (controls == null)
-			{
-				controls = ControlsConfig.Defaults;
-				using var stream = File.Create(controlsFile);
-				JsonSerializer.Serialize(stream, ControlsConfig.Defaults, ControlsConfigContext.Default.ControlsConfig);
-				stream.Flush();
-			}
-
-			Controls.Load(controls);
+			Controls.LoadControlsByFileName(Controls.DefaultFileName);
 		}
 
 		// enter game
 		//Assets.Levels[0].Enter(new AngledWipe());
-		Game.Instance.Goto(new Transition()
+		if (Input.Keyboard.CtrlOrCommand && !Game.Instance.IsMidTransition && Settings.EnableQuickStart)
 		{
-			Mode = Transition.Modes.Replace,
-			Scene = () => new Titlescreen(),
-			ToBlack = null,
-			FromBlack = new AngledWipe(),
-		});
+			var entry = new Overworld.Entry(Assets.Levels[0], null);
+			entry.Level.Enter();
+		}
+		else
+		{
+			Game.Instance.Goto(new Transition()
+			{
+				Mode = Transition.Modes.Replace,
+				Scene = () => new Titlescreen(),
+				ToBlack = null,
+				FromBlack = new AngledWipe(),
+			});
+		}
 	}
 
 	public override void Update()

@@ -12,30 +12,30 @@ public class EditorMenuBar : ImGuiHandler
 
 		if (ImGui.BeginMenu("Settings"))
 		{
-			bool music = Save.Instance.Editor.PlayMusic;
+			bool music = Settings.Editor.PlayMusic;
 			changed |= ImGui.Checkbox("Player Music", ref music);
-			Save.Instance.Editor.PlayMusic = music;
+			Settings.Editor.PlayMusic = music;
 
-			bool ambience = Save.Instance.Editor.PlayAmbience;
+			bool ambience = Settings.Editor.PlayAmbience;
 			changed |= ImGui.Checkbox("Play Ambience", ref ambience);
-			Save.Instance.Editor.PlayAmbience = ambience;
+			Settings.Editor.PlayAmbience = ambience;
 
 			ImGui.EndMenu();
 		}
 
 		if (ImGui.BeginMenu("View"))
 		{
-			bool snow = Save.Instance.Editor.RenderSnow;
+			bool snow = Settings.Editor.RenderSnow;
 			changed |= ImGui.Checkbox("Show Snow", ref snow);
-			Save.Instance.Editor.RenderSnow = snow;
+			Settings.Editor.RenderSnow = snow;
 
-			bool skybox = Save.Instance.Editor.RenderSkybox;
+			bool skybox = Settings.Editor.RenderSkybox;
 			changed |= ImGui.Checkbox("Show Skybox", ref skybox);
-			Save.Instance.Editor.RenderSkybox = skybox;
+			Settings.Editor.RenderSkybox = skybox;
 
-			float renderDistance = Save.Instance.Editor.RenderDistance;
-			changed |= ImGui.DragFloat("Render Distance", ref renderDistance, v_speed: 10.0f, v_min: Save.EditorSettings.MinRenderDistance, v_max: Save.EditorSettings.MaxRenderDistance);
-			Save.Instance.Editor.RenderDistance = renderDistance;
+			float renderDistance = Settings.Editor.RenderDistance;
+			changed |= ImGui.DragFloat("Render Distance", ref renderDistance, v_speed: 10.0f, v_min: EditorSettings_V01.MinRenderDistance, v_max: EditorSettings_V01.MaxRenderDistance);
+			Settings.Editor.RenderDistance = renderDistance;
 
 			string[] displayStrings = [
 				"Game (640x360)",
@@ -44,27 +44,27 @@ public class EditorMenuBar : ImGuiHandler
 				$"Native ({App.Width}x{App.Height})",
 			];
 
-			var resolutionType = Save.Instance.Editor.ResolutionType;
+			var resolutionType = Settings.Editor.ResolutionType;
 			if (ImGui.BeginCombo("Resolution", displayStrings[(int)resolutionType]))
 			{
-				if (ImGui.Selectable(displayStrings[(int)Save.EditorSettings.Resolution.Game], resolutionType == Save.EditorSettings.Resolution.Game))
+				if (ImGui.Selectable(displayStrings[(int)EditorSettings_V01.Resolution.Game], resolutionType == EditorSettings_V01.Resolution.Game))
 				{
-					Save.Instance.Editor.ResolutionType = Save.EditorSettings.Resolution.Game;
+					Settings.Editor.ResolutionType = EditorSettings_V01.Resolution.Game;
 					changed = true;
 				}
-				if (ImGui.Selectable(displayStrings[(int)Save.EditorSettings.Resolution.Double], resolutionType == Save.EditorSettings.Resolution.Double))
+				if (ImGui.Selectable(displayStrings[(int)EditorSettings_V01.Resolution.Double], resolutionType == EditorSettings_V01.Resolution.Double))
 				{
-					Save.Instance.Editor.ResolutionType = Save.EditorSettings.Resolution.Double;
+					Settings.Editor.ResolutionType = EditorSettings_V01.Resolution.Double;
 					changed = true;
 				}
-				if (ImGui.Selectable(displayStrings[(int)Save.EditorSettings.Resolution.HD], resolutionType == Save.EditorSettings.Resolution.HD))
+				if (ImGui.Selectable(displayStrings[(int)EditorSettings_V01.Resolution.HD], resolutionType == EditorSettings_V01.Resolution.HD))
 				{
-					Save.Instance.Editor.ResolutionType = Save.EditorSettings.Resolution.HD;
+					Settings.Editor.ResolutionType = EditorSettings_V01.Resolution.HD;
 					changed = true;
 				}
-				if (ImGui.Selectable(displayStrings[(int)Save.EditorSettings.Resolution.Native], resolutionType == Save.EditorSettings.Resolution.Native))
+				if (ImGui.Selectable(displayStrings[(int)EditorSettings_V01.Resolution.Native], resolutionType == EditorSettings_V01.Resolution.Native))
 				{
-					Save.Instance.Editor.ResolutionType = Save.EditorSettings.Resolution.Native;
+					Settings.Editor.ResolutionType = EditorSettings_V01.Resolution.Native;
 					changed = true;
 				}
 

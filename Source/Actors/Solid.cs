@@ -170,6 +170,11 @@ public class Solid : Actor, IHaveModels
 	public bool Climbable = true;
 
 	/// <summary>
+	/// If we're currently climbable
+	/// </summary>
+	public bool AllowWallJumps = true;
+
+	/// <summary>
 	/// Visual Model to Draw
 	/// </summary>
 	public readonly SimpleModel Model = new() { Flags = ModelFlags.Terrain };
@@ -207,6 +212,14 @@ public class Solid : Actor, IHaveModels
 	}
 
 	public virtual bool IsClimbable => Climbable;
+
+	public virtual bool CanWallJump
+	{
+		get
+		{
+			return AllowWallJumps;
+		}
+	}
 
 	public Vec3 Velocity = Vec3.Zero;
 

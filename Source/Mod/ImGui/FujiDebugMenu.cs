@@ -1,19 +1,23 @@
-﻿
-using ImGuiNET;
+﻿using ImGuiNET;
 
 namespace Celeste64.Mod;
 
 internal class FujiDebugMenu : ImGuiHandler
 {
 	private bool visible = false;
-	public override bool Active => Save.Instance.EnableDebugMenu;
+	public override bool Active => Settings.EnableDebugMenu;
 	public override bool Visible => visible;
+	private DebugActorMenu debugActorMenu = new DebugActorMenu();
 
 	public override void Update()
 	{
 		if (Input.Keyboard.Pressed(Keys.F6))
 		{
 			visible = !visible;
+		}
+		if (debugActorMenu.Active)
+		{
+			debugActorMenu.Update();
 		}
 	}
 
@@ -22,9 +26,16 @@ internal class FujiDebugMenu : ImGuiHandler
 		if (Game.Scene is not World world)
 			return;
 
-		ImGui.SetNextWindowSizeConstraints(new Vec2(300, 300), new Vec2(float.PositiveInfinity, float.PositiveInfinity));
-		ImGui.Begin("Celeste 64 - Debug Menu");
+		ImGui.SetNextWindowSizeConstraints(new Vec2(400, 640), new Vec2(float.PositiveInfinity, float.PositiveInfinity));
+		ImGui.Begin("Celeste 64 ~ Debug Menu");
 
+		// TODO: Possibly make a smarter system for handling sub-menus, if we add more of them.
+		if (debugActorMenu.Visible)
+		{
+			debugActorMenu.Render();
+			return;
+		}
+		
 		if (ModManager.Instance.CurrentLevelMod != null)
 		{
 			if (ImGui.BeginMenu("Open Map"))
@@ -91,8 +102,13 @@ internal class FujiDebugMenu : ImGuiHandler
 				}
 				ImGui.EndMenu();
 			}
-		}
 
+			if (ImGui.Button("Actor Properties"))
+			{
+				debugActorMenu.Visible = true;
+			}
+		}
+		
 		ImGui.End();
 	}
 }
