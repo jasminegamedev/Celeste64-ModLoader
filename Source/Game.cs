@@ -186,7 +186,7 @@ public class Game : Module
 
 	private void HandleError(Exception e)
 	{
-		if (scenes.Peek() is GameErrorMessage)
+		if (Scene is GameErrorMessage)
 		{
 			throw e; // If we're already on the error message screen, accept our fate: it's a fatal crash!
 		}
