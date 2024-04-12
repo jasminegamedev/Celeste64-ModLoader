@@ -402,13 +402,6 @@ public static class Assets
 			loadQueue.RemoveAt(0);
 		}
 
-		StringBuilder x = new();
-
-		foreach (var y in Textures)
-		{
-			x.Append("\nsubtext " + y.Value.Name);
-		}
-
 		ModManager.Instance.OnAssetsLoaded();
 
 		Log.Info($"Loaded Assets in {timer.ElapsedMilliseconds}ms");
