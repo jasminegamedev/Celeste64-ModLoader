@@ -1,6 +1,4 @@
 ﻿using Celeste64.Mod;
-using Mono.Cecil.Cil;
-using MonoMod.RuntimeDetour;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
