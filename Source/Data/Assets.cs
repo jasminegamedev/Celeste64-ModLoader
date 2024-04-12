@@ -97,6 +97,7 @@ public static class Assets
 	public static List<LevelInfo> Levels { get; private set; } = [];
 
 	private static List<Task> tasks = [];
+	public static List<GameMod> loadQueue = [];
 
 	private static void LoadDirectoryRecursive<T>(GameMod mod, string folder, string extension, ConcurrentBag<T> into, Action<string, GameMod, ConcurrentBag<T>> task)
 	{
@@ -379,28 +380,44 @@ public static class Assets
 		Map.ModActorFactories.Clear();
 	}
 
+	public static void FillLoadQueue()
+	{
+		loadQueue = ModManager.Instance.EnabledMods.Where(gm => gm is not VanillaGameMod).ToList();
+	}
+
+	public static void MoveLoadQueue()
+	{
+		LoadMod(loadQueue.First());
+
+		loadQueue.RemoveAt(0);
+	}
+
+	public static void LoadAllQueued()
+	{
+		while (loadQueue.Count > 0) MoveLoadQueue();
+	}
+
+	/* 
+		Asset loading was redone in 0.7.0. However, this function is preserved here.
+		For compatibility and ease of use, it has the exact same behaviour on the outside as before.
+	*/
 	public static void Load()
 	{
 		var timer = Stopwatch.StartNew();
-		List<GameMod> loadQueue;
 
 		Unload();
 
 		ModLoader.RegisterAllMods();
 
+		// Load vanilla assets first
 		StageVanilla();
 
-		loadQueue = ModManager.Instance.EnabledMods.Where(gm => gm is not VanillaGameMod).ToList();
+		FillLoadQueue();
 
 		// NOTE: Make sure to update ModManager.OnModFileChanged() as well, for hot-reloading to work!
 
 		// Go through all of the mods in queue and load them
-		while (loadQueue.Count > 0)
-		{
-			LoadMod(loadQueue.First());
-
-			loadQueue.RemoveAt(0);
-		}
+		LoadAllQueued();
 
 		ModManager.Instance.OnAssetsLoaded();
 
