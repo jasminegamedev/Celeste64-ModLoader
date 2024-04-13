@@ -47,7 +47,7 @@ public static class ModLoader
 	internal static void RegisterAllMods()
 	{
 		FailedToLoadMods.Clear();
-		ModManager.Instance.VanillaGameMod = new VanillaGameMod
+		if (ModManager.Instance.VanillaGameMod is null) ModManager.Instance.VanillaGameMod = new VanillaGameMod
 		{
 			// Mod Infos are required now, so make a dummy mod info for the valilla game too. This shouldn't really be used for anything.
 			ModInfo = new ModInfo
@@ -151,7 +151,7 @@ public static class ModLoader
 				{
 					var mod = LoadGameMod(info, fs);
 					mod.Filesystem?.AssociateWithMod(mod);
-					
+
 					try
 					{
 						ModManager.Instance.RegisterMod(mod);
@@ -169,7 +169,7 @@ public static class ModLoader
 						HookManager.Instance.ClearHooksOfMod(info);
 						throw;
 					}
-					
+
 					loaded.Add(info);
 					loadedModInIteration = true;
 				}
@@ -319,7 +319,7 @@ public static class ModLoader
 	private static void FindAndRegisterHooks(ModInfo modInfo, Type type)
 	{
 		List<IDisposable> hooks = [];
-		
+
 		try
 		{
 			// On. hooks
@@ -327,20 +327,20 @@ public static class ModLoader
 				.Select(m => (m, m.GetCustomAttribute<InternalOnHookGenTargetAttribute>()))
 				.Where(t => t.Item2 != null)
 				.Cast<(MethodInfo, InternalOnHookGenTargetAttribute)>();
-			
+
 			foreach (var (info, attr) in onHookMethods)
 			{
 				var onHook = new Hook(attr.Target, info);
 				hooks.Add(onHook);
 				HookManager.Instance.RegisterHook(onHook, modInfo);
 			}
-			
+
 			// IL. hooks
 			var ilHookMethods = type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
 				.Select(m => (m, m.GetCustomAttribute<InternalILHookGenTargetAttribute>()))
 				.Where(t => t.Item2 != null)
 				.Cast<(MethodInfo, InternalILHookGenTargetAttribute)>();
-			
+
 			foreach (var (info, attr) in ilHookMethods)
 			{
 				var ilHook = new ILHook(attr.Target, info.CreateDelegate<ILContext.Manipulator>());
@@ -353,7 +353,7 @@ public static class ModLoader
 			// Some hook failed. Need to dispose all previous ones
 			foreach (var hook in hooks)
 				hook.Dispose();
-			
+
 			throw;
 		}
 	}

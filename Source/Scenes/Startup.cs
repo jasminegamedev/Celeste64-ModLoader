@@ -1,4 +1,6 @@
+using Celeste64.Mod;
 using Celeste64.Mod.Data;
+using System.Text;
 
 namespace Celeste64;
 
@@ -8,10 +10,26 @@ namespace Celeste64;
 /// </summary>
 public class Startup : Scene
 {
-	private int loadDelay = 5;
+	private int assetQueueSize;
+	private int queueIndex = 0;
+	private bool areModsRegistered = false;
 
-	private void BeginGame()
+	public Startup()
 	{
+		// Register vanilla mod so that it can load its assets
+		// Assume this will be overridden later
+		ModManager.Instance.VanillaGameMod = new VanillaGameMod
+		{
+			ModInfo = new ModInfo
+			{
+				Id = "Celeste64Vanilla",
+				Name = "Celeste 64: Fragments of the Mountain",
+				VersionString = "1.1.1",
+			},
+			Filesystem = new FolderModFilesystem(Assets.ContentPath)
+		};
+		ModManager.Instance.RegisterMod(ModManager.Instance.VanillaGameMod);
+
 		// load save file
 		{
 			SaveManager.Instance.LoadSaveByFileName(SaveManager.Instance.GetLastLoadedSave());
@@ -27,9 +45,8 @@ public class Startup : Scene
 			ModSettings.LoadModSettingsByFileName(ModSettings.DefaultFileName);
 		}
 
-		// load assets
-		// this currently needs to happen after the save file loads, because this also loads mods, which get their saved settings from the save file.
-		Assets.Load();
+		// load vanilla assets
+		Assets.StageVanilla();
 
 		// make sure the active language is ready for use,
 		// since the save file may have loaded a different language than default.
@@ -39,38 +56,65 @@ public class Startup : Scene
 		{
 			Controls.LoadControlsByFileName(Controls.DefaultFileName);
 		}
-
-		// enter game
-		//Assets.Levels[0].Enter(new AngledWipe());
-		if (Input.Keyboard.CtrlOrCommand && !Game.Instance.IsMidTransition && Settings.EnableQuickStart)
-		{
-			var entry = new Overworld.Entry(Assets.Levels[0], null);
-			entry.Level.Enter();
-		}
-		else
-		{
-			Game.Instance.Goto(new Transition()
-			{
-				Mode = Transition.Modes.Replace,
-				Scene = () => new Titlescreen(),
-				ToBlack = null,
-				FromBlack = new AngledWipe(),
-			});
-		}
 	}
 
 	public override void Update()
 	{
-		if (loadDelay > 0)
+		if (!areModsRegistered)
 		{
-			loadDelay--;
-			if (loadDelay <= 0)
-				BeginGame();
+			// this also loads mods, which get their saved settings from the save file.
+			ModLoader.RegisterAllMods();
+			assetQueueSize = Assets.FillLoadQueue();
+			areModsRegistered = true;
+			return;
+		}
+
+		// load assets
+		bool shouldGo = !Assets.MoveLoadQueue();
+		queueIndex++;
+
+		if (shouldGo && !Game.Instance.IsMidTransition)
+		{
+			// enter game
+			if (Input.Keyboard.CtrlOrCommand && !Game.Instance.IsMidTransition && Settings.EnableQuickStart)
+			{
+				var entry = new Overworld.Entry(Assets.Levels[0], null);
+				entry.Level.Enter();
+			}
+			else
+			{
+				Game.Instance.Goto(new Transition()
+				{
+					Mode = Transition.Modes.Replace,
+					Scene = () => new Titlescreen(),
+					ToBlack = null,
+					FromBlack = new AngledWipe(),
+				});
+			}
 		}
 	}
 
 	public override void Render(Target target)
 	{
 		target.Clear(Color.Black);
+
+		Batcher batcher = new();
+		Rect bounds = new(0, 0, target.Width, target.Height);
+
+		string loadInfo;
+
+		if (!areModsRegistered)
+		{
+			loadInfo = "Registering modules...";
+		}
+		else
+		{
+			loadInfo = $"Loading assets: {queueIndex + 1} of {assetQueueSize}";
+		}
+
+		UI.Text(batcher, loadInfo, bounds.BottomLeft + new Vec2(0, -28 * Game.RelativeScale), Vec2.Zero, Color.White);
+
+		batcher.Render(target);
+		batcher.Clear();
 	}
 }

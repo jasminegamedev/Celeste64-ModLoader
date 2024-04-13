@@ -109,7 +109,7 @@ public static class Assets
 
 	public static void LoadMod(GameMod mod)
 	{
-		Log.Info($"Loading assets for mod {mod.ModInfo.Id}");
+		Log.Info($"Loading assets for {mod.ModInfo.Id}");
 
 		var maps = new ConcurrentBag<(Map, GameMod)>();
 		var images = new ConcurrentBag<(string, Image, GameMod)>();
@@ -348,7 +348,7 @@ public static class Assets
 		}
 	}
 
-	private static void StageVanilla()
+	public static void StageVanilla()
 	{
 		GameMod? vanilla = ModManager.Instance.VanillaGameMod;
 
@@ -380,16 +380,21 @@ public static class Assets
 		Map.ModActorFactories.Clear();
 	}
 
-	public static void FillLoadQueue()
+	public static int FillLoadQueue()
 	{
 		loadQueue = ModManager.Instance.EnabledMods.Where(gm => gm is not VanillaGameMod).ToList();
+
+		return loadQueue.Count;
 	}
 
-	public static void MoveLoadQueue()
+	public static bool MoveLoadQueue()
 	{
-		LoadMod(loadQueue.First());
+		if (loadQueue.Count < 1) return false;
 
+		LoadMod(loadQueue.First());
 		loadQueue.RemoveAt(0);
+
+		return true;
 	}
 
 	public static void LoadAllQueued()
