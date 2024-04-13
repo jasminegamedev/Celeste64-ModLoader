@@ -23,17 +23,8 @@ public class Startup : Scene
 
 		// Register vanilla mod so that it can load its assets
 		// Assume this will be overridden later
-		ModManager.Instance.VanillaGameMod = new VanillaGameMod
-		{
-			ModInfo = new ModInfo
-			{
-				Id = "Celeste64Vanilla",
-				Name = "Celeste 64: Fragments of the Mountain",
-				VersionString = "1.1.1",
-			},
-			Filesystem = new FolderModFilesystem(Assets.ContentPath)
-		};
-		ModManager.Instance.RegisterMod(ModManager.Instance.VanillaGameMod);
+		ModLoader.CreateNewVanilla();
+		if (ModManager.Instance.VanillaGameMod is not null) ModManager.Instance.RegisterMod(ModManager.Instance.VanillaGameMod);
 
 		// load save file
 		{
@@ -88,6 +79,7 @@ public class Startup : Scene
 		if (shouldGo && !Game.Instance.IsMidTransition)
 		{
 			Log.Info($"Loaded Assets in {timer.ElapsedMilliseconds}ms");
+			ModManager.Instance.OnAssetsLoaded();
 
 			// enter game
 			if (Input.Keyboard.CtrlOrCommand && !Game.Instance.IsMidTransition && Settings.EnableQuickStart)
@@ -110,7 +102,7 @@ public class Startup : Scene
 
 	public override void Render(Target target)
 	{
-		target.Clear(Color.Black);
+		target.Clear(Color.FromHexStringRGB("#282c42"));
 
 		Batcher batcher = new();
 		Rect bounds = new(0, 0, target.Width, target.Height);
@@ -127,6 +119,10 @@ public class Startup : Scene
 		}
 
 		UI.Text(batcher, loadInfo, bounds.BottomLeft + new Vec2(4 * Game.RelativeScale, -28 * Game.RelativeScale), Vec2.Zero, Color.White);
+		if (areModsRegistered && assetQueueSize > 0)
+		{
+			batcher.Rect(new Rect(0, bounds.Bottom - (6 * Game.RelativeScale), target.Width / assetQueueSize * queueIndex, bounds.Bottom), Color.White); // Progress bar
+		}
 
 		batcher.Render(target);
 		batcher.Clear();

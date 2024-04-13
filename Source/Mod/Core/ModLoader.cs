@@ -44,10 +44,9 @@ public static class ModLoader
 		}
 	}
 
-	internal static void RegisterAllMods()
+	internal static void CreateNewVanilla()
 	{
-		FailedToLoadMods.Clear();
-		if (ModManager.Instance.VanillaGameMod is null) ModManager.Instance.VanillaGameMod = new VanillaGameMod
+		ModManager.Instance.VanillaGameMod = new VanillaGameMod
 		{
 			// Mod Infos are required now, so make a dummy mod info for the valilla game too. This shouldn't really be used for anything.
 			ModInfo = new ModInfo
@@ -58,6 +57,12 @@ public static class ModLoader
 			},
 			Filesystem = new FolderModFilesystem(Assets.ContentPath)
 		};
+	}
+
+	internal static void RegisterAllMods()
+	{
+		FailedToLoadMods.Clear();
+		if (ModManager.Instance.VanillaGameMod is null) CreateNewVanilla();
 
 		Log.Info($"Loading mods from: \n- {String.Join("\n- ", ModFolderPaths)}");
 
@@ -110,7 +115,7 @@ public static class ModLoader
 		ModManager.Instance.Unload();
 
 		// Load vanilla as a mod, to unify all asset loading code
-		ModManager.Instance.RegisterMod(ModManager.Instance.VanillaGameMod);
+		if (ModManager.Instance.VanillaGameMod is not null) ModManager.Instance.RegisterMod(ModManager.Instance.VanillaGameMod);
 
 		// We use an slightly silly approach to load all dependencies first:
 		// Load all mods which have their dependencies met and repeat until we're done.

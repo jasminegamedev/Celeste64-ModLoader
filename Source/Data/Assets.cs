@@ -410,7 +410,15 @@ public static class Assets
 	{
 		var timer = Stopwatch.StartNew();
 
+		// Purge any exisitng assets...
 		Unload();
+
+		/*
+			Refresh our instance of the vanilla mod.
+			Did you know that if vanilla isn't the first mod, trying to load assets throws a cryptic error?
+			Me neither, until recently.
+		*/
+		ModLoader.CreateNewVanilla();
 
 		ModLoader.RegisterAllMods();
 
