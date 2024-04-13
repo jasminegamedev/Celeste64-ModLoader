@@ -107,6 +107,10 @@ public static class Assets
 		}
 	}
 
+	/// <summary>
+	/// Load a mod's assets.
+	/// </summary>
+	/// <param name="mod">The mod to load</param>
 	public static void LoadMod(GameMod mod)
 	{
 		Log.Info($"Loading assets for {mod.ModInfo.Id}");
@@ -348,7 +352,10 @@ public static class Assets
 		}
 	}
 
-	public static void StageVanilla()
+	/// <summary>
+	/// Load the vanilla mod.
+	/// </summary>
+	internal static void StageVanilla()
 	{
 		GameMod? vanilla = ModManager.Instance.VanillaGameMod;
 
@@ -363,7 +370,10 @@ public static class Assets
 		Language.Current.Use();
 	}
 
-	public static void Unload()
+	/// <summary>
+	/// Unload all currently loaded assets.
+	/// </summary>
+	internal static void Unload()
 	{
 		Levels.Clear();
 		Maps.Clear();
@@ -380,14 +390,22 @@ public static class Assets
 		Map.ModActorFactories.Clear();
 	}
 
-	public static int FillLoadQueue()
+	/// <summary>
+	/// Fills the asset load queue with all enabled mods.
+	/// </summary>
+	/// <returns>The new length of the load queue.</returns>
+	internal static int FillLoadQueue()
 	{
 		loadQueue = ModManager.Instance.EnabledMods.Where(gm => gm is not VanillaGameMod).ToList();
 
 		return loadQueue.Count;
 	}
 
-	public static bool MoveLoadQueue()
+	/// <summary>
+	/// Move the load queue forward by a step, loading one mod.
+	/// </summary>
+	/// <returns>True if a mod exists and was loaded, false if there's nothing left in the queue</returns>
+	internal static bool MoveLoadQueue()
 	{
 		if (loadQueue.Count < 1) return false;
 
@@ -397,7 +415,10 @@ public static class Assets
 		return true;
 	}
 
-	public static void LoadAllQueued()
+	/// <summary>
+	/// Loads every mod in the queue.
+	/// </summary>
+	internal static void LoadAllQueued()
 	{
 		while (loadQueue.Count > 0) MoveLoadQueue();
 	}
@@ -406,6 +427,9 @@ public static class Assets
 		Asset loading was redone in 0.7.0. However, this function is preserved here.
 		For compatibility and ease of use, it has the exact same behaviour on the outside as before.
 	*/
+	/// <summary>
+	/// All-in-one function to purge assets, then re-register all mods, then load assets.
+	/// </summary>
 	public static void Load()
 	{
 		var timer = Stopwatch.StartNew();
@@ -437,6 +461,12 @@ public static class Assets
 		Log.Info($"Loaded Assets in {timer.ElapsedMilliseconds}ms");
 	}
 
+	/// <summary>
+	/// Convert a virtual path into a real path
+	/// </summary>
+	/// <param name="virtPath">The virtual path</param>
+	/// <param name="folder">The folder type</param>
+	/// <returns>A real path</returns>
 	internal static string GetResourceNameFromVirt(string virtPath, string folder)
 	{
 		var ext = Path.GetExtension(virtPath);
