@@ -13,6 +13,7 @@ public class Startup : Scene
 	private int assetQueueSize;
 	private int queueIndex = 0;
 	private bool areModsRegistered = false;
+	private string lastLoadedId = string.Empty;
 	private int delay = 5;
 
 	public Startup()
@@ -77,6 +78,7 @@ public class Startup : Scene
 		}
 
 		// load assets
+		lastLoadedId = Assets.loadQueue.Count > 0 ? Assets.loadQueue[0].ModInfo.Id : string.Empty;
 		bool shouldGo = !Assets.MoveLoadQueue();
 		queueIndex++;
 
@@ -112,15 +114,14 @@ public class Startup : Scene
 
 		if (!areModsRegistered)
 		{
-			loadInfo = "Registering modules...";
+			loadInfo = Loc.Str("FujiLoaderStatusRegistering");
 		}
 		else
 		{
-			string modId = Assets.loadQueue[0].ModInfo.Id;
-			loadInfo = $"Loading assets: {modId} ({queueIndex + 1} of {assetQueueSize})";
+			loadInfo = String.Format(Loc.Str("FujiLoaderStatusNormal"), lastLoadedId, queueIndex, assetQueueSize);
 		}
 
-		UI.Text(batcher, loadInfo, bounds.BottomLeft + new Vec2(-4 * Game.RelativeScale, -28 * Game.RelativeScale), Vec2.Zero, Color.White);
+		UI.Text(batcher, loadInfo, bounds.BottomLeft + new Vec2(4 * Game.RelativeScale, -28 * Game.RelativeScale), Vec2.Zero, Color.White);
 
 		batcher.Render(target);
 		batcher.Clear();
