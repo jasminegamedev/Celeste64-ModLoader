@@ -13,6 +13,7 @@ public class Startup : Scene
 	private int assetQueueSize;
 	private int queueIndex = 0;
 	private bool areModsRegistered = false;
+	private int delay = 5;
 
 	public Startup()
 	{
@@ -60,6 +61,12 @@ public class Startup : Scene
 
 	public override void Update()
 	{
+		if (delay > 0)
+		{
+			delay--;
+			return;
+		}
+
 		if (!areModsRegistered)
 		{
 			// this also loads mods, which get their saved settings from the save file.
@@ -109,10 +116,11 @@ public class Startup : Scene
 		}
 		else
 		{
-			loadInfo = $"Loading assets: {queueIndex + 1} of {assetQueueSize}";
+			string modId = Assets.loadQueue[0].ModInfo.Id;
+			loadInfo = $"Loading assets: {modId} ({queueIndex + 1} of {assetQueueSize})";
 		}
 
-		UI.Text(batcher, loadInfo, bounds.BottomLeft + new Vec2(0, -28 * Game.RelativeScale), Vec2.Zero, Color.White);
+		UI.Text(batcher, loadInfo, bounds.BottomLeft + new Vec2(-4 * Game.RelativeScale, -28 * Game.RelativeScale), Vec2.Zero, Color.White);
 
 		batcher.Render(target);
 		batcher.Clear();
