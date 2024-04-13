@@ -1,6 +1,6 @@
 using Celeste64.Mod;
 using Celeste64.Mod.Data;
-using System.Text;
+using System.Diagnostics;
 
 namespace Celeste64;
 
@@ -15,9 +15,12 @@ public class Startup : Scene
 	private bool areModsRegistered = false;
 	private string lastLoadedId = string.Empty;
 	private int delay = 5;
+	private Stopwatch timer;
 
 	public Startup()
 	{
+		timer = Stopwatch.StartNew();
+
 		// Register vanilla mod so that it can load its assets
 		// Assume this will be overridden later
 		ModManager.Instance.VanillaGameMod = new VanillaGameMod
@@ -84,6 +87,8 @@ public class Startup : Scene
 
 		if (shouldGo && !Game.Instance.IsMidTransition)
 		{
+			Log.Info($"Loaded Assets in {timer.ElapsedMilliseconds}ms");
+
 			// enter game
 			if (Input.Keyboard.CtrlOrCommand && !Game.Instance.IsMidTransition && Settings.EnableQuickStart)
 			{
