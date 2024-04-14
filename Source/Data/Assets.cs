@@ -1,4 +1,5 @@
 ﻿using Celeste64.Mod;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -103,6 +104,14 @@ public static class Assets
 	/// <param name="mod">The mod to load</param>
 	internal static void LoadAssetsForMod(GameMod mod)
 	{
+		var maps = new ConcurrentBag<Map>();
+		var images = new ConcurrentBag<(string, Image)>();
+		var models = new ConcurrentBag<(string, SkinnedTemplate)>();
+		var sounds = new ConcurrentBag<(string, FMOD.Sound)>();
+		var music = new ConcurrentBag<(string, FMOD.Sound)>();
+		var langs = new ConcurrentBag<Language>();
+		var tasks = new List<Task>();
+
 		Log.Info($"Loading assets for {mod.ModInfo.Id}");
 
 		IModFilesystem modFs = mod.Filesystem;
@@ -122,31 +131,112 @@ public static class Assets
 				continue;
 			}
 
-			if (modFs.TryOpenFile(file,
-					stream => new Map(GetResourceNameFromVirt(file, MapsFolder), file, stream), out var map))
+			tasks.Add(Task.Run(() =>
 			{
-				Maps.Add(map.Name, map, mod);
-			}
+				if (modFs.TryOpenFile(file,
+						stream => new Map(GetResourceNameFromVirt(file, MapsFolder), file, stream), out var map))
+				{
+					maps.Add(map);
+				}
+			}));
 		}
 
 		// Load textures
 		foreach (var file in modFs.FindFilesInDirectoryRecursive(TexturesFolder, TexturesExtension))
 		{
-			if (modFs.TryLoadImage(file, out var image))
+			tasks.Add(Task.Run(() =>
 			{
-				string name = GetResourceNameFromVirt(file, TexturesFolder);
-				Textures.Add(name, new Texture(image) { Name = name }, mod);
-			}
+				if (modFs.TryLoadImage(file, out var image))
+				{
+					images.Add((GetResourceNameFromVirt(file, TexturesFolder), image));
+				}
+			}));
 		}
 
 		// Load character faces
 		foreach (var file in modFs.FindFilesInDirectoryRecursive(FacesFolder, FacesExtension))
 		{
-			if (modFs.TryLoadImage(file, out var image))
+			tasks.Add(Task.Run(() =>
 			{
-				var name = $"faces/{GetResourceNameFromVirt(file, FacesFolder)}";
-				Textures.Add(name, new Texture(image) { Name = name }, mod);
-			}
+				if (modFs.TryLoadImage(file, out var image))
+				{
+					var name = $"faces/{GetResourceNameFromVirt(file, FacesFolder)}";
+					images.Add((name, image));
+				}
+			}));
+		}
+
+		// Load glb models
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(ModelsFolder, ModelsExtension))
+		{
+			tasks.Add(Task.Run(() =>
+			{
+				if (modFs.TryOpenFile(file, stream => SharpGLTF.Schema2.ModelRoot.ReadGLB(stream), out var input))
+				{
+					var model = new SkinnedTemplate(input);
+					models.Add((GetResourceNameFromVirt(file, ModelsFolder), model));
+				}
+			}));
+		}
+
+		// Load language files
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(TextFolder, TextExtension))
+		{
+			tasks.Add(Task.Run(() =>
+			{
+				if (modFs.TryLoadText(file, out var data))
+				{
+					if (JsonSerializer.Deserialize(data, LanguageContext.Default.Language) is { } lang)
+					{
+						langs.Add(lang);
+					}
+				}
+			}));
+		}
+
+		// Load wav sounds - Fuji Custom
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(SoundsFolder, SoundsExtension))
+		{
+			tasks.Add(Task.Run(() =>
+			{
+				if (modFs.TryOpenFile(file, Audio.LoadWavFromStream, out var sound))
+				{
+					if (sound != null)
+					{
+						sounds.Add((GetResourceNameFromVirt(file, SoundsFolder), sound.Value));
+					}
+				}
+			}));
+		}
+
+		// Load wav music - Fuji Custom
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(MusicFolder, MusicExtension))
+		{
+			tasks.Add(Task.Run(() =>
+			{
+				if (modFs.TryOpenFile(file, Audio.LoadWavFromStream, out var song))
+				{
+					if (song != null)
+					{
+						music.Add((GetResourceNameFromVirt(file, MusicFolder), song.Value));
+					}
+				}
+			}));
+		}
+
+		// Load FMOD audio banks
+		var allBankFiles = modFs.FindFilesInDirectoryRecursive(AudioFolder, AudioExtension).ToList();
+		// load strings first
+		foreach (var file in allBankFiles)
+		{
+			if (file.EndsWith($".strings.{AudioExtension}"))
+				modFs.TryOpenFile(file, Audio.LoadBankFromStream);
+		}
+		// load banks second
+		foreach (var file in allBankFiles)
+		{
+			if (file.EndsWith($".{AudioExtension}") && !file.EndsWith($".strings.{AudioExtension}"))
+				modFs.TryOpenFile(file, Audio.LoadBankFromStream);
 		}
 
 		// load glsl shaders
@@ -166,76 +256,6 @@ public static class Assets
 			{
 				if (modFs.TryOpenFile(file, stream => new Font(stream), out var font))
 					Fonts.Add(GetResourceNameFromVirt(file, FontsFolder), font, mod);
-			}
-		}
-
-		// Load glb models
-		foreach (var file in modFs.FindFilesInDirectoryRecursive(ModelsFolder, ModelsExtension))
-		{
-			if (modFs.TryOpenFile(file, stream => SharpGLTF.Schema2.ModelRoot.ReadGLB(stream), out var input))
-			{
-				var model = new SkinnedTemplate(input);
-				model.ConstructResources();
-				Models.Add(GetResourceNameFromVirt(file, ModelsFolder), model, mod);
-			}
-		}
-
-		// Load language files
-		foreach (var file in modFs.FindFilesInDirectoryRecursive(TextFolder, TextExtension))
-		{
-			if (modFs.TryLoadText(file, out var data))
-			{
-				if (JsonSerializer.Deserialize(data, LanguageContext.Default.Language) is { } lang)
-				{
-					if (Languages.TryGetValue(lang.ID, out var existing))
-					{
-						existing.Absorb(lang, mod);
-					}
-					else
-					{
-						lang.OnCreate(mod);
-						Languages.Add(lang.ID, lang);
-					}
-				}
-			}
-		}
-
-		// Load FMOD audio banks
-		var allBankFiles = modFs.FindFilesInDirectoryRecursive(AudioFolder, AudioExtension).ToList();
-		// load strings first
-		foreach (var file in allBankFiles)
-		{
-			if (file.EndsWith($".strings.{AudioExtension}"))
-				modFs.TryOpenFile(file, Audio.LoadBankFromStream);
-		}
-		// load banks second
-		foreach (var file in allBankFiles)
-		{
-			if (file.EndsWith($".{AudioExtension}") && !file.EndsWith($".strings.{AudioExtension}"))
-				modFs.TryOpenFile(file, Audio.LoadBankFromStream);
-		}
-
-		// Load wav sounds - Fuji Custom
-		foreach (var file in modFs.FindFilesInDirectoryRecursive(SoundsFolder, SoundsExtension))
-		{
-			if (modFs.TryOpenFile(file, Audio.LoadWavFromStream, out var sound))
-			{
-				if (sound != null)
-				{
-					Sounds.Add(GetResourceNameFromVirt(file, SoundsFolder), sound.Value, mod);
-				}
-			}
-		}
-
-		// Load wav music - Fuji Custom
-		foreach (var file in modFs.FindFilesInDirectoryRecursive(MusicFolder, MusicExtension))
-		{
-			if (modFs.TryOpenFile(file, Audio.LoadWavFromStream, out var song))
-			{
-				if (song != null)
-				{
-					Music.Add(GetResourceNameFromVirt(file, MusicFolder), song.Value, mod);
-				}
 			}
 		}
 
@@ -291,6 +311,40 @@ public static class Assets
 			else
 			{
 				Log.Warning($"Improperly configured skin: {file}");
+			}
+		}
+
+		// wait for tasks to finish before adding them.
+		{
+			foreach (var task in tasks)
+			{
+				task.Wait();
+			}
+
+			foreach (var (name, img) in images)
+				Textures.Add(name, new Texture(img) { Name = name }, mod);
+			foreach (var map in maps)
+				Maps.Add(map.Name, map, mod);
+			foreach (var (name, sound) in sounds)
+				Sounds.Add(name, sound, mod);
+			foreach (var (name, song) in music)
+				Music.Add(name, song, mod);
+			foreach (var (name, model) in models)
+			{
+				model.ConstructResources();
+				Models.Add(name, model, mod);
+			}
+			foreach (var lang in langs)
+			{
+				if (Languages.TryGetValue(lang.ID, out var existing))
+				{
+					existing.Absorb(lang, mod);
+				}
+				else
+				{
+					lang.OnCreate(mod);
+					Languages.Add(lang.ID, lang);
+				}
 			}
 		}
 	}
