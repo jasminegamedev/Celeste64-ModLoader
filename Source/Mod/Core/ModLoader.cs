@@ -44,25 +44,36 @@ public static class ModLoader
 		}
 	}
 
-	internal static void CreateNewVanilla()
+	internal static void CreateVanillaMod()
 	{
 		ModManager.Instance.VanillaGameMod = new VanillaGameMod
 		{
-			// Mod Infos are required now, so make a dummy mod info for the valilla game too. This shouldn't really be used for anything.
+			// Mod Infos are required now, so make a dummy mod info for the vanilla game too. This shouldn't really be used for anything.
 			ModInfo = new ModInfo
 			{
 				Id = "Celeste64Vanilla",
 				Name = "Celeste 64: Fragments of the Mountain",
 				VersionString = "1.1.1",
 			},
-			Filesystem = new FolderModFilesystem(Assets.ContentPath)
+			Filesystem = new FolderModFilesystem(Assets.ContentPath),
+			Skins =
+			{
+				new SkinInfo
+				{
+					Name = "Madeline",
+					Model = "player"
+				}
+			}
 		};
 	}
 
 	internal static void RegisterAllMods()
 	{
 		FailedToLoadMods.Clear();
-		if (ModManager.Instance.VanillaGameMod is null) CreateNewVanilla();
+		if (ModManager.Instance.VanillaGameMod is null)
+		{
+			CreateVanillaMod();
+		}
 
 		Log.Info($"Loading mods from: \n- {String.Join("\n- ", ModFolderPaths)}");
 
@@ -115,7 +126,10 @@ public static class ModLoader
 		ModManager.Instance.Unload();
 
 		// Load vanilla as a mod, to unify all asset loading code
-		if (ModManager.Instance.VanillaGameMod is not null) ModManager.Instance.RegisterMod(ModManager.Instance.VanillaGameMod);
+		if (ModManager.Instance.VanillaGameMod is not null)
+		{
+			ModManager.Instance.RegisterMod(ModManager.Instance.VanillaGameMod);
+		}
 
 		// We use an slightly silly approach to load all dependencies first:
 		// Load all mods which have their dependencies met and repeat until we're done.

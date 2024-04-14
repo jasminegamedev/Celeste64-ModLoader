@@ -1,5 +1,4 @@
 ﻿using Celeste64.Mod;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -96,132 +95,153 @@ public static class Assets
 
 	public static List<LevelInfo> Levels { get; private set; } = [];
 
-	private static List<Task> tasks = [];
-	public static List<GameMod> loadQueue = [];
-
-	private static void LoadDirectoryRecursive<T>(GameMod mod, string folder, string extension, ConcurrentBag<T> into, Action<string, GameMod, ConcurrentBag<T>> task)
-	{
-		foreach (var file in mod.Filesystem.FindFilesInDirectoryRecursive(folder, extension))
-		{
-			task(file, mod, into);
-		}
-	}
+	internal static Queue<GameMod> LoadQueue = [];
 
 	/// <summary>
 	/// Load a mod's assets.
 	/// </summary>
 	/// <param name="mod">The mod to load</param>
-	public static void LoadMod(GameMod mod)
+	internal static void LoadAssetsForMod(GameMod mod)
 	{
 		Log.Info($"Loading assets for {mod.ModInfo.Id}");
 
-		var maps = new ConcurrentBag<(Map, GameMod)>();
-		var images = new ConcurrentBag<(string, Image, GameMod)>();
-		var models = new ConcurrentBag<(string, SkinnedTemplate, GameMod)>();
-		var sounds = new ConcurrentBag<(string, FMOD.Sound, GameMod)>();
-		var music = new ConcurrentBag<(string, FMOD.Sound, GameMod)>();
-		var langs = new ConcurrentBag<(Language, GameMod)>();
-		tasks = [];
-
 		IModFilesystem modFs = mod.Filesystem;
 
+		if (modFs == null)
+		{
+			Log.Error($"Error loading assets for {mod.ModInfo.Id}. Mod FileSystem not initialized.");
+			return;
+		}
+
 		// Load maps
-		LoadDirectoryRecursive(mod, MapsFolder, MapsExtension, maps, (file, mod, maps) =>
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(MapsFolder, MapsExtension))
 		{
 			// Skip the "autosave" folder
-			if (file.StartsWith($"{MapsFolder}/autosave", StringComparison.OrdinalIgnoreCase)) return;
+			if (file.StartsWith($"{MapsFolder}/autosave", StringComparison.OrdinalIgnoreCase))
+			{
+				continue;
+			}
 
-			if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file,
+			if (modFs.TryOpenFile(file,
 					stream => new Map(GetResourceNameFromVirt(file, MapsFolder), file, stream), out var map))
 			{
-				maps.Add((map, mod));
+				Maps.Add(map.Name, map, mod);
 			}
-		});
+		}
 
 		// Load textures
-		LoadDirectoryRecursive(mod, TexturesFolder, TexturesExtension, images, (file, mod, images) =>
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(TexturesFolder, TexturesExtension))
 		{
-			if (mod.Filesystem != null && mod.Filesystem.TryLoadImage(file, out var image))
+			if (modFs.TryLoadImage(file, out var image))
 			{
-				images.Add((GetResourceNameFromVirt(file, TexturesFolder), image, mod));
+				string name = GetResourceNameFromVirt(file, TexturesFolder);
+				Textures.Add(name, new Texture(image) { Name = name }, mod);
 			}
-		});
+		}
 
 		// Load character faces
-		LoadDirectoryRecursive(mod, FacesFolder, FacesExtension, images, (file, mod, images) =>
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(FacesFolder, FacesExtension))
 		{
-			var name = $"faces/{GetResourceNameFromVirt(file, FacesFolder)}";
-			if (mod.Filesystem != null && mod.Filesystem.TryLoadImage(file, out var image))
+			if (modFs.TryLoadImage(file, out var image))
 			{
-				images.Add((name, image, mod));
+				var name = $"faces/{GetResourceNameFromVirt(file, FacesFolder)}";
+				Textures.Add(name, new Texture(image) { Name = name }, mod);
 			}
-		});
+		}
+
+		// load glsl shaders
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(ShadersFolder, ShadersExtension))
+		{
+			if (modFs.TryOpenFile(file, stream => LoadShader(file, stream), out var shader))
+			{
+				shader.Name = GetResourceNameFromVirt(file, ShadersFolder);
+				Shaders.Add(shader.Name, shader, mod);
+			}
+		}
+
+		// load font files
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(FontsFolder, ""))
+		{
+			if (file.EndsWith($".{FontsExtensionTTF}") || file.EndsWith($".{FontsExtensionOTF}"))
+			{
+				if (modFs.TryOpenFile(file, stream => new Font(stream), out var font))
+					Fonts.Add(GetResourceNameFromVirt(file, FontsFolder), font, mod);
+			}
+		}
 
 		// Load glb models
-		LoadDirectoryRecursive(mod, ModelsFolder, ModelsExtension, models, (file, mod, models) =>
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(ModelsFolder, ModelsExtension))
 		{
-			if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file, stream => SharpGLTF.Schema2.ModelRoot.ReadGLB(stream),
-									out var input))
+			if (modFs.TryOpenFile(file, stream => SharpGLTF.Schema2.ModelRoot.ReadGLB(stream), out var input))
 			{
 				var model = new SkinnedTemplate(input);
-				models.Add((GetResourceNameFromVirt(file, ModelsFolder), model, mod));
+				model.ConstructResources();
+				Models.Add(GetResourceNameFromVirt(file, ModelsFolder), model, mod);
 			}
-		});
+		}
 
 		// Load language files
-		LoadDirectoryRecursive(mod, TextFolder, TextExtension, langs, (file, mod, langs) =>
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(TextFolder, TextExtension))
 		{
-			if (mod.Filesystem != null && mod.Filesystem.TryLoadText(file, out var data))
+			if (modFs.TryLoadText(file, out var data))
 			{
 				if (JsonSerializer.Deserialize(data, LanguageContext.Default.Language) is { } lang)
-					langs.Add((lang, mod));
+				{
+					if (Languages.TryGetValue(lang.ID, out var existing))
+					{
+						existing.Absorb(lang, mod);
+					}
+					else
+					{
+						lang.OnCreate(mod);
+						Languages.Add(lang.ID, lang);
+					}
+				}
 			}
-		});
+		}
 
 		// Load FMOD audio banks
 		var allBankFiles = modFs.FindFilesInDirectoryRecursive(AudioFolder, AudioExtension).ToList();
 		// load strings first
 		foreach (var file in allBankFiles)
 		{
-			if (mod.Filesystem != null && file.EndsWith($".strings.{AudioExtension}"))
-				mod.Filesystem.TryOpenFile(file, Audio.LoadBankFromStream);
+			if (file.EndsWith($".strings.{AudioExtension}"))
+				modFs.TryOpenFile(file, Audio.LoadBankFromStream);
 		}
 		// load banks second
 		foreach (var file in allBankFiles)
 		{
-			if (mod.Filesystem != null && file.EndsWith($".{AudioExtension}") && !file.EndsWith($".strings.{AudioExtension}"))
-				mod.Filesystem.TryOpenFile(file, Audio.LoadBankFromStream);
+			if (file.EndsWith($".{AudioExtension}") && !file.EndsWith($".strings.{AudioExtension}"))
+				modFs.TryOpenFile(file, Audio.LoadBankFromStream);
 		}
 
-		// Load wav sounds
-		LoadDirectoryRecursive(mod, SoundsFolder, SoundsExtension, sounds, (file, mod, sounds) =>
+		// Load wav sounds - Fuji Custom
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(SoundsFolder, SoundsExtension))
 		{
-			if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file, stream => Audio.LoadWavFromStream(stream),
-									out var sound))
+			if (modFs.TryOpenFile(file, Audio.LoadWavFromStream, out var sound))
 			{
 				if (sound != null)
 				{
-					sounds.Add((GetResourceNameFromVirt(file, SoundsFolder), sound.Value, mod));
+					Sounds.Add(GetResourceNameFromVirt(file, SoundsFolder), sound.Value, mod);
 				}
 			}
-		});
+		}
 
-		// Load wav music
-		LoadDirectoryRecursive(mod, MusicFolder, MusicExtension, music, (file, mod, music) =>
+		// Load wav music - Fuji Custom
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(MusicFolder, MusicExtension))
 		{
-			if (mod.Filesystem != null && mod.Filesystem.TryOpenFile(file, stream => Audio.LoadWavFromStream(stream),
-									out var song))
+			if (modFs.TryOpenFile(file, Audio.LoadWavFromStream, out var song))
 			{
 				if (song != null)
 				{
-					music.Add((GetResourceNameFromVirt(file, MusicFolder), song.Value, mod));
+					Music.Add(GetResourceNameFromVirt(file, MusicFolder), song.Value, mod);
 				}
 			}
-		});
+		}
 
-		// load level, dialog jsons
+		// load levels
 		mod.Levels.Clear();
-		if (modFs != null && modFs.TryOpenFile(LevelsJSON,
+		if (modFs.TryOpenFile(LevelsJSON,
 				stream => JsonSerializer.Deserialize(stream, LevelInfoListContext.Default.ListLevelInfo) ?? [],
 				out var levels))
 		{
@@ -229,31 +249,7 @@ public static class Assets
 			Levels.AddRange(levels);
 		}
 
-		if (modFs != null)
-		{
-			// load glsl shaders
-			foreach (var file in modFs.FindFilesInDirectoryRecursive(ShadersFolder, ShadersExtension))
-			{
-				if (modFs.TryOpenFile(file, stream => LoadShader(file, stream), out var shader))
-				{
-					shader.Name = GetResourceNameFromVirt(file, ShadersFolder);
-					Shaders.Add(shader.Name, shader, mod);
-				}
-			}
-
-			// load font files
-			foreach (var file in modFs.FindFilesInDirectoryRecursive(FontsFolder, ""))
-			{
-				if (file.EndsWith($".{FontsExtensionTTF}") || file.EndsWith($".{FontsExtensionOTF}"))
-				{
-					if (modFs.TryOpenFile(file, stream => new Font(stream), out var font))
-						Fonts.Add(GetResourceNameFromVirt(file, FontsFolder), font, mod);
-				}
-			}
-		}
-
 		// pack sprites into single texture
-		if (modFs != null)
 		{
 			var packer = new Packer
 			{
@@ -284,70 +280,17 @@ public static class Assets
 			}
 		}
 
-
-		// wait for tasks to finish
-		{
-			foreach (var task in tasks)
-				task.Wait();
-
-			foreach (var (name, img, _) in images)
-				Textures.Add(name, new Texture(img) { Name = name }, mod);
-			foreach (var (map, _) in maps)
-				Maps.Add(map.Name, map, mod);
-			foreach (var (name, sound, _) in sounds)
-				Sounds.Add(name, sound, mod);
-			foreach (var (name, song, _) in music)
-				Music.Add(name, song, mod);
-			foreach (var (name, model, _) in models)
-			{
-				model.ConstructResources();
-				Models.Add(name, model, mod);
-			}
-			foreach (var (lang, _) in langs)
-			{
-				if (Languages.TryGetValue(lang.ID, out var existing))
-				{
-					existing.Absorb(lang, mod);
-				}
-				else
-				{
-					lang.OnCreate(mod);
-					Languages.Add(lang.ID, lang);
-				}
-			}
-		}
-
 		// Load Skins
-		if (ModManager.Instance.VanillaGameMod != null)
+		foreach (var file in modFs.FindFilesInDirectoryRecursive(SkinsFolder, SkinsExtension))
 		{
-			ModManager.Instance.VanillaGameMod.Skins.Add(
-				new SkinInfo
-				{
-					Name = "Madeline",
-					Model = "player",
-					HideHair = false,
-					HairNormal = 0xdb2c00,
-					HairNoDash = 0x6ec0ff,
-					HairTwoDash = 0xfa91ff,
-					HairRefillFlash = 0xffffff,
-					HairFeather = 0xf2d450
-				}
-			);
-		}
-
-		if (modFs != null)
-		{
-			foreach (var file in modFs.FindFilesInDirectoryRecursive(SkinsFolder, SkinsExtension))
+			if (modFs.TryOpenFile(file,
+					stream => JsonSerializer.Deserialize(stream, SkinInfoContext.Default.SkinInfo), out var skin) && skin.IsValid())
 			{
-				if (modFs.TryOpenFile(file,
-						stream => JsonSerializer.Deserialize(stream, SkinInfoContext.Default.SkinInfo), out var skin) && skin.IsValid())
-				{
-					mod.Skins.Add(skin);
-				}
-				else
-				{
-					Log.Warning($"Improperly configured skin: {file}");
-				}
+				mod.Skins.Add(skin);
+			}
+			else
+			{
+				Log.Warning($"Improperly configured skin: {file}");
 			}
 		}
 	}
@@ -355,7 +298,7 @@ public static class Assets
 	/// <summary>
 	/// Load the vanilla mod.
 	/// </summary>
-	internal static void StageVanilla()
+	internal static void LoadVanillaMod()
 	{
 		GameMod? vanilla = ModManager.Instance.VanillaGameMod;
 
@@ -364,7 +307,7 @@ public static class Assets
 			throw new Exception("Vanilla mod does not exist. This means something went horribly wrong!");
 		}
 
-		LoadMod(vanilla);
+		LoadAssetsForMod(vanilla);
 
 		// make sure the active language is ready for use
 		Language.Current.Use();
@@ -396,9 +339,9 @@ public static class Assets
 	/// <returns>The new length of the load queue.</returns>
 	internal static int FillLoadQueue()
 	{
-		loadQueue = ModManager.Instance.EnabledMods.Where(gm => gm is not VanillaGameMod).ToList();
+		LoadQueue = new Queue<GameMod>(ModManager.Instance.EnabledMods.Where(gm => gm is not VanillaGameMod));
 
-		return loadQueue.Count;
+		return LoadQueue.Count;
 	}
 
 	/// <summary>
@@ -407,10 +350,13 @@ public static class Assets
 	/// <returns>True if a mod exists and was loaded, false if there's nothing left in the queue</returns>
 	internal static bool MoveLoadQueue()
 	{
-		if (loadQueue.Count < 1) return false;
+		if (!LoadQueue.Any())
+		{
+			return false;
+		}
 
-		LoadMod(loadQueue.First());
-		loadQueue.RemoveAt(0);
+		LoadAssetsForMod(LoadQueue.First());
+		LoadQueue.Dequeue();
 
 		return true;
 	}
@@ -420,7 +366,10 @@ public static class Assets
 	/// </summary>
 	internal static void LoadAllQueued()
 	{
-		while (loadQueue.Count > 0) MoveLoadQueue();
+		while (LoadQueue.Any())
+		{
+			MoveLoadQueue();
+		}
 	}
 
 	/* 
@@ -434,7 +383,7 @@ public static class Assets
 	{
 		var timer = Stopwatch.StartNew();
 
-		// Purge any exisitng assets...
+		// Purge any existing assets...
 		Unload();
 
 		/*
@@ -442,12 +391,12 @@ public static class Assets
 			Did you know that if vanilla isn't the first mod, trying to load assets throws a cryptic error?
 			Me neither, until recently.
 		*/
-		ModLoader.CreateNewVanilla();
+		ModLoader.CreateVanillaMod();
 
 		ModLoader.RegisterAllMods();
 
 		// Load vanilla assets first
-		StageVanilla();
+		LoadVanillaMod();
 
 		FillLoadQueue();
 
@@ -467,14 +416,21 @@ public static class Assets
 	/// <param name="virtPath">The virtual path</param>
 	/// <param name="folder">The folder type</param>
 	/// <returns>A real path</returns>
-	internal static string GetResourceNameFromVirt(string virtPath, string folder)
+	private static string GetResourceNameFromVirt(string virtPath, string folder)
 	{
 		var ext = Path.GetExtension(virtPath);
 		// +1 to account for the forward slash
 		return virtPath.AsSpan((folder.Length + 1)..^ext.Length).ToString();
 	}
 
-	internal static Shader? LoadShader(string virtPath, Stream file)
+	/// <summary>
+	/// Loads a shader from a file stream.
+	/// </summary>
+	/// <param name="virtPath">The Virtual Path to the file. Used if the shader includes things from other files.</param>
+	/// <param name="file">The File Stream for the file.</param>
+	/// <returns>The shader that was loaded.</returns>
+	/// <exception cref="Exception">Throws if we try to include something that doesn't exist.</exception>
+	private static Shader? LoadShader(string virtPath, Stream file)
 	{
 		using var reader = new StreamReader(file);
 		var code = reader.ReadToEnd();

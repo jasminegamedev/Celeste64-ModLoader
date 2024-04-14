@@ -6,14 +6,13 @@ namespace Celeste64;
 
 /// <summary>
 /// Creates a slight delay so the window looks OK before we load Assets
-/// TODO: Would be nice if Foster could hide the Window till assets are ready.
 /// </summary>
 public class Startup : Scene
 {
 	private int assetQueueSize;
 	private int queueIndex = 0;
 	private bool areModsRegistered = false;
-	private string lastLoadedId = string.Empty;
+	private string lastLoadedModName = string.Empty;
 	private int delay = 5;
 	private Stopwatch timer;
 
@@ -23,8 +22,11 @@ public class Startup : Scene
 
 		// Register vanilla mod so that it can load its assets
 		// Assume this will be overridden later
-		ModLoader.CreateNewVanilla();
-		if (ModManager.Instance.VanillaGameMod is not null) ModManager.Instance.RegisterMod(ModManager.Instance.VanillaGameMod);
+		ModLoader.CreateVanillaMod();
+		if (ModManager.Instance.VanillaGameMod is not null)
+		{
+			ModManager.Instance.RegisterMod(ModManager.Instance.VanillaGameMod);
+		}
 
 		// load save file
 		{
@@ -42,11 +44,7 @@ public class Startup : Scene
 		}
 
 		// load vanilla assets
-		Assets.StageVanilla();
-
-		// make sure the active language is ready for use,
-		// since the save file may have loaded a different language than default.
-		Language.Current.Use();
+		Assets.LoadVanillaMod();
 
 		// try to load controls, or overwrite with defaults if they don't exist
 		{
@@ -72,17 +70,22 @@ public class Startup : Scene
 		}
 
 		// load assets
-		lastLoadedId = Assets.loadQueue.Count > 0 ? Assets.loadQueue[0].ModInfo.Id : string.Empty;
-		bool shouldGo = !Assets.MoveLoadQueue();
+		lastLoadedModName = Assets.LoadQueue.Any() ?
+			(Assets.LoadQueue.First().ModInfo.Name ?? Assets.LoadQueue.First().ModInfo.Id)
+			: string.Empty;
+		bool finishedLoading = !Assets.MoveLoadQueue();
 		queueIndex++;
 
-		if (shouldGo && !Game.Instance.IsMidTransition)
+		if (finishedLoading && !Game.Instance.IsMidTransition)
 		{
+			// Update the current language after all mods have finished loading.
+			Language.Current.Use();
+
 			Log.Info($"Loaded Assets in {timer.ElapsedMilliseconds}ms");
 			ModManager.Instance.OnAssetsLoaded();
 
 			// enter game
-			if (Input.Keyboard.CtrlOrCommand && !Game.Instance.IsMidTransition && Settings.EnableQuickStart)
+			if (Settings.EnableQuickStart && Input.Keyboard.CtrlOrCommand)
 			{
 				var entry = new Overworld.Entry(Assets.Levels[0], null);
 				entry.Level.Enter();
@@ -115,7 +118,7 @@ public class Startup : Scene
 		}
 		else
 		{
-			loadInfo = String.Format(Loc.Str("FujiLoaderStatusNormal"), lastLoadedId, queueIndex, assetQueueSize);
+			loadInfo = String.Format(Loc.Str("FujiLoaderStatusNormal"), lastLoadedModName, queueIndex, assetQueueSize);
 		}
 
 		UI.Text(batcher, loadInfo, bounds.BottomLeft + new Vec2(4 * Game.RelativeScale, -28 * Game.RelativeScale), Vec2.Zero, Color.White);
