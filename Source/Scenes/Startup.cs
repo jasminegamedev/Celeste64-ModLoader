@@ -75,6 +75,12 @@ public class Startup : Scene
 			: string.Empty;
 		bool finishedLoading = !Assets.MoveLoadQueue();
 		queueIndex++;
+		/*
+			We introduce a tiny bit of delay after each mod so the game has time to render to the screen.
+			This makes the loading screen look less choppy overall. Since the delay is so small, any impact 
+			it has on speed should be negligible.
+		*/
+		delay = 2;
 
 		if (finishedLoading && !Game.Instance.IsMidTransition)
 		{
