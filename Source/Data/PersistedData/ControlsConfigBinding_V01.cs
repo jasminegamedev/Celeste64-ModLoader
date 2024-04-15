@@ -65,6 +65,32 @@ public sealed class ControlsConfigBinding_V01 : PersistedData
 			button.Add(Condition, 0, Axis.Value, AxisInverted ? -1 : 1, AxisDeadzone);
 	}
 
+	public string GetBindingName()
+	{
+		if (Key != null)
+			return Key.ToString();
+		if (Button != null)
+			return Button.ToString();
+		if (Axis != null)
+			return Axis.ToString();
+		if (MouseButton != null)
+			return MouseButton.ToString();
+		return null;
+	}
+
+	public bool IsForController()
+	{
+		if (Key != null)
+			return false;
+		if (Button != null)
+			return true;
+		if (Axis != null)
+			return true;
+		if (MouseButton != null)
+			return false;
+		return false;
+	}
+
 	public override JsonTypeInfo GetTypeInfo()
 	{
 		return ControlsConfigBinding_V01Context.Default.ControlsConfigBinding_V01;

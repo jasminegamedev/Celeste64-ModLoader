@@ -136,44 +136,44 @@ public static class Controls
 
 	private static string GetControllerName(Gamepads pad) => pad switch
 	{
-		Gamepads.DualShock4 => "PlayStation 4",
-		Gamepads.DualSense => "PlayStation 5",
+		Gamepads.DualShock4 => "PlayStation",
+		Gamepads.DualSense => "PlayStation",
 		Gamepads.Nintendo => "Nintendo Switch",
 		Gamepads.Xbox => "Xbox Series",
 		_ => "Xbox Series",
 	};
 
-	private static string GetPromptLocation(string name)
+	public static string GetPromptLocation(VirtualButton button)
 	{
 		var gamepad = Input.Controllers[0];
-		var deviceTypeName =
-			gamepad.Connected ? GetControllerName(gamepad.Gamepad) : "PC";
 
+		var deviceTypeName =
+					gamepad.Connected ? GetControllerName(gamepad.Gamepad) : "PC";
 		if (!prompts.TryGetValue(deviceTypeName, out var list))
 			prompts[deviceTypeName] = list = [];
 
-		if (!list.TryGetValue(name, out var lookup))
-			list[name] = lookup = $"Controls/{deviceTypeName}/{name}";
+		var action = Instance.Actions.ContainsKey(button.Name) ? Instance.Actions[button.Name] : ControlsConfig_V01.Defaults.Actions[button.Name];
+
+		var binding = action.FirstOrDefault(b => b.IsForController() == gamepad.Connected);
+
+		string buttonName = binding.GetBindingName();
+
+		if (gamepad.Gamepad == Gamepads.DualShock4)
+		{
+			if (buttonName == "Start")
+			{
+				buttonName = "PS4_Start";
+			}
+			else if (buttonName == "Select")
+			{
+				buttonName = "PS4_Select";
+			}
+		}
+
+		if (!list.TryGetValue(binding.GetBindingName(), out var lookup))
+			list[binding.GetBindingName()] = lookup = $"Controls/{deviceTypeName}/{binding.GetBindingName()}";
 
 		return lookup;
-	}
-
-	public static string GetPromptLocation(VirtualButton button)
-	{
-		// TODO: instead, query the button's actual bindings and look up a
-		// texture based on that! no time tho
-		if (button == Confirm)
-			return GetPromptLocation("confirm");
-		else if (button == Cancel)
-			return GetPromptLocation("cancel");
-		else if (button == CreateFile)
-			return GetPromptLocation("createfile");
-		else if (button == DeleteFile)
-			return GetPromptLocation("deletefile");
-		else if (button == CopyFile)
-			return GetPromptLocation("copyfile");
-		else
-			return GetPromptLocation("pause");
 	}
 
 	public static Subtexture GetPrompt(VirtualButton button)
