@@ -1,13 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
 
 namespace Celeste64;
 
-public sealed class ControlsConfigBinding_V01 : PersistedData
+public sealed class ControlsConfigBinding
 {
-	public override int Version => 1;
-
 	public Keys? Key { get; set; }
 	public MouseButtons? MouseButton { get; set; }
 	public Buttons? Button { get; set; }
@@ -17,11 +14,11 @@ public sealed class ControlsConfigBinding_V01 : PersistedData
 	public Gamepads? OnlyFor { get; set; }
 	public Gamepads? NotFor { get; set; }
 
-	public ControlsConfigBinding_V01() { }
-	public ControlsConfigBinding_V01(Keys input) => Key = input;
-	public ControlsConfigBinding_V01(MouseButtons input) => MouseButton = input;
-	public ControlsConfigBinding_V01(Buttons input) => Button = input;
-	public ControlsConfigBinding_V01(Axes input, float deadzone, bool inverted)
+	public ControlsConfigBinding() { }
+	public ControlsConfigBinding(Keys input) => Key = input;
+	public ControlsConfigBinding(MouseButtons input) => MouseButton = input;
+	public ControlsConfigBinding(Buttons input) => Button = input;
+	public ControlsConfigBinding(Axes input, float deadzone, bool inverted)
 	{
 		Axis = input;
 		AxisDeadzone = deadzone;
@@ -124,30 +121,25 @@ public sealed class ControlsConfigBinding_V01 : PersistedData
 			return false;
 		return false;
 	}
-
-	public override JsonTypeInfo GetTypeInfo()
-	{
-		return ControlsConfigBinding_V01Context.Default.ControlsConfigBinding_V01;
-	}
 }
 
-public class ControlsConfigBinding_V01Converter : JsonConverter<ControlsConfigBinding_V01>
+public class ControlsConfigBinding_Converter : JsonConverter<ControlsConfigBinding>
 {
-	public override ControlsConfigBinding_V01? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+	public override ControlsConfigBinding? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
 		using (var jsonDoc = JsonDocument.ParseValue(ref reader))
 		{
-			return new ControlsConfigBinding_V01().Deserialize<ControlsConfigBinding_V01>(jsonDoc.RootElement.GetRawText());
+			return JsonSerializer.Deserialize(jsonDoc.RootElement.GetRawText(), ControlsConfigBindingContext.Default.ControlsConfigBinding);
 		}
 	}
 
-	public override void Write(Utf8JsonWriter writer, ControlsConfigBinding_V01 value, JsonSerializerOptions options)
+	public override void Write(Utf8JsonWriter writer, ControlsConfigBinding value, JsonSerializerOptions options)
 	{
 		// All of this is just so the Binding values are on a single line to increase readability
 		var data =
 			"\n" +
 			new string(' ', writer.CurrentDepth * 2) +
-			JsonSerializer.Serialize(value, ControlsConfigBinding_V01Context.Default.ControlsConfigBinding_V01);
+			JsonSerializer.Serialize(value, ControlsConfigBindingContext.Default.ControlsConfigBinding);
 		writer.WriteRawValue(data);
 	}
 }
@@ -157,5 +149,5 @@ public class ControlsConfigBinding_V01Converter : JsonConverter<ControlsConfigBi
 	DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
 	AllowTrailingCommas = true
 )]
-[JsonSerializable(typeof(ControlsConfigBinding_V01))]
-internal partial class ControlsConfigBinding_V01Context : JsonSerializerContext { }
+[JsonSerializable(typeof(ControlsConfigBinding))]
+internal partial class ControlsConfigBindingContext : JsonSerializerContext { }

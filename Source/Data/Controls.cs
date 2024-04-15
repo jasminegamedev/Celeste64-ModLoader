@@ -109,6 +109,13 @@ public static class Controls
 	}
 
 	[DisallowHooks]
+	internal static void AddBinding(VirtualButton button, Axes key, bool inverted)
+	{
+		Instance.Actions[button.Name].Add(new(key, 0.5f, inverted));
+		Instance.Actions[button.Name].Last().BindTo(button);
+	}
+
+	[DisallowHooks]
 	internal static void ClearBinding(VirtualButton button)
 	{
 		button.Clear();
@@ -146,7 +153,7 @@ public static class Controls
 
 	public static void LoadConfig(ControlsConfig_V01? config = null)
 	{
-		static ControlsConfigStick_V01 FindStick(ControlsConfig_V01? config, string name)
+		static ControlsConfigStick FindStick(ControlsConfig_V01? config, string name)
 		{
 			if (config != null && config.Sticks.TryGetValue(name, out var stick))
 				return stick;
@@ -155,7 +162,7 @@ public static class Controls
 			throw new Exception($"Missing Stick Binding for '{name}'");
 		}
 
-		static List<ControlsConfigBinding_V01> FindAction(ControlsConfig_V01? config, string name)
+		static List<ControlsConfigBinding> FindAction(ControlsConfig_V01? config, string name)
 		{
 			if (config != null && config.Actions.TryGetValue(name, out var action))
 				return action;

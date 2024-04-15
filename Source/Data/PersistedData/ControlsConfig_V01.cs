@@ -7,8 +7,8 @@ public class ControlsConfig_V01 : PersistedData
 {
 	public override int Version => 1;
 
-	public Dictionary<string, List<ControlsConfigBinding_V01>> Actions { get; set; } = [];
-	public Dictionary<string, ControlsConfigStick_V01> Sticks { get; set; } = [];
+	public Dictionary<string, List<ControlsConfigBinding>> Actions { get; set; } = [];
+	public Dictionary<string, ControlsConfigStick> Sticks { get; set; } = [];
 
 	public static ControlsConfig_V01 Defaults = new()
 	{
@@ -149,7 +149,7 @@ public class ControlsConfig_V01 : PersistedData
 	UseStringEnumConverter = true,
 	DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
 	AllowTrailingCommas = true,
-	Converters = [typeof(ControlsConfigBinding_V01Converter), typeof(ControlsConfigStick_V01Converter)]
+	Converters = [typeof(ControlsConfigBinding_Converter)]
 )]
 [JsonSerializable(typeof(ControlsConfig_V01))]
 internal partial class ControlsConfig_V01Context : JsonSerializerContext { }
