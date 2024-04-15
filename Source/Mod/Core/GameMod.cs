@@ -642,6 +642,8 @@ public abstract class GameMod
 	/// <summary>
 	/// Called when the current scene is finished rendering.
 	/// The screen wipe is still rendered on top regardless.
+	/// 
+	/// The batcher is rendered and cleared automatically after running your logic, so you don't have to do it manually.
 	/// </summary>
 	/// <param name="batch">The batcher used to render this scene</param>
 	public virtual void AfterSceneRender(Batcher batch) { }
