@@ -41,6 +41,27 @@ public class Menu
 		}
 	}
 
+	public class InputBind(string label, VirtualButton button, Menu? rootMenu) : Item
+	{
+		public override string Label { get; } = label;
+		public override bool Pressed()
+		{
+			Audio.Play(Sfx.ui_select);
+			rootMenu?.PushSubMenu(new BindControlMenu(rootMenu, button));
+			return true;
+		}
+
+		public List<Subtexture> GetTextures()
+		{
+			return Controls.GetPrompts(button);
+		}
+
+		public VirtualButton GetButton()
+		{
+			return button;
+		}
+	}
+
 	public class Submenu(Loc.Localized locString, Menu? rootMenu, Menu? submenu = null) : Item
 	{
 		public override Loc.Localized? LocString => locString;
@@ -365,7 +386,7 @@ public class Menu
 				step = -1;
 
 			Index += step;
-			while (!items[(items.Count + Index) % items.Count].Selectable)
+			while (step != 0 && !items[(items.Count + Index) % items.Count].Selectable)
 				Index += step;
 			Index = (items.Count + Index) % items.Count;
 
@@ -456,6 +477,25 @@ public class Menu
 				batch.PopMatrix();
 				position.Y += font.LineHeight;
 			}
+			else if (items[i] is InputBind)
+			{
+				UI.Text(batch, text, position, new Vec2(1.0f, 0), color);
+
+				InputBind item = (InputBind)items[i];
+				var textures = item.GetTextures();
+				foreach (var texture in textures)
+				{
+					batch.PushMatrix(
+						Matrix3x2.CreateScale(TitleScale) *
+						Matrix3x2.CreateTranslation(position));
+					position.X += (24 * Game.RelativeScale);
+					UI.Icon(batch, texture, "", Vec2.Zero);
+					batch.PopMatrix();
+				}
+				position.Y += font.LineHeight;
+				position.Y += Spacing;
+				position.X = 0;
+			}
 			else
 			{
 				UI.Text(batch, text, position, justify, color);
@@ -465,7 +505,7 @@ public class Menu
 		}
 		batch.PopMatrix();
 
-		// Render a scrolbar if there are too many items to show on screen at once
+		// Render a scrollbar if there are too many items to show on screen at once
 		if (showScrollbar && items.Count > maxItemsCount)
 		{
 			// TODO: This will need to be redone if we implement mouse support and want it to interact with menus.

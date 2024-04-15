@@ -284,6 +284,7 @@ public class Game : Module
 			{
 				Save.SaveToFile();
 				Settings.SaveToFile();
+				Controls.SaveToFile();
 				ModSettings.SaveToFile();
 			}
 
@@ -316,7 +317,7 @@ public class Game : Module
 			if (scenes.TryPeek(out var nextScene))
 			{
 				if (Settings.EnableAdditionalLogging) Log.Info("Switching scene: " + nextScene.GetType());
-				
+
 				try
 				{
 					nextScene.Entered();

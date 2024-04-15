@@ -48,9 +48,100 @@ public static class Controls
 			JsonSerializer.Serialize(stream, ControlsConfig_V01.Defaults, ControlsConfig_V01Context.Default.ControlsConfig_V01);
 			stream.Flush();
 		}
+		else
+		{
+			// Add any default actions and sticks that are missing.
+			foreach (var action in ControlsConfig_V01.Defaults.Actions)
+			{
+				if (!controls.Actions.ContainsKey(action.Key))
+				{
+					controls.Actions.Add(action.Key, action.Value);
+				}
+			}
+			foreach (var stick in ControlsConfig_V01.Defaults.Sticks)
+			{
+				if (!controls.Sticks.ContainsKey(stick.Key))
+				{
+					controls.Sticks.Add(stick.Key, stick.Value);
+				}
+			}
+		}
 
 		Instance = controls;
 		LoadConfig(Instance);
+	}
+
+	[DisallowHooks]
+	internal static void ResetBindings()
+	{
+		Instance.Actions.Clear();
+		Instance.Sticks.Clear();
+
+		foreach (var action in ControlsConfig_V01.Defaults.Actions)
+		{
+			Instance.Actions[action.Key] = action.Value;
+		}
+		foreach (var stick in ControlsConfig_V01.Defaults.Sticks)
+		{
+			Instance.Sticks[stick.Key] = stick.Value;
+		}
+	}
+
+	[DisallowHooks]
+	internal static void AddBinding(VirtualButton button, Keys key)
+	{
+		Instance.Actions[button.Name].Add(new(key));
+		Instance.Actions[button.Name].Last().BindTo(button);
+	}
+
+	[DisallowHooks]
+	internal static void AddBinding(VirtualButton button, Buttons key)
+	{
+		Instance.Actions[button.Name].Add(new(key));
+		Instance.Actions[button.Name].Last().BindTo(button);
+	}
+
+	[DisallowHooks]
+	internal static void AddBinding(VirtualButton button, MouseButtons key)
+	{
+		Instance.Actions[button.Name].Add(new(key));
+		Instance.Actions[button.Name].Last().BindTo(button);
+	}
+
+	[DisallowHooks]
+	internal static void ClearBinding(VirtualButton button)
+	{
+		button.Clear();
+		Instance.Actions[button.Name].Clear();
+	}
+
+	[DisallowHooks]
+	internal static void ResetBinding(VirtualButton button)
+	{
+		button.Clear();
+		Instance.Actions[button.Name].Clear();
+		Instance.Actions[button.Name].AddRange(ControlsConfig_V01.Defaults.Actions[button.Name]);
+	}
+
+	[DisallowHooks]
+	public static void SaveToFile()
+	{
+		var savePath = Path.Join(App.UserPath, DefaultFileName);
+		var tempPath = Path.Join(App.UserPath, DefaultFileName + ".backup");
+
+		// first save to a temporary file
+		{
+			using var stream = File.Create(tempPath);
+			Instance.Serialize(stream, Instance);
+			stream.Flush();
+		}
+
+		// validate that the temp path worked, and overwrite existing if it did.
+		if (File.Exists(tempPath) &&
+			Instance.Deserialize<ControlsConfig_V01>(File.ReadAllText(tempPath)) != null)
+		{
+			File.Copy(tempPath, savePath, true);
+		}
 	}
 
 	public static void LoadConfig(ControlsConfig_V01? config = null)
@@ -143,6 +234,11 @@ public static class Controls
 		_ => "Xbox Series",
 	};
 
+	public static Subtexture GetPrompt(VirtualButton button)
+	{
+		return Assets.Subtextures.GetValueOrDefault(GetPromptLocation(button));
+	}
+
 	public static string GetPromptLocation(VirtualButton button)
 	{
 		var gamepad = Input.Controllers[0];
@@ -158,7 +254,60 @@ public static class Controls
 
 		string buttonName = binding.GetBindingName();
 
-		if (gamepad.Gamepad == Gamepads.DualShock4)
+		buttonName = GetButtonOverrides(buttonName, gamepad.Gamepad);
+
+		if (!list.TryGetValue(binding.GetBindingName(), out var lookup))
+			list[binding.GetBindingName()] = lookup = $"Controls/{deviceTypeName}/{binding.GetBindingName()}";
+
+		return lookup;
+	}
+
+	public static List<Subtexture> GetPrompts(VirtualButton button)
+	{
+		List<Subtexture> subtextures = [];
+		foreach (var location in GetPromptLocations(button))
+			subtextures.Add(Assets.Subtextures.GetValueOrDefault(location));
+		return subtextures;
+	}
+
+	private static List<string> GetPromptLocations(VirtualButton button)
+	{
+		List<string> locations = [];
+		var gamepad = Input.Controllers[0];
+		var deviceTypeName =
+			gamepad.Connected ? GetControllerName(gamepad.Gamepad) : "PC";
+		foreach (var binding in Instance.Actions[button.Name])
+		{
+			string promptDeviceTypeName = "PC";
+			var buttonName = binding.GetBindingName();
+			if (binding.IsForController())
+				promptDeviceTypeName = GetControllerName(gamepad.Gamepad);
+
+			if (!prompts.TryGetValue(deviceTypeName, out var list))
+				prompts[deviceTypeName] = list = [];
+
+			buttonName = GetButtonOverrides(buttonName, gamepad.Gamepad);
+
+			if (!list.TryGetValue(buttonName, out var lookup))
+				list[buttonName] = lookup = $"Controls/{promptDeviceTypeName}/{buttonName}";
+
+			if (Gamepads.Nintendo.Equals(binding.NotFor) || !Gamepads.Nintendo.Equals(binding.OnlyFor) || (binding.NotFor == null && binding.OnlyFor == null)) //only non switch prompts atm
+				locations.Add(lookup);
+
+		}
+
+		return locations;
+	}
+
+	/// <summary>
+	/// Used for special cases where there may be multiple options for a button, like with different control types.
+	/// </summary>
+	/// <param name="buttonName"></param>
+	/// <param name="gamepadType"></param>
+	/// <returns></returns>
+	private static string GetButtonOverrides(string buttonName, Gamepads gamepadType)
+	{
+		if (gamepadType == Gamepads.DualShock4)
 		{
 			if (buttonName == "Start")
 			{
@@ -170,14 +319,6 @@ public static class Controls
 			}
 		}
 
-		if (!list.TryGetValue(binding.GetBindingName(), out var lookup))
-			list[binding.GetBindingName()] = lookup = $"Controls/{deviceTypeName}/{binding.GetBindingName()}";
-
-		return lookup;
-	}
-
-	public static Subtexture GetPrompt(VirtualButton button)
-	{
-		return Assets.Subtextures.GetValueOrDefault(GetPromptLocation(button));
+		return buttonName;
 	}
 }

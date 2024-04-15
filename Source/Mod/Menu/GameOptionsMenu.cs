@@ -3,12 +3,13 @@ namespace Celeste64;
 public class GameOptionsMenu : Menu
 {
 	public Menu FujiOptionsMenu;
-
+	public ControlsMenu ControlsMenu;
 
 	public override void Closed()
 	{
 		base.Closed();
 		Settings.SaveToFile();
+		Controls.SaveToFile();
 	}
 
 	public GameOptionsMenu(Menu? rootMenu)
@@ -16,6 +17,7 @@ public class GameOptionsMenu : Menu
 		RootMenu = rootMenu;
 		// Setup fuji options menu
 		FujiOptionsMenu = new Menu { Title = Loc.Str("FujiOptions") };
+		ControlsMenu = new ControlsMenu(rootMenu);
 
 		FujiOptionsMenu.Add(new Toggle("FujiEnableDebugMenu", Settings.ToggleEnableDebugMenu, () => Settings.EnableDebugMenu));
 		FujiOptionsMenu.Add(new Toggle("FujiWriteLog", Settings.ToggleWriteLog, () => Settings.WriteLog));
@@ -49,6 +51,9 @@ public class GameOptionsMenu : Menu
 		Add(new Slider("OptionsBGM", 0, 10, () => Settings.MusicVolume, Settings.SetMusicVolume));
 		Add(new Slider("OptionsSFX", 0, 10, () => Settings.SfxVolume, Settings.SetSfxVolume));
 		Add(new Spacer());
+
+
+		Add(new Submenu("Controls", this, ControlsMenu));
 		Add(new Submenu("FujiOptions", this, FujiOptionsMenu));
 	}
 }
