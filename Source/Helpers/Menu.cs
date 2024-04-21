@@ -41,19 +41,19 @@ public class Menu
 		}
 	}
 
-	public class InputBind(string label, VirtualButton button, Menu? rootMenu) : Item
+	public class InputBind(Loc.Localized locString, VirtualButton button, Menu? rootMenu, bool isForController) : Item
 	{
-		public override string Label { get; } = label;
+		public override Loc.Localized? LocString => locString;
 		public override bool Pressed()
 		{
 			Audio.Play(Sfx.ui_select);
-			rootMenu?.PushSubMenu(new BindControlMenu(rootMenu, button));
+			rootMenu?.PushSubMenu(new BindControlMenu(rootMenu, button, isForController));
 			return true;
 		}
 
-		public List<Subtexture> GetTextures()
+		public virtual List<Subtexture> GetTextures()
 		{
-			return Controls.GetPrompts(button);
+			return Controls.GetPrompts(button, isForController);
 		}
 
 		public VirtualButton GetButton()

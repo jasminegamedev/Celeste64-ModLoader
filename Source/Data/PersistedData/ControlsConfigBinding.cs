@@ -82,10 +82,10 @@ public sealed class ControlsConfigBinding
 		RightStick = 8,
 		LeftShoulder = 9,
 		RightShoulder = 10,
-		Up = 11,
-		Down = 12,
-		Left = 13,
-		Right = 14
+		ButtonUp = 11,
+		ButtonDown = 12,
+		ButtonLeft = 13,
+		ButtonRight = 14
 	}
 
 	public enum FujiMouseButtons
@@ -103,7 +103,7 @@ public sealed class ControlsConfigBinding
 		if (Button != null)
 			return ((FujiButtons)Button).ToString() ?? "";
 		if (Axis != null)
-			return Axis.ToString() ?? "";
+			return Axis.ToString() + (AxisInverted ? "Negative" : "Positive");
 		if (MouseButton != null)
 			return ((FujiMouseButtons)MouseButton).ToString() ?? "";
 		return "";

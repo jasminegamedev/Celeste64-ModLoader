@@ -3,7 +3,8 @@ namespace Celeste64;
 public class GameOptionsMenu : Menu
 {
 	public Menu FujiOptionsMenu;
-	public ControlsMenu ControlsMenu;
+	public ControlsMenu KeyboardControlsMenu;
+	public ControlsMenu ControllerControlsMenu;
 
 	public override void Closed()
 	{
@@ -17,7 +18,8 @@ public class GameOptionsMenu : Menu
 		RootMenu = rootMenu;
 		// Setup fuji options menu
 		FujiOptionsMenu = new Menu { Title = Loc.Str("FujiOptions") };
-		ControlsMenu = new ControlsMenu(rootMenu);
+		KeyboardControlsMenu = new ControlsMenu(rootMenu, false) { Title = Loc.Str("KeyboardConfig") };
+		ControllerControlsMenu = new ControlsMenu(rootMenu, true) { Title = Loc.Str("ControllerConfig") };
 
 		FujiOptionsMenu.Add(new Toggle("FujiEnableDebugMenu", Settings.ToggleEnableDebugMenu, () => Settings.EnableDebugMenu));
 		FujiOptionsMenu.Add(new Toggle("FujiWriteLog", Settings.ToggleWriteLog, () => Settings.WriteLog));
@@ -26,7 +28,7 @@ public class GameOptionsMenu : Menu
 		FujiOptionsMenu.Add(new Toggle("FujiAdditionalLog", Settings.ToggleEnableAdditionalLogs, () => Settings.EnableAdditionalLogging));
 		FujiOptionsMenu.Add(new Option("Exit", () =>
 		{
-			PopSubMenu();
+			PopRootSubMenu();
 		}));
 
 		// Setup this menu
@@ -52,8 +54,9 @@ public class GameOptionsMenu : Menu
 		Add(new Slider("OptionsSFX", 0, 10, () => Settings.SfxVolume, Settings.SetSfxVolume));
 		Add(new Spacer());
 
+		Add(new Submenu("KeyboardConfig", rootMenu, KeyboardControlsMenu));
+		Add(new Submenu("ControllerConfig", rootMenu, ControllerControlsMenu));
 
-		Add(new Submenu("Controls", this, ControlsMenu));
-		Add(new Submenu("FujiOptions", this, FujiOptionsMenu));
+		Add(new Submenu("FujiOptions", rootMenu, FujiOptionsMenu));
 	}
 }

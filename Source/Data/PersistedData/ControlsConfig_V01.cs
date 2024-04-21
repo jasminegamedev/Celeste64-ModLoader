@@ -45,8 +45,8 @@ public class ControlsConfig_V01 : PersistedData
 				new(Buttons.South) { OnlyFor = Gamepads.Nintendo },
 			],
 			["Pause"] = [
-				new(Keys.Enter),
 				new(Keys.Escape),
+				new(Keys.Enter),
 				new(Buttons.Start),
 				new(Buttons.Select),
 				new(Buttons.Back)

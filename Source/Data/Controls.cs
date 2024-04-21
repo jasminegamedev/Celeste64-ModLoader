@@ -72,62 +72,170 @@ public static class Controls
 	}
 
 	[DisallowHooks]
-	internal static void ResetBindings()
+	internal static void AddBinding(VirtualButton virtualButton, Keys key)
 	{
-		Instance.Actions.Clear();
-		Instance.Sticks.Clear();
+		var config = GetButtonBindings(Instance, virtualButton);
+		if (config != null && !config.Any(a => a.Key == key))
+		{
+			config.Add(new(key));
+			config.Last().BindTo(virtualButton);
+		}
+	}
 
+	[DisallowHooks]
+	internal static void AddBinding(VirtualButton virtualButton, Buttons button)
+	{
+		var config = GetButtonBindings(Instance, virtualButton);
+		if (config != null && !config.Any(a => a.Button == button))
+		{
+			config.Add(new(button));
+			config.Last().BindTo(virtualButton);
+		}
+	}
+
+	[DisallowHooks]
+	internal static void AddBinding(VirtualButton virtualButton, MouseButtons mouseButton)
+	{
+		var config = GetButtonBindings(Instance, virtualButton);
+		if (config != null && !config.Any(a => a.MouseButton == mouseButton))
+		{
+			config.Add(new(mouseButton));
+			config.Last().BindTo(virtualButton);
+		}
+	}
+
+	[DisallowHooks]
+	internal static void AddBinding(VirtualButton virtualButton, Axes axis, bool inverted)
+	{
+		var config = GetButtonBindings(Instance, virtualButton);
+		if (config != null && !config.Any(a => a.Axis == axis))
+		{
+			config.Add(new(axis, 0.5f, inverted));
+			config.Last().BindTo(virtualButton);
+		}
+	}
+
+	[DisallowHooks]
+	internal static void ClearBinding(VirtualButton virtualButton, bool forController)
+	{
+		var config = GetButtonBindings(Instance, virtualButton);
+		if (config != null)
+		{
+			virtualButton.Clear();
+			// Remove all bindings for this control type
+			config.RemoveAll(x => x.IsForController() == forController);
+
+			// Rebind remaining bindings.
+			// Needed to rebind other control type, i.e. to not lose controller binds when clearing for keyboard.
+			foreach (var binding in config)
+			{
+				binding.BindTo(virtualButton);
+			}
+		}
+	}
+
+	[DisallowHooks]
+	internal static void ResetBinding(VirtualButton virtualButton, bool forController)
+	{
+		var bindings = GetButtonBindings(Instance, virtualButton);
+		var defaultBindings = GetButtonBindings(ControlsConfig_V01.Defaults, virtualButton);
+		if (bindings != null && defaultBindings != null)
+		{
+			virtualButton.Clear();
+
+			// Remove all bindings for this control type
+			bindings.RemoveAll(x => x.IsForController() == forController);
+
+			// Readd all default bindings for this control type
+			foreach (var binding in defaultBindings)
+			{
+				if (binding.IsForController() == forController)
+				{
+					bindings.Add(binding);
+				}
+			}
+
+			// Rebind bindings to the virtual button.
+			foreach (var binding in bindings)
+			{
+				binding.BindTo(virtualButton);
+			}
+		}
+	}
+
+	[DisallowHooks]
+	internal static void ResetAllBindings(bool forController)
+	{
+		// Remove all bindings for this control type
+		foreach (var action in Instance.Actions)
+		{
+			Instance.Actions[action.Key].RemoveAll(x => x.IsForController() == forController);
+		}
+		foreach (var action in Instance.Sticks)
+		{
+			Instance.Sticks[action.Key].Up.RemoveAll(x => x.IsForController() == forController);
+			Instance.Sticks[action.Key].Down.RemoveAll(x => x.IsForController() == forController);
+			Instance.Sticks[action.Key].Left.RemoveAll(x => x.IsForController() == forController);
+			Instance.Sticks[action.Key].Right.RemoveAll(x => x.IsForController() == forController);
+		}
+
+		// Readd default bindings for this control type.
 		foreach (var action in ControlsConfig_V01.Defaults.Actions)
 		{
-			Instance.Actions[action.Key] = action.Value;
+			foreach (var binding in action.Value)
+			{
+				if (binding.IsForController() == forController)
+				{
+					Instance.Actions[action.Key].Add(binding);
+				}
+			}
 		}
 		foreach (var stick in ControlsConfig_V01.Defaults.Sticks)
 		{
-			Instance.Sticks[stick.Key] = stick.Value;
+			Instance.Sticks[stick.Key].Up.AddRange(stick.Value.Up.Where(b => b.IsForController() == forController));
+			Instance.Sticks[stick.Key].Down.AddRange(stick.Value.Down.Where(b => b.IsForController() == forController));
+			Instance.Sticks[stick.Key].Left.AddRange(stick.Value.Left.Where(b => b.IsForController() == forController));
+			Instance.Sticks[stick.Key].Right.AddRange(stick.Value.Right.Where(b => b.IsForController() == forController));
 		}
+
+		// Reload bindings
+		LoadConfig(Instance);
 	}
 
-	[DisallowHooks]
-	internal static void AddBinding(VirtualButton button, Keys key)
+	private static List<ControlsConfigBinding>? GetButtonBindings(ControlsConfig_V01 config, VirtualButton virtualButton)
 	{
-		Instance.Actions[button.Name].Add(new(key));
-		Instance.Actions[button.Name].Last().BindTo(button);
-	}
+		string[] nameParts = virtualButton.Name.Split("/");
 
-	[DisallowHooks]
-	internal static void AddBinding(VirtualButton button, Buttons key)
-	{
-		Instance.Actions[button.Name].Add(new(key));
-		Instance.Actions[button.Name].Last().BindTo(button);
-	}
+		if (nameParts.Length == 3)
+		{
+			var stickConfig = config.Sticks[nameParts[0]];
 
-	[DisallowHooks]
-	internal static void AddBinding(VirtualButton button, MouseButtons key)
-	{
-		Instance.Actions[button.Name].Add(new(key));
-		Instance.Actions[button.Name].Last().BindTo(button);
-	}
+			if (stickConfig != null)
+			{
+				if (nameParts[1] == "Horizontal" && nameParts[2] == "Positive")
+				{
+					return stickConfig.Right;
+				}
+				else if (nameParts[1] == "Horizontal" && nameParts[2] == "Negative")
+				{
+					return stickConfig.Left;
+				}
+				else if (nameParts[1] == "Vertical" && nameParts[2] == "Negative")
+				{
+					return stickConfig.Up;
+				}
+				else if (nameParts[1] == "Vertical" && nameParts[2] == "Positive")
+				{
+					return stickConfig.Down;
+				}
+			}
+		}
+		else if (config.Actions.ContainsKey(virtualButton.Name))
+		{
+			return config.Actions[virtualButton.Name];
+		}
 
-	[DisallowHooks]
-	internal static void AddBinding(VirtualButton button, Axes key, bool inverted)
-	{
-		Instance.Actions[button.Name].Add(new(key, 0.5f, inverted));
-		Instance.Actions[button.Name].Last().BindTo(button);
-	}
-
-	[DisallowHooks]
-	internal static void ClearBinding(VirtualButton button)
-	{
-		button.Clear();
-		Instance.Actions[button.Name].Clear();
-	}
-
-	[DisallowHooks]
-	internal static void ResetBinding(VirtualButton button)
-	{
-		button.Clear();
-		Instance.Actions[button.Name].Clear();
-		Instance.Actions[button.Name].AddRange(ControlsConfig_V01.Defaults.Actions[button.Name]);
+		return null;
 	}
 
 	[DisallowHooks]
@@ -195,7 +303,6 @@ public static class Controls
 			it.BindTo(DeleteFile);
 		foreach (var it in FindAction(config, "CreateFile"))
 			it.BindTo(CreateFile);
-
 	}
 
 	public static void Clear()
@@ -269,38 +376,49 @@ public static class Controls
 		return lookup;
 	}
 
-	public static List<Subtexture> GetPrompts(VirtualButton button)
+	public static List<Subtexture> GetPrompts(VirtualButton button, bool isForController)
 	{
 		List<Subtexture> subtextures = [];
-		foreach (var location in GetPromptLocations(button))
+		foreach (var location in GetPromptLocations(button, isForController))
 			subtextures.Add(Assets.Subtextures.GetValueOrDefault(location));
 		return subtextures;
 	}
 
-	private static List<string> GetPromptLocations(VirtualButton button)
+	private static List<string> GetPromptLocations(VirtualButton button, bool isForController)
 	{
 		List<string> locations = [];
 		var gamepad = Input.Controllers[0];
 		var deviceTypeName =
 			gamepad.Connected ? GetControllerName(gamepad.Gamepad) : "PC";
-		foreach (var binding in Instance.Actions[button.Name])
+
+		var config = GetButtonBindings(Instance, button);
+
+		if (config != null)
 		{
-			string promptDeviceTypeName = "PC";
-			var buttonName = binding.GetBindingName();
-			if (binding.IsForController())
-				promptDeviceTypeName = GetControllerName(gamepad.Gamepad);
+			foreach (var binding in config)
+			{
+				if (binding.IsForController() != isForController)
+				{
+					continue;
+				}
 
-			if (!prompts.TryGetValue(deviceTypeName, out var list))
-				prompts[deviceTypeName] = list = [];
+				string promptDeviceTypeName = "PC";
+				var buttonName = binding.GetBindingName();
+				if (binding.IsForController())
+					promptDeviceTypeName = GetControllerName(gamepad.Gamepad);
 
-			buttonName = GetButtonOverrides(buttonName, gamepad.Gamepad);
+				if (!prompts.TryGetValue(deviceTypeName, out var list))
+					prompts[deviceTypeName] = list = [];
 
-			if (!list.TryGetValue(buttonName, out var lookup))
-				list[buttonName] = lookup = $"Controls/{promptDeviceTypeName}/{buttonName}";
+				buttonName = GetButtonOverrides(buttonName, gamepad.Gamepad);
 
-			if (Gamepads.Nintendo.Equals(binding.NotFor) || !Gamepads.Nintendo.Equals(binding.OnlyFor) || (binding.NotFor == null && binding.OnlyFor == null)) //only non switch prompts atm
-				locations.Add(lookup);
+				if (!list.TryGetValue(buttonName, out var lookup))
+					list[buttonName] = lookup = $"Controls/{promptDeviceTypeName}/{buttonName}";
 
+				if (Gamepads.Nintendo.Equals(binding.NotFor) || !Gamepads.Nintendo.Equals(binding.OnlyFor) || (binding.NotFor == null && binding.OnlyFor == null)) //only non switch prompts atm
+					locations.Add(lookup);
+
+			}
 		}
 
 		return locations;

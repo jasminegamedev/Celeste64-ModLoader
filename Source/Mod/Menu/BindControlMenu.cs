@@ -6,54 +6,31 @@ public class BindControlMenu : Menu
 
 	private const float waitBeforeClosingTime = 5;
 	private VirtualButton button;
+	private bool isForController;
 
-	public BindControlMenu(Menu? rootMenu, VirtualButton button)
+	public BindControlMenu(Menu? rootMenu, VirtualButton button, bool isForController)
 	{
 		RootMenu = rootMenu;
 
 		this.button = button;
+		this.isForController = isForController;
 		Title = Loc.Str($"Press Button to bind {button.Name}");
 		inMenuTime = 0;
 	}
 
 	protected override void HandleInput()
 	{
-		Keys? pressed = Input.Keyboard.FirstPressed();
-		if (pressed != null)
+		if (!isForController)
 		{
-			Controls.AddBinding(button, (Keys)pressed);
-			RootMenu?.PopSubMenu();
-			return;
-		}
-
-		// TODO: Maybe find a better way to do this? Foster doesn't expose a FirstPressed for buttons.
-		Controller? controller = Input.Controllers.FirstOrDefault();
-		if (controller != null)
-		{
-			foreach (var button in Enum.GetValues(typeof(Buttons)))
+			Keys? pressed = Input.Keyboard.FirstPressed();
+			if (pressed != null)
 			{
-				if (controller.Pressed((Buttons)button))
-				{
-					Controls.AddBinding(this.button, (Buttons)button);
-					RootMenu?.PopSubMenu();
-					return;
-				}
+				Controls.AddBinding(button, (Keys)pressed);
+				RootMenu?.PopSubMenu();
+				return;
 			}
 
-			foreach (var axis in Enum.GetValues(typeof(Axes)))
-			{
-				if (Math.Abs(controller.Axis((Axes)axis)) > 0.5f)
-				{
-					Controls.AddBinding(this.button, (Axes)axis, controller.Axis((Axes)axis) < -0.5f);
-					RootMenu?.PopSubMenu();
-					return;
-				}
-			}
-		}
-
-		// TODO: Maybe find a better way to do this? Foster doesn't expose a FirstPressed for mouse buttons.
-		if (controller != null)
-		{
+			// TODO: Maybe find a better way to do this? Foster doesn't expose a FirstPressed for mouse buttons.
 			foreach (var button in Enum.GetValues(typeof(MouseButtons)))
 			{
 				if (Input.Mouse.Pressed((MouseButtons)button))
@@ -61,6 +38,33 @@ public class BindControlMenu : Menu
 					Controls.AddBinding(this.button, (MouseButtons)button);
 					RootMenu?.PopSubMenu();
 					return;
+				}
+			}
+		}
+		else
+		{
+			// TODO: Maybe find a better way to do this? Foster doesn't expose a FirstPressed for buttons.
+			Controller? controller = Input.Controllers.FirstOrDefault();
+			if (controller != null)
+			{
+				foreach (var button in Enum.GetValues(typeof(Buttons)))
+				{
+					if (controller.Pressed((Buttons)button))
+					{
+						Controls.AddBinding(this.button, (Buttons)button);
+						RootMenu?.PopSubMenu();
+						return;
+					}
+				}
+
+				foreach (var axis in Enum.GetValues(typeof(Axes)))
+				{
+					if (Math.Abs(controller.Axis((Axes)axis)) > 0.5f)
+					{
+						Controls.AddBinding(this.button, (Axes)axis, controller.Axis((Axes)axis) < -0.5f);
+						RootMenu?.PopSubMenu();
+						return;
+					}
 				}
 			}
 		}

@@ -4,6 +4,8 @@ public class ControlsMenu : Menu
 {
 	private Target GameTarget;
 
+	private bool isForController;
+
 
 	public override void Closed()
 	{
@@ -16,33 +18,44 @@ public class ControlsMenu : Menu
 		Index = 1;
 	}
 
-	public ControlsMenu(Menu? rootMenu)
+	public ControlsMenu(Menu? rootMenu, bool isForController)
 	{
 		RootMenu = rootMenu;
+		this.isForController = isForController;
 
 		GameTarget = new Target(Game.Width, Game.Height);
 		Game.OnResolutionChanged += () => GameTarget = new Target(Game.Width, Game.Height);
 
-		Title = Loc.Str("ControlsTitle");
+		Add(new SubHeader("ControlsHeaderGame"));
+		Add(new InputBind(Controls.Jump.Name, Controls.Jump, rootMenu, isForController));
+		Add(new InputBind(Controls.Dash.Name, Controls.Dash, rootMenu, isForController));
+		Add(new InputBind(Controls.Climb.Name, Controls.Climb, rootMenu, isForController));
+		Add(new InputBind(Controls.Move.Name + "Up", Controls.Move.Vertical.Negative, rootMenu, isForController));
+		Add(new InputBind(Controls.Move.Name + "Down", Controls.Move.Vertical.Positive, rootMenu, isForController));
+		Add(new InputBind(Controls.Move.Name + "Left", Controls.Move.Horizontal.Negative, rootMenu, isForController));
+		Add(new InputBind(Controls.Move.Name + "Right", Controls.Move.Horizontal.Positive, rootMenu, isForController));
+		Add(new InputBind(Controls.Camera.Name + "Up", Controls.Camera.Vertical.Negative, rootMenu, isForController));
+		Add(new InputBind(Controls.Camera.Name + "Down", Controls.Camera.Vertical.Positive, rootMenu, isForController));
+		Add(new InputBind(Controls.Camera.Name + "Left", Controls.Camera.Horizontal.Negative, rootMenu, isForController));
+		Add(new InputBind(Controls.Camera.Name + "Right", Controls.Camera.Horizontal.Positive, rootMenu, isForController));
 
-		Add(new SubHeader("Game"));
-		Add(new InputBind(Controls.Jump.Name, Controls.Jump, rootMenu));
-		Add(new InputBind(Controls.Dash.Name, Controls.Dash, rootMenu));
-		Add(new InputBind(Controls.Climb.Name, Controls.Climb, rootMenu));
-		Add(new InputBind(Controls.Pause.Name, Controls.Pause, rootMenu));
-
-		//Add(new SubHeader("Menu"));
-		//Add(new InputBind(Controls.Confirm.Name, Controls.Confirm, rootMenu));
-		//Add(new InputBind(Controls.Cancel.Name, Controls.Cancel, rootMenu));
-		//Add(new InputBind(Controls.CopyFile.Name, Controls.CopyFile, rootMenu));
-		//Add(new InputBind(Controls.CreateFile.Name, Controls.CreateFile, rootMenu));
-		//Add(new InputBind(Controls.DeleteFile.Name, Controls.DeleteFile, rootMenu));
+		Add(new SubHeader("ControlsHeaderGame"));
+		Add(new InputBind(Controls.Pause.Name, Controls.Pause, rootMenu, isForController));
+		Add(new InputBind(Controls.Confirm.Name, Controls.Confirm, rootMenu, isForController));
+		Add(new InputBind(Controls.Cancel.Name, Controls.Cancel, rootMenu, isForController));
+		Add(new InputBind(Controls.CopyFile.Name, Controls.CopyFile, rootMenu, isForController));
+		Add(new InputBind(Controls.CreateFile.Name, Controls.CreateFile, rootMenu, isForController));
+		Add(new InputBind(Controls.DeleteFile.Name, Controls.DeleteFile, rootMenu, isForController));
+		Add(new InputBind(Controls.Menu.Name + "Up", Controls.Menu.Vertical.Negative, rootMenu, isForController));
+		Add(new InputBind(Controls.Menu.Name + "Down", Controls.Menu.Vertical.Positive, rootMenu, isForController));
+		Add(new InputBind(Controls.Menu.Name + "Left", Controls.Menu.Horizontal.Negative, rootMenu, isForController));
+		Add(new InputBind(Controls.Menu.Name + "Right", Controls.Menu.Horizontal.Positive, rootMenu, isForController));
 
 		Add(new Spacer());
 
-		Add(new Option("ResetToDefault", () =>
+		Add(new Option("ControlsResetToDefault", () =>
 		{
-			Controls.ResetBindings();
+			Controls.ResetAllBindings(isForController);
 		}));
 
 		Add(new Option("Exit", () =>
@@ -59,7 +72,7 @@ public class ControlsMenu : Menu
 		{
 			if (items[Index] is InputBind bind)
 			{
-				Controls.ResetBinding(bind.GetButton());
+				Controls.ResetBinding(bind.GetButton(), isForController);
 			}
 		}
 
@@ -67,7 +80,7 @@ public class ControlsMenu : Menu
 		{
 			if (items[Index] is InputBind bind)
 			{
-				Controls.ClearBinding(bind.GetButton());
+				Controls.ClearBinding(bind.GetButton(), isForController);
 			}
 		}
 	}
