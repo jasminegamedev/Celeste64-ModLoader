@@ -458,11 +458,11 @@ public class World : Scene
 					return;
 				}
 
-				if (Controls.Restart.ConsumePress())
+				if (Controls.Restart.ConsumePress() && Get<Player>() is { Dead: false } livingPlayer)
 				{
 					SetPaused(false);
 					Audio.StopBus(Sfx.bus_dialog, false);
-					Get<Player>()?.Kill();
+					livingPlayer?.Kill();
 					return;
 				}
 

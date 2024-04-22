@@ -46,6 +46,7 @@ public class Menu
 		public override Loc.Localized? LocString => locString;
 
 		public float DeadZone;
+		public bool RequiresBinding;
 		public override bool Pressed()
 		{
 			Audio.Play(Sfx.ui_select);

@@ -60,7 +60,7 @@
 		"ControllerConfig": "Controller Config",
 		"ControllerConfig.desc": "Rebind Controller Controls",
 		"ControlsHeaderGame": "Game",
-		"ControlsHeaderMenu": "Menu",
+		"ControlsHeaderMenu": "Menu (Requires at least 1 binding)",
 		"ControlsHeaderAdvanced": "Advanced",
 		"ControlsResetToDefault": "Reset To Default",
 		"Jump": "Jump",

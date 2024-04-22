@@ -40,16 +40,16 @@ public class ControlsMenu : Menu
 		Add(new InputBind(Controls.Camera.Name + "Right", Controls.Camera.Horizontal.Positive, rootMenu, isForController));
 
 		Add(new SubHeader("ControlsHeaderMenu"));
-		Add(new InputBind(Controls.Pause.Name, Controls.Pause, rootMenu, isForController));
-		Add(new InputBind(Controls.Confirm.Name, Controls.Confirm, rootMenu, isForController));
-		Add(new InputBind(Controls.Cancel.Name, Controls.Cancel, rootMenu, isForController));
-		Add(new InputBind(Controls.CopyFile.Name, Controls.CopyFile, rootMenu, isForController));
-		Add(new InputBind(Controls.CreateFile.Name, Controls.CreateFile, rootMenu, isForController));
-		Add(new InputBind(Controls.DeleteFile.Name, Controls.DeleteFile, rootMenu, isForController));
-		Add(new InputBind(Controls.Menu.Name + "Up", Controls.Menu.Vertical.Negative, rootMenu, isForController) { DeadZone = 0.5f });
-		Add(new InputBind(Controls.Menu.Name + "Down", Controls.Menu.Vertical.Positive, rootMenu, isForController) { DeadZone = 0.5f });
-		Add(new InputBind(Controls.Menu.Name + "Left", Controls.Menu.Horizontal.Negative, rootMenu, isForController) { DeadZone = 0.5f });
-		Add(new InputBind(Controls.Menu.Name + "Right", Controls.Menu.Horizontal.Positive, rootMenu, isForController) { DeadZone = 0.5f });
+		Add(new InputBind(Controls.Pause.Name, Controls.Pause, rootMenu, isForController) { RequiresBinding = true });
+		Add(new InputBind(Controls.Confirm.Name, Controls.Confirm, rootMenu, isForController) { RequiresBinding = true });
+		Add(new InputBind(Controls.Cancel.Name, Controls.Cancel, rootMenu, isForController) { RequiresBinding = true });
+		Add(new InputBind(Controls.CopyFile.Name, Controls.CopyFile, rootMenu, isForController) { RequiresBinding = true });
+		Add(new InputBind(Controls.CreateFile.Name, Controls.CreateFile, rootMenu, isForController) { RequiresBinding = true });
+		Add(new InputBind(Controls.DeleteFile.Name, Controls.DeleteFile, rootMenu, isForController) { RequiresBinding = true });
+		Add(new InputBind(Controls.Menu.Name + "Up", Controls.Menu.Vertical.Negative, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });
+		Add(new InputBind(Controls.Menu.Name + "Down", Controls.Menu.Vertical.Positive, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });
+		Add(new InputBind(Controls.Menu.Name + "Left", Controls.Menu.Horizontal.Negative, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });
+		Add(new InputBind(Controls.Menu.Name + "Right", Controls.Menu.Horizontal.Positive, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });
 		Add(new SubHeader("ControlsHeaderAdvanced"));
 		Add(new InputBind(Controls.DebugMenu.Name, Controls.DebugMenu, rootMenu, isForController));
 		Add(new InputBind(Controls.Restart.Name, Controls.Restart, rootMenu, isForController));
@@ -83,7 +83,7 @@ public class ControlsMenu : Menu
 		{
 			if (items[Index] is InputBind bind)
 			{
-				Controls.ClearBinding(bind.GetButton(), isForController);
+				Controls.ClearBinding(bind.GetButton(), isForController, bind.RequiresBinding);
 			}
 		}
 	}

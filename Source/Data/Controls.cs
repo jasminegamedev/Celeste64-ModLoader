@@ -76,60 +76,71 @@ public static class Controls
 	[DisallowHooks]
 	internal static void AddBinding(VirtualButton virtualButton, Keys key)
 	{
-		var config = GetButtonBindings(Instance, virtualButton);
-		if (config != null && !config.Any(a => a.Key == key))
+		var bindings = GetButtonBindings(Instance, virtualButton);
+		if (bindings != null && !bindings.Any(a => a.Key == key))
 		{
-			config.Add(new(key));
-			config.Last().BindTo(virtualButton);
+			bindings.Add(new(key));
+			bindings.Last().BindTo(virtualButton);
 		}
 	}
 
 	[DisallowHooks]
 	internal static void AddBinding(VirtualButton virtualButton, Buttons button)
 	{
-		var config = GetButtonBindings(Instance, virtualButton);
-		if (config != null && !config.Any(a => a.Button == button))
+		var bindings = GetButtonBindings(Instance, virtualButton);
+		if (bindings != null && !bindings.Any(a => a.Button == button))
 		{
-			config.Add(new(button));
-			config.Last().BindTo(virtualButton);
+			bindings.Add(new(button));
+			bindings.Last().BindTo(virtualButton);
 		}
 	}
 
 	[DisallowHooks]
 	internal static void AddBinding(VirtualButton virtualButton, MouseButtons mouseButton)
 	{
-		var config = GetButtonBindings(Instance, virtualButton);
-		if (config != null && !config.Any(a => a.MouseButton == mouseButton))
+		var bindings = GetButtonBindings(Instance, virtualButton);
+		if (bindings != null && !bindings.Any(a => a.MouseButton == mouseButton))
 		{
-			config.Add(new(mouseButton));
-			config.Last().BindTo(virtualButton);
+			bindings.Add(new(mouseButton));
+			bindings.Last().BindTo(virtualButton);
 		}
 	}
 
 	[DisallowHooks]
 	internal static void AddBinding(VirtualButton virtualButton, Axes axis, bool inverted, float deadzone = 0.0f)
 	{
-		var config = GetButtonBindings(Instance, virtualButton);
-		if (config != null && !config.Any(a => a.Axis == axis))
+		var bindings = GetButtonBindings(Instance, virtualButton);
+		if (bindings != null && !bindings.Any(a => a.Axis == axis))
 		{
-			config.Add(new(axis, deadzone, inverted));
-			config.Last().BindTo(virtualButton);
+			bindings.Add(new(axis, deadzone, inverted));
+			bindings.Last().BindTo(virtualButton);
 		}
 	}
 
 	[DisallowHooks]
-	internal static void ClearBinding(VirtualButton virtualButton, bool forController)
+	internal static void ClearBinding(VirtualButton virtualButton, bool forController, bool requiresBinding = false)
 	{
-		var config = GetButtonBindings(Instance, virtualButton);
-		if (config != null)
+		var bindings = GetButtonBindings(Instance, virtualButton);
+		if (bindings != null)
 		{
 			virtualButton.Clear();
 			// Remove all bindings for this control type
-			config.RemoveAll(x => x.IsForController() == forController);
+			if (requiresBinding)
+			{
+				var toRemove = bindings.Where(x => x.IsForController() == forController).SkipLast(1).ToList();
+				foreach (var removeItem in toRemove)
+				{
+					bindings.Remove(removeItem);
+				}
+			}
+			else
+			{
+				bindings.RemoveAll(x => x.IsForController() == forController);
+			}
 
 			// Rebind remaining bindings.
 			// Needed to rebind other control type, i.e. to not lose controller binds when clearing for keyboard.
-			foreach (var binding in config)
+			foreach (var binding in bindings)
 			{
 				binding.BindTo(virtualButton);
 			}
