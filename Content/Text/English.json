@@ -61,7 +61,7 @@
 		"ControllerConfig.desc": "Rebind Controller Controls",
 		"ControlsHeaderGame": "Game",
 		"ControlsHeaderMenu": "Menu",
-		"ControlsHeaderFuji": "Fuji",
+		"ControlsHeaderAdvanced": "Advanced",
 		"ControlsResetToDefault": "Reset To Default",
 		"Jump": "Jump",
 		"Dash": "Dash",
@@ -81,7 +81,8 @@
 		"MenuDown": "Menu Down",
 		"MenuUp": "Menu Up",
 		"MenuRight": "Menu Right",
-		"MenuLeft": "Menu Left",		
+		"MenuLeft": "Menu Left",	
+		"DebugMenu": "Debug Menu",
 
 		"Skin": "Skin",
 		"Skin.desc": "Choose a Skin to Wear",

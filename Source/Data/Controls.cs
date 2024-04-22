@@ -17,6 +17,8 @@ public static class Controls
 	public static readonly VirtualButton CopyFile = new("CopyFile");
 	public static readonly VirtualButton DeleteFile = new("DeleteFile");
 	public static readonly VirtualButton CreateFile = new("CreateFile");
+	public static readonly VirtualButton DebugMenu = new("DebugMenu");
+	public static readonly VirtualButton Restart = new("Restart");
 
 	public static ControlsConfig_V01 Instance = new();
 
@@ -303,6 +305,10 @@ public static class Controls
 			it.BindTo(DeleteFile);
 		foreach (var it in FindAction(config, "CreateFile"))
 			it.BindTo(CreateFile);
+		foreach (var it in FindAction(config, "DebugMenu"))
+			it.BindTo(DebugMenu);
+		foreach (var it in FindAction(config, "Restart"))
+			it.BindTo(Restart);
 	}
 
 	public static void Clear()
@@ -366,14 +372,19 @@ public static class Controls
 
 		var binding = action.FirstOrDefault(b => b.IsForController() == gamepad.Connected);
 
-		string buttonName = binding.GetBindingName();
+		if (binding != null)
+		{
+			string buttonName = binding.GetBindingName();
 
-		buttonName = GetButtonOverrides(buttonName, gamepad.Gamepad);
+			buttonName = GetButtonOverrides(buttonName, gamepad.Gamepad);
 
-		if (!list.TryGetValue(binding.GetBindingName(), out var lookup))
-			list[binding.GetBindingName()] = lookup = $"Controls/{deviceTypeName}/{binding.GetBindingName()}";
+			if (!list.TryGetValue(binding.GetBindingName(), out var lookup))
+				list[binding.GetBindingName()] = lookup = $"Controls/{deviceTypeName}/{buttonName}";
 
-		return lookup;
+			return lookup;
+		}
+
+		return "";
 	}
 
 	public static List<Subtexture> GetPrompts(VirtualButton button, bool isForController)

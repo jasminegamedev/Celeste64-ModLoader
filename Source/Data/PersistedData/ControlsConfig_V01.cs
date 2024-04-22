@@ -63,6 +63,12 @@ public class ControlsConfig_V01 : PersistedData
 				new(Keys.B),
 				new(Buttons.North)
 			],
+			["DebugMenu"] = [
+				new(Keys.F6),
+			],
+			["Restart"] = [
+				new(Keys.R),
+			],
 		},
 
 		Sticks = new()

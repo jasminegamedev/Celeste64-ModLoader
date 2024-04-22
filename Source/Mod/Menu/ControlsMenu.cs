@@ -39,7 +39,7 @@ public class ControlsMenu : Menu
 		Add(new InputBind(Controls.Camera.Name + "Left", Controls.Camera.Horizontal.Negative, rootMenu, isForController));
 		Add(new InputBind(Controls.Camera.Name + "Right", Controls.Camera.Horizontal.Positive, rootMenu, isForController));
 
-		Add(new SubHeader("ControlsHeaderGame"));
+		Add(new SubHeader("ControlsHeaderMenu"));
 		Add(new InputBind(Controls.Pause.Name, Controls.Pause, rootMenu, isForController));
 		Add(new InputBind(Controls.Confirm.Name, Controls.Confirm, rootMenu, isForController));
 		Add(new InputBind(Controls.Cancel.Name, Controls.Cancel, rootMenu, isForController));
@@ -50,6 +50,9 @@ public class ControlsMenu : Menu
 		Add(new InputBind(Controls.Menu.Name + "Down", Controls.Menu.Vertical.Positive, rootMenu, isForController) { DeadZone = 0.5f });
 		Add(new InputBind(Controls.Menu.Name + "Left", Controls.Menu.Horizontal.Negative, rootMenu, isForController) { DeadZone = 0.5f });
 		Add(new InputBind(Controls.Menu.Name + "Right", Controls.Menu.Horizontal.Positive, rootMenu, isForController) { DeadZone = 0.5f });
+		Add(new SubHeader("ControlsHeaderAdvanced"));
+		Add(new InputBind(Controls.DebugMenu.Name, Controls.DebugMenu, rootMenu, isForController));
+		Add(new InputBind(Controls.Restart.Name, Controls.Restart, rootMenu, isForController));
 
 		Add(new Spacer());
 
