@@ -7,12 +7,14 @@ public class BindControlMenu : Menu
 	private const float waitBeforeClosingTime = 5;
 	private VirtualButton button;
 	private bool isForController;
+	private float deadZone;
 
-	public BindControlMenu(Menu? rootMenu, VirtualButton button, bool isForController)
+	public BindControlMenu(Menu? rootMenu, VirtualButton button, bool isForController, float deadZone = 0)
 	{
 		RootMenu = rootMenu;
 
 		this.button = button;
+		this.deadZone = deadZone;
 		this.isForController = isForController;
 		Title = Loc.Str($"Press Button to bind {button.Name}");
 		inMenuTime = 0;
@@ -61,7 +63,7 @@ public class BindControlMenu : Menu
 				{
 					if (Math.Abs(controller.Axis((Axes)axis)) > 0.5f)
 					{
-						Controls.AddBinding(this.button, (Axes)axis, controller.Axis((Axes)axis) < -0.5f);
+						Controls.AddBinding(this.button, (Axes)axis, controller.Axis((Axes)axis) < -0.5f, deadZone);
 						RootMenu?.PopSubMenu();
 						return;
 					}

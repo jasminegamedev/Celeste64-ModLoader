@@ -46,10 +46,10 @@ public class ControlsMenu : Menu
 		Add(new InputBind(Controls.CopyFile.Name, Controls.CopyFile, rootMenu, isForController));
 		Add(new InputBind(Controls.CreateFile.Name, Controls.CreateFile, rootMenu, isForController));
 		Add(new InputBind(Controls.DeleteFile.Name, Controls.DeleteFile, rootMenu, isForController));
-		Add(new InputBind(Controls.Menu.Name + "Up", Controls.Menu.Vertical.Negative, rootMenu, isForController));
-		Add(new InputBind(Controls.Menu.Name + "Down", Controls.Menu.Vertical.Positive, rootMenu, isForController));
-		Add(new InputBind(Controls.Menu.Name + "Left", Controls.Menu.Horizontal.Negative, rootMenu, isForController));
-		Add(new InputBind(Controls.Menu.Name + "Right", Controls.Menu.Horizontal.Positive, rootMenu, isForController));
+		Add(new InputBind(Controls.Menu.Name + "Up", Controls.Menu.Vertical.Negative, rootMenu, isForController) { DeadZone = 0.5f });
+		Add(new InputBind(Controls.Menu.Name + "Down", Controls.Menu.Vertical.Positive, rootMenu, isForController) { DeadZone = 0.5f });
+		Add(new InputBind(Controls.Menu.Name + "Left", Controls.Menu.Horizontal.Negative, rootMenu, isForController) { DeadZone = 0.5f });
+		Add(new InputBind(Controls.Menu.Name + "Right", Controls.Menu.Horizontal.Positive, rootMenu, isForController) { DeadZone = 0.5f });
 
 		Add(new Spacer());
 

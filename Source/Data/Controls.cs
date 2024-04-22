@@ -105,12 +105,12 @@ public static class Controls
 	}
 
 	[DisallowHooks]
-	internal static void AddBinding(VirtualButton virtualButton, Axes axis, bool inverted)
+	internal static void AddBinding(VirtualButton virtualButton, Axes axis, bool inverted, float deadzone = 0.0f)
 	{
 		var config = GetButtonBindings(Instance, virtualButton);
 		if (config != null && !config.Any(a => a.Axis == axis))
 		{
-			config.Add(new(axis, 0.5f, inverted));
+			config.Add(new(axis, deadzone, inverted));
 			config.Last().BindTo(virtualButton);
 		}
 	}

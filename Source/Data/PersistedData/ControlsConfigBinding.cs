@@ -62,11 +62,11 @@ public sealed class ControlsConfigBinding
 			button.Add(Condition, 0, Axis.Value, AxisInverted ? -1 : 1, AxisDeadzone);
 	}
 
-
 	/// <summary>
 	/// This is kind of a workaround for how Foster works.
 	/// We need a custom version of Foster's Button Enum so we can properly get the names from the button.
 	/// Since Foster's had old obsolete buttons with duplicate values, it was causing it to not properly use the correct name.
+	/// This also renames some of the buttons for more clarity for up/down/left/right.
 	/// </summary>
 	public enum FujiButtons
 	{
@@ -88,6 +88,10 @@ public sealed class ControlsConfigBinding
 		ButtonRight = 14
 	}
 
+	/// <summary>
+	/// This renames these enum values to be more unique, which is needed for determining texture names.
+	/// i.e. MouseLeft instead of just Left, which is already used for keyboards.
+	/// </summary>
 	public enum FujiMouseButtons
 	{
 		MouseNone,

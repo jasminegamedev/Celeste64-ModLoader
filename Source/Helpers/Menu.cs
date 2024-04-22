@@ -44,10 +44,12 @@ public class Menu
 	public class InputBind(Loc.Localized locString, VirtualButton button, Menu? rootMenu, bool isForController) : Item
 	{
 		public override Loc.Localized? LocString => locString;
+
+		public float DeadZone;
 		public override bool Pressed()
 		{
 			Audio.Play(Sfx.ui_select);
-			rootMenu?.PushSubMenu(new BindControlMenu(rootMenu, button, isForController));
+			rootMenu?.PushSubMenu(new BindControlMenu(rootMenu, button, isForController, DeadZone));
 			return true;
 		}
 
