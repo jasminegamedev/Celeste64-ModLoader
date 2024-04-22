@@ -82,6 +82,7 @@ public static class Controls
 			bindings.Add(new(key));
 			bindings.Last().BindTo(virtualButton);
 		}
+		Consume();
 	}
 
 	[DisallowHooks]
@@ -93,6 +94,7 @@ public static class Controls
 			bindings.Add(new(button));
 			bindings.Last().BindTo(virtualButton);
 		}
+		Consume();
 	}
 
 	[DisallowHooks]
@@ -104,6 +106,7 @@ public static class Controls
 			bindings.Add(new(mouseButton));
 			bindings.Last().BindTo(virtualButton);
 		}
+		Consume();
 	}
 
 	[DisallowHooks]
@@ -115,6 +118,7 @@ public static class Controls
 			bindings.Add(new(axis, deadzone, inverted));
 			bindings.Last().BindTo(virtualButton);
 		}
+		Consume();
 	}
 
 	[DisallowHooks]
@@ -336,6 +340,8 @@ public static class Controls
 		CopyFile.Clear();
 		DeleteFile.Clear();
 		CreateFile.Clear();
+		DebugMenu.Clear();
+		Restart.Clear();
 	}
 
 	public static void Consume()
@@ -352,6 +358,8 @@ public static class Controls
 		CopyFile.Consume();
 		DeleteFile.Consume();
 		CreateFile.Consume();
+		DebugMenu.Consume();
+		Restart.Consume();
 	}
 
 	private static readonly Dictionary<string, Dictionary<string, string>> prompts = [];
