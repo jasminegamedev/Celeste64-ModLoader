@@ -1,4 +1,5 @@
 ﻿using Celeste64.Mod;
+using Microsoft.VisualBasic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
@@ -265,6 +266,10 @@ public static class Assets
 				stream => JsonSerializer.Deserialize(stream, LevelInfoListContext.Default.ListLevelInfo) ?? [],
 				out var levels))
 		{
+			foreach (LevelInfo level in levels) // Assign the mod id to level infos
+			{
+				level.ModId = mod.ModInfo.Id;
+			}
 			mod.Levels.AddRange(levels);
 			Levels.AddRange(levels);
 		}
@@ -368,23 +373,43 @@ public static class Assets
 	}
 
 	/// <summary>
-	/// Unload all currently loaded assets.
+	/// Unload currently loaded assets.
+	/// If a GameMod is passed, unload assets for that mod.
+	/// Otherwise, unload all assets.
 	/// </summary>
-	internal static void Unload()
+	internal static void Unload(GameMod? mod)
 	{
-		Levels.Clear();
-		Maps.Clear();
-		Shaders.Clear();
-		Textures.Clear();
-		Subtextures.Clear();
-		Models.Clear();
-		Fonts.Clear();
-		Languages.Clear();
-		Sounds.Clear();
-		Music.Clear();
-		Audio.Unload();
+		if (mod == null) { Levels.Clear(); }
+		else
+		{
+			Levels = Levels.Where((LevelInfo levelInfo) => { return levelInfo.ModId != mod.ModInfo.Id; }).ToList();
+		}
 
-		Map.ModActorFactories.Clear();
+		Maps.Clear(mod);
+		Shaders.Clear(mod);
+		Textures.Clear(mod);
+		Subtextures.Clear(mod);
+		Models.Clear(mod);
+		Fonts.Clear(mod);
+		Sounds.Clear(mod);
+		Music.Clear(mod);
+		if (mod == null) Languages.Clear(); // Language files should upsert safely
+		if (mod == null) Audio.Unload(); // I don't have the patience to figure this out right now.
+
+		if (mod == null) { Map.ModActorFactories.Clear(); }
+		else
+		/*
+		 https://stackoverflow.com/a/2131680
+		 Remove mod actor factories owned by the specified mod.
+		*/
+		{
+			foreach (KeyValuePair<string, Map.ActorFactory> kvp in Map.ModActorFactories.Where(
+				(kvp) => { return kvp.Value.Mod == mod; }
+			).ToList())
+			{
+				Map.ModActorFactories.Remove(kvp.Key);
+			}
+		}
 	}
 
 	/// <summary>
@@ -438,7 +463,7 @@ public static class Assets
 		var timer = Stopwatch.StartNew();
 
 		// Purge any existing assets...
-		Unload();
+		Unload(null);
 
 		/*
 			Refresh our instance of the vanilla mod.

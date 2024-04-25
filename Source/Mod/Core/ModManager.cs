@@ -84,7 +84,7 @@ public sealed class ModManager
 		}
 
 		mod.OnUnloadedCleanup?.Invoke();
-		
+
 		mod.ModInfo.AssemblyContext?.Dispose();
 	}
 
@@ -127,7 +127,7 @@ public sealed class ModManager
 			Log.Info($"Mod archive for mod {ctx.Mod.ModInfo.Name} changed. Reloading assets.");
 		}
 
-		Game.Instance.ReloadAssets();
+		Game.Instance.ReloadAssets(ctx.Mod);
 	}
 
 	internal void Update(float deltaTime)

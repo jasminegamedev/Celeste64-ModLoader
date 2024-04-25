@@ -23,6 +23,7 @@ public struct Transition
 	public bool Saving;
 	public bool StopMusic;
 	public bool PerformAssetReload;
+	public GameMod? ReloadFor;
 	public float HoldOnBlackFor;
 }
 
@@ -99,6 +100,7 @@ public class Game : Module
 	public World? World => Scene as World;
 
 	internal bool NeedsReload = false;
+	internal bool doUpdate = true;
 
 	public Game()
 	{
@@ -213,6 +215,8 @@ public class Game : Module
 
 		scenes.TryPeek(out var scene); // gets the top scene
 
+		if (!doUpdate) return;
+
 		// update top scene
 		try
 		{
@@ -290,7 +294,41 @@ public class Game : Module
 			// reload assets if requested
 			if (transition.PerformAssetReload)
 			{
-				Assets.Load();
+				if (transition.ReloadFor == null)
+				{
+					Assets.Load();
+				}
+				else
+				{
+					GameMod reloadFor = transition.ReloadFor;
+					Log.Info($"Re-registering mod {reloadFor.ModInfo.Id}");
+
+					// Re-register the changed mod to refresh its modules
+					ModManager.Instance.DeregisterMod(reloadFor);
+
+					IModFilesystem newFs;
+					if (reloadFor.Filesystem is ZipModFilesystem)
+					{
+						newFs = new ZipModFilesystem(reloadFor.Filesystem.Root);
+					}
+					else if (reloadFor.Filesystem is FolderModFilesystem)
+					{
+						newFs = new FolderModFilesystem(reloadFor.Filesystem.Root);
+					}
+					else
+					{
+						throw new Exception("Can't guess type of filesystem");
+					}
+
+					ModLoader.Load(reloadFor.ModInfo, newFs);
+
+					GameMod reloadedMod = ModManager.Instance.Mods.First((mod) => { return mod.ModInfo.Id == reloadFor.ModInfo.Id; });
+
+					Assets.Unload(reloadFor);
+					Assets.LoadAssetsForMod(reloadedMod);
+
+					Language.Current.Use();
+				}
 			}
 
 			// perform transition
@@ -316,7 +354,7 @@ public class Game : Module
 			if (scenes.TryPeek(out var nextScene))
 			{
 				if (Settings.EnableAdditionalLogging) Log.Info("Switching scene: " + nextScene.GetType());
-				
+
 				try
 				{
 					nextScene.Entered();
@@ -427,12 +465,12 @@ public class Game : Module
 			// reload state
 			if (Input.Keyboard.Ctrl && Input.Keyboard.Pressed(Keys.R) && !IsMidTransition)
 			{
-				ReloadAssets();
+				ReloadAssets(null);
 			}
 		}
 	}
 
-	internal void ReloadAssets()
+	internal void ReloadAssets(GameMod? mod)
 	{
 		if (!scenes.TryPeek(out var scene))
 			return;
@@ -447,8 +485,8 @@ public class Game : Module
 				Mode = Transition.Modes.Replace,
 				Scene = () => new World(world.Entry),
 				ToPause = true,
-				ToBlack = new AngledWipe(),
-				PerformAssetReload = true
+				PerformAssetReload = true,
+				ReloadFor = mod
 			});
 		}
 		else
@@ -458,14 +496,15 @@ public class Game : Module
 				Mode = Transition.Modes.Replace,
 				Scene = () => new Titlescreen(),
 				ToPause = true,
-				ToBlack = new AngledWipe(),
-				PerformAssetReload = true
+				PerformAssetReload = true,
+				ReloadFor = mod
 			});
 		}
 	}
 
 	public override void Render()
 	{
+		if (!doUpdate) return;
 		Graphics.Clear(Color.Black);
 
 		imGuiManager.RenderHandlers();

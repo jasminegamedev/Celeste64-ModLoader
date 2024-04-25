@@ -496,6 +496,8 @@ public abstract class GameMod
 	/// <param name="factory"></param>
 	public void AddActorFactory(string name, Map.ActorFactory factory)
 	{
+		factory.Mod = this;
+
 		if (Map.ModActorFactories.TryAdd(name, factory))
 		{
 			OnUnloadedCleanup += () => Map.ModActorFactories.Remove(name);

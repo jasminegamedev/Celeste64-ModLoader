@@ -526,7 +526,7 @@ public class World : Scene
 			if (Game.Instance.NeedsReload)
 			{
 				Game.Instance.NeedsReload = false;
-				Game.Instance.ReloadAssets();
+				Game.Instance.ReloadAssets(null);
 			}
 
 			var ply = Get<Player>();

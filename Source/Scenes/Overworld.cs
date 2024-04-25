@@ -363,7 +363,7 @@ public class Overworld : Scene
 						if (Game.Instance.NeedsReload)
 						{
 							Game.Instance.NeedsReload = false;
-							Game.Instance.ReloadAssets();
+							Game.Instance.ReloadAssets(null);
 						}
 						Paused = false;
 					}));
@@ -445,7 +445,7 @@ public class Overworld : Scene
 				if (Game.Instance.NeedsReload)
 				{
 					Game.Instance.NeedsReload = false;
-					Game.Instance.ReloadAssets();
+					Game.Instance.ReloadAssets(null);
 				}
 				Audio.Play(Sfx.ui_unpause);
 				Paused = false;

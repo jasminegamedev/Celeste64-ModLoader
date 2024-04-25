@@ -14,6 +14,8 @@ public static class ModLoader
 
 	internal static List<string> FailedToLoadMods = [];
 
+	internal static HashSet<ModInfo> loaded = [];
+
 	public static string[] ModFolderPaths
 	{
 		get
@@ -131,10 +133,10 @@ public static class ModLoader
 			ModManager.Instance.RegisterMod(ModManager.Instance.VanillaGameMod);
 		}
 
-		// We use an slightly silly approach to load all dependencies first:
+		// We use a slightly silly approach to load all dependencies first:
 		// Load all mods which have their dependencies met and repeat until we're done.
 		bool loadedModInIteration = false;
-		HashSet<ModInfo> loaded = [];
+		loaded = [];
 
 		// Sort the mods by their ID alphabetically before loading.
 		// This helps us ensure some level of consistency/determinism to hopefully avoid quirks in behaviour.
@@ -147,56 +149,13 @@ public static class ModLoader
 			{
 				var (info, fs) = modInfos[i];
 
-				bool dependenciesSatisfied = true;
-				foreach (var (modID, versionString) in info.Dependencies)
-				{
-					var version = new Version(versionString);
-
-					if (loaded.FirstOrDefault(loadedInfo => loadedInfo.Id == modID) is { } dep &&
-						dep.Version.Major == version.Major &&
-						(dep.Version.Minor > version.Minor ||
-						 dep.Version.Minor == version.Minor && dep.Version.Build >= version.Build))
-					{
-						continue;
-					}
-
-					dependenciesSatisfied = false;
-					break;
-				}
-
-				if (!dependenciesSatisfied) continue;
-
 				try
 				{
-					var mod = LoadGameMod(info, fs);
-					mod.Filesystem?.AssociateWithMod(mod);
-
-					try
-					{
-						ModManager.Instance.RegisterMod(mod);
-
-						// Load hooks after the mod has been registered
-						foreach (var type in mod.GetType().Assembly.GetTypes())
-						{
-							FindAndRegisterHooks(info, type);
-						}
-					}
-					catch
-					{
-						// Perform cleanup
-						ModManager.Instance.DeregisterMod(mod);
-						HookManager.Instance.ClearHooksOfMod(info);
-						throw;
-					}
-
-					loaded.Add(info);
-					loadedModInIteration = true;
+					loadedModInIteration = Load(info, fs);
 				}
-				catch (Exception ex)
+				catch
 				{
-					FailedToLoadMods.Add(info.Id);
-					Log.Error($"Fuji Error: An error occurred while trying to load mod: {info.Id}");
-					Log.Error(ex.ToString());
+					continue;
 				}
 
 				modInfos.RemoveAt(i);
@@ -239,6 +198,63 @@ public static class ModLoader
 		}
 
 		Log.Info(modListString);
+	}
+
+	internal static bool Load(ModInfo info, IModFilesystem fs)
+	{
+		bool dependenciesSatisfied = true;
+		foreach (var (modID, versionString) in info.Dependencies)
+		{
+			var version = new Version(versionString);
+
+			if (loaded.FirstOrDefault(loadedInfo => loadedInfo.Id == modID) is { } dep &&
+				dep.Version.Major == version.Major &&
+				(dep.Version.Minor > version.Minor ||
+				 dep.Version.Minor == version.Minor && dep.Version.Build >= version.Build))
+			{
+				continue;
+			}
+
+			dependenciesSatisfied = false;
+			break;
+		}
+
+		if (!dependenciesSatisfied) throw new Exception();
+
+		try
+		{
+			var mod = LoadGameMod(info, fs);
+			mod.Filesystem?.AssociateWithMod(mod);
+
+			try
+			{
+				ModManager.Instance.RegisterMod(mod);
+
+				// Load hooks after the mod has been registered
+				foreach (var type in mod.GetType().Assembly.GetTypes())
+				{
+					FindAndRegisterHooks(info, type);
+				}
+			}
+			catch
+			{
+				// Perform cleanup
+				ModManager.Instance.DeregisterMod(mod);
+				HookManager.Instance.ClearHooksOfMod(info);
+				throw;
+			}
+
+			loaded.Add(info);
+			return true;
+		}
+		catch (Exception ex)
+		{
+			FailedToLoadMods.Add(info.Id);
+			Log.Error($"Fuji Error: An error occurred while trying to load mod: {info.Id}");
+			Log.Error(ex.ToString());
+
+			return false;
+		}
 	}
 
 	private static ModInfo? LoadModInfo(string modFolder, IModFilesystem fs)
