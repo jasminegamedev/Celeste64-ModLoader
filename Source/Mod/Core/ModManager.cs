@@ -21,6 +21,8 @@ public sealed class ModManager
 
 	internal GameMod? CurrentLevelMod { get; set; }
 
+	internal bool NeedsReload => Mods.Any(mod => mod.NeedsReload);
+
 	internal void Unload()
 	{
 		_modFilesystemCleanupTimerToken.Cancel();
@@ -56,11 +58,12 @@ public sealed class ModManager
 	{
 		Mods.Add(mod);
 		GlobalFilesystem.Add(mod);
-		if (mod.Filesystem != null)
-			mod.Filesystem.OnFileChanged += OnModFileChanged;
 
 		if (mod.Enabled)
 		{
+			if (mod.Filesystem != null)
+				mod.Filesystem.OnFileChanged += OnModFileChanged;
+
 			mod.OnModLoaded();
 			mod.Loaded = true;
 		}
@@ -126,8 +129,8 @@ public sealed class ModManager
 		{
 			Log.Info($"Mod archive for mod {ctx.Mod.ModInfo.Name} changed. Reloading assets.");
 		}
-
-		Game.Instance.ReloadAssets(ctx.Mod);
+		ctx.Mod.NeedsReload = true;
+		Game.Instance.ReloadAssets(false);
 	}
 
 	internal void Update(float deltaTime)

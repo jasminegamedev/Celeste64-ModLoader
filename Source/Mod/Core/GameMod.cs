@@ -26,6 +26,7 @@ public abstract class GameMod
 	internal readonly Dictionary<string, Dictionary<string, List<Language.Line>>> DialogLines = new(StringComparer.OrdinalIgnoreCase);
 	internal readonly List<LevelInfo> Levels = new();
 	internal bool Loaded = false;
+	internal bool NeedsReload = false;
 
 	/// <summary>
 	/// Cleanup tasks that have to be performed when this mod gets unloaded.
@@ -414,7 +415,7 @@ public abstract class GameMod
 	{
 		if (needsReload)
 		{
-			Game.Instance.NeedsReload = true;
+			NeedsReload = true;
 		}
 	}
 

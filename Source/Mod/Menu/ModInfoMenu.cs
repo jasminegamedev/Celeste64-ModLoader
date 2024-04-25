@@ -84,7 +84,7 @@ public class ModInfoMenu : Menu
 						}
 					}
 
-					Game.Instance.NeedsReload = true;
+					Mod.NeedsReload = true;
 				}
 				else
 				{

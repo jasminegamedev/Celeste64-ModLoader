@@ -230,10 +230,14 @@ public static class ModLoader
 			{
 				ModManager.Instance.RegisterMod(mod);
 
-				// Load hooks after the mod has been registered
-				foreach (var type in mod.GetType().Assembly.GetTypes())
+				// Only Reload Hooks for mods not part of the current assembly.
+				if (mod.GetType().Assembly != Assembly.GetExecutingAssembly())
 				{
-					FindAndRegisterHooks(info, type);
+					// Load hooks after the mod has been registered
+					foreach (var type in mod.GetType().Assembly.GetTypes())
+					{
+						FindAndRegisterHooks(info, type);
+					}
 				}
 			}
 			catch

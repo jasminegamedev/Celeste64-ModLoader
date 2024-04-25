@@ -23,7 +23,7 @@ public struct Transition
 	public bool Saving;
 	public bool StopMusic;
 	public bool PerformAssetReload;
-	public GameMod? ReloadFor;
+	public bool ReloadAll;
 	public float HoldOnBlackFor;
 }
 
@@ -99,7 +99,6 @@ public class Game : Module
 	public Scene? Scene => scenes.TryPeek(out var scene) ? scene : null;
 	public World? World => Scene as World;
 
-	internal bool NeedsReload = false;
 	internal bool doUpdate = true;
 
 	public Game()
@@ -294,38 +293,50 @@ public class Game : Module
 			// reload assets if requested
 			if (transition.PerformAssetReload)
 			{
-				if (transition.ReloadFor == null)
+				if (transition.ReloadAll)
 				{
 					Assets.Load();
 				}
 				else
 				{
-					GameMod reloadFor = transition.ReloadFor;
-					Log.Info($"Re-registering mod {reloadFor.ModInfo.Id}");
-
-					// Re-register the changed mod to refresh its modules
-					ModManager.Instance.DeregisterMod(reloadFor);
-
-					IModFilesystem newFs;
-					if (reloadFor.Filesystem is ZipModFilesystem)
+					List<GameMod> modsToReload = ModManager.Instance.Mods.Where(mod => mod.NeedsReload).ToList();
+					foreach (var modToReload in modsToReload)
 					{
-						newFs = new ZipModFilesystem(reloadFor.Filesystem.Root);
-					}
-					else if (reloadFor.Filesystem is FolderModFilesystem)
-					{
-						newFs = new FolderModFilesystem(reloadFor.Filesystem.Root);
-					}
-					else
-					{
-						throw new Exception("Can't guess type of filesystem");
+						Log.Info($"Re-registering mod {modToReload.ModInfo.Id}");
+
+						// Re-register the changed mod to refresh its modules
+						ModManager.Instance.DeregisterMod(modToReload);
+						HookManager.Instance.ClearHooksOfMod(modToReload.ModInfo);
+
+						IModFilesystem newFs;
+						if (modToReload.Filesystem is ZipModFilesystem)
+						{
+							newFs = new ZipModFilesystem(modToReload.Filesystem.Root);
+						}
+						else if (modToReload.Filesystem is FolderModFilesystem)
+						{
+							newFs = new FolderModFilesystem(modToReload.Filesystem.Root);
+						}
+						else
+						{
+							throw new Exception("Can't determine type of filesystem");
+						}
+
+						Assets.Unload(modToReload);
+						ModLoader.Load(modToReload.ModInfo, newFs);
+
+						if (modToReload.Enabled)
+						{
+							GameMod reloadedMod = ModManager.Instance.Mods.First((mod) => { return mod.ModInfo.Id == modToReload.ModInfo.Id; });
+
+							Assets.LoadAssetsForMod(reloadedMod);
+						}
+
+						modToReload.NeedsReload = false;
 					}
 
-					ModLoader.Load(reloadFor.ModInfo, newFs);
-
-					GameMod reloadedMod = ModManager.Instance.Mods.First((mod) => { return mod.ModInfo.Id == reloadFor.ModInfo.Id; });
-
-					Assets.Unload(reloadFor);
-					Assets.LoadAssetsForMod(reloadedMod);
+					// Re-sort mods after loading.
+					ModManager.Instance.Mods = ModManager.Instance.Mods.OrderBy(mod => mod.ModInfo.Id).ToList();
 
 					Language.Current.Use();
 				}
@@ -465,12 +476,12 @@ public class Game : Module
 			// reload state
 			if (Input.Keyboard.Ctrl && Input.Keyboard.Pressed(Keys.R) && !IsMidTransition)
 			{
-				ReloadAssets(null);
+				ReloadAssets(true);
 			}
 		}
 	}
 
-	internal void ReloadAssets(GameMod? mod)
+	internal void ReloadAssets(bool reloadAll)
 	{
 		if (!scenes.TryPeek(out var scene))
 			return;
@@ -485,8 +496,9 @@ public class Game : Module
 				Mode = Transition.Modes.Replace,
 				Scene = () => new World(world.Entry),
 				ToPause = true,
+				ToBlack = new AngledWipe(),
 				PerformAssetReload = true,
-				ReloadFor = mod
+				ReloadAll = reloadAll
 			});
 		}
 		else
@@ -496,8 +508,9 @@ public class Game : Module
 				Mode = Transition.Modes.Replace,
 				Scene = () => new Titlescreen(),
 				ToPause = true,
+				ToBlack = new AngledWipe(),
 				PerformAssetReload = true,
-				ReloadFor = mod
+				ReloadAll = reloadAll
 			});
 		}
 	}
