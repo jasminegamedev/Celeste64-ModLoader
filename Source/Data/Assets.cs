@@ -1,5 +1,4 @@
 ﻿using Celeste64.Mod;
-using Microsoft.VisualBasic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
