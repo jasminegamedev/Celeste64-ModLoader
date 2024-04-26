@@ -119,7 +119,7 @@ public class Game : Module
 
 	public string GetFullVersionString()
 	{
-		return $"{VersionString} + {LoaderVersion}";
+		return $"{VersionString}\n{LoaderVersion}";
 	}
 
 	public void SetResolutionScale(int scale)
