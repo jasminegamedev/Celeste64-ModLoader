@@ -126,6 +126,10 @@ public class Startup : Scene
 		{
 			loadInfo = String.Format(Loc.Str("FujiLoaderStatusNormal"), lastLoadedModName, queueIndex, assetQueueSize);
 		}
+		if (Assets.Textures.TryGetValue("overworld/splashscreen", out Texture? splashTexture))
+		{
+			batcher.Image(splashTexture, bounds.TopLeft, bounds.TopRight, bounds.BottomRight, bounds.BottomLeft, new Vec2(0, 0), new Vec2(1, 0), new Vec2(1, 1), new Vec2(0, 1), Color.White);
+		}
 
 		UI.Text(batcher, loadInfo, bounds.BottomLeft + new Vec2(4 * Game.RelativeScale, -28 * Game.RelativeScale), Vec2.Zero, Color.White);
 		if (areModsRegistered && assetQueueSize > 0)
