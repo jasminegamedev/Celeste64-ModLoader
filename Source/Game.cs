@@ -212,8 +212,6 @@ public class Game : Module
 
 		scenes.TryPeek(out var scene); // gets the top scene
 
-		if (!doUpdate) return;
-
 		// update top scene
 		try
 		{
@@ -504,7 +502,6 @@ public class Game : Module
 
 	public override void Render()
 	{
-		if (!doUpdate) return;
 		Graphics.Clear(Color.Black);
 
 		imGuiManager.RenderHandlers();
