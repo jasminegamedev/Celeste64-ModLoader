@@ -80,8 +80,8 @@ public class Game : Module
 	public static Game Instance => instance ?? throw new Exception("Game isn't running");
 
 	private readonly Stack<Scene> scenes = new();
-	private Target target = new(Width, Height, [TextureFormat.Color, TextureFormat.Depth24Stencil8]);
-	private readonly Batcher batcher = new();
+	public Target target { get; internal set; } = new(Width, Height, [TextureFormat.Color, TextureFormat.Depth24Stencil8]);
+	public Batcher batcher { get; internal set; } = new();
 	private Transition transition;
 	private TransitionStep transitionStep = TransitionStep.None;
 	private readonly FMOD.Studio.EVENT_CALLBACK audioEventCallback;
@@ -542,6 +542,8 @@ public class Game : Module
 				try
 				{
 					scene.Render(target);
+
+					ModManager.Instance.AfterSceneRender(batcher);
 				}
 				catch (Exception e)
 				{

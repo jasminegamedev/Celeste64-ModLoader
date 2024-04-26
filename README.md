@@ -14,12 +14,7 @@ Fuji is still very early in development, but is currently able to load custom le
 It also implements some new functionality like custom skins, and the ability to load code mods from DLLs.
 
 # Installation
-- [Download the latest release here according to your OS.](https://github.com/FujiAPI/Fuji/releases/latest)
-- Unzip the project.
-- Put your mods into the Mods folder that comes with Fuji.
-- Open `Celeste64-Fuji` to start playing!
-
-Fuji does not require the original game's files to run - it is a standalone client. Your vanilla Celeste 64 installation and Fuji installation(s) should not be mixed up.
+### [See the installation instructions here](https://github.com/FujiAPI/Fuji/wiki/Installing-Fuji)
 
 # Contributing
 See the [Contributor's Guide](https://github.com/FujiAPI/Fuji/wiki/Contributing-Guide) for a quick start.

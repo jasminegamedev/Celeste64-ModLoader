@@ -51,7 +51,7 @@ public class Startup : Scene
 			Controls.LoadControlsByFileName(Controls.DefaultFileName);
 		}
 	}
-
+  
 	public override void Update()
 	{
 		if (delay > 0)
@@ -84,6 +84,8 @@ public class Startup : Scene
 
 		if (finishedLoading && !Game.Instance.IsMidTransition)
 		{
+      App.VSync = Settings.VSync;
+      
 			// Update the current language after all mods have finished loading.
 			Language.Current.Use();
 

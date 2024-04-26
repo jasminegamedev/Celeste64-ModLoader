@@ -261,4 +261,14 @@ public sealed class ModManager
 			mod.OnPlayerStateChanged(player, state);
 		}
 	}
+
+	internal void AfterSceneRender(Batcher batch)
+	{
+		foreach (var mod in EnabledMods)
+		{
+			mod.AfterSceneRender(batch);
+			batch.Render(Game.Instance.target);
+			batch.Clear();
+		}
+	}
 }

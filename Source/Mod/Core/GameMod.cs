@@ -689,5 +689,14 @@ public abstract class GameMod
 	/// <param name="item">The IPickup item that was picked up</param>
 	public virtual void OnItemPickup(Player player, IPickup item) { }
 
+	/// <summary>
+	/// Called when the current scene is finished rendering.
+	/// The screen wipe is still rendered on top regardless.
+	/// 
+	/// The batcher is rendered and cleared automatically after running your logic, so you don't have to do it manually.
+	/// </summary>
+	/// <param name="batch">The batcher used to render this scene</param>
+	public virtual void AfterSceneRender(Batcher batch) { }
+
 	#endregion
 }

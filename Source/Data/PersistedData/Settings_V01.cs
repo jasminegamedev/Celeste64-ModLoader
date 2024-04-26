@@ -44,6 +44,11 @@ public sealed class Settings_V01 : PersistedData
 	/// </summary>
 	public string Language { get; set; } = "english";
 
+	/// <summary>
+	/// Whether to use V-Sync
+	/// </summary>
+	public bool EnableVSync { get; set; } = true;
+
 
 	/// <summary>
 	/// Fuji Custom - Whether we should write to the log file or not.
