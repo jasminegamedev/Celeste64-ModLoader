@@ -82,10 +82,14 @@ public class BindControlMenu : Menu
 
 	protected override void RenderItems(Batcher batch)
 	{
-		base.RenderItems(batch);
+
+		batch.PushMatrix(Matrix3x2.CreateScale(TitleScale));
+		UI.Text(batch, Title, Vec2.Zero, new Vec2(0.5f, 0), Color.White);
+		batch.PopMatrix();
+
 
 		batch.PushMatrix(Matrix3x2.CreateScale(0.75f));
-		UI.Text(batch, $"Menu will close automatically in {(int)Math.Ceiling(waitBeforeClosingTime - inMenuTime)}", new(0, 1), new Vec2(0.5f, 0), new(8421504));
+		UI.Text(batch, $"Menu will close automatically in {(int)Math.Ceiling(waitBeforeClosingTime - inMenuTime)}", new(0, Game.Height * 0.15f), new Vec2(0.5f, 0), Color.White);
 		batch.PopMatrix();
 	}
 }
