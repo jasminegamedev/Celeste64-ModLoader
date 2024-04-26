@@ -63,6 +63,12 @@ public class ControlsConfig_V01 : PersistedData
 				new(Keys.B),
 				new(Buttons.North)
 			],
+			["FullScreen"] = [
+				new(Keys.F4),
+			],
+			["ReloadAssets"] = [
+				new(Keys.F5),
+			],
 			["DebugMenu"] = [
 				new(Keys.F6),
 			],

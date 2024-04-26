@@ -202,14 +202,6 @@ public class Game : Module
 
 	public override void Update()
 	{
-		if (Input.Keyboard.Pressed(Keys.F5) && !IsMidTransition)
-		{
-			if (Scene is Startup || Scene is GameErrorMessage) return;
-
-			Log.Info($"--- User has initiated a{(Input.Keyboard.CtrlOrCommand ? " full" : String.Empty)} manual reload. ---");
-			ReloadAssets(Input.Keyboard.CtrlOrCommand); // F5 - Reload changed; Ctrl + F5 - Reload all
-		}
-
 		if (IsDynamicRes)
 		{
 			if (Height_old != Height || Width_old != Width)
@@ -220,8 +212,6 @@ public class Game : Module
 			Height_old = Height;
 			Width_old = Width;
 		}
-
-		imGuiManager.UpdateHandlers();
 
 		scenes.TryPeek(out var scene); // gets the top scene
 
@@ -247,6 +237,8 @@ public class Game : Module
 		{
 			HandleError(e);
 		}
+
+		imGuiManager.UpdateHandlers();
 
 		// handle transitions
 		if (transitionStep == TransitionStep.FadeOut)
@@ -482,11 +474,17 @@ public class Game : Module
 		}
 
 
-		if (scene is not Celeste64.Startup)
+		if (scene is not Celeste64.Startup && Scene is not GameErrorMessage)
 		{
-			// toggle fullsrceen
-			if ((Input.Keyboard.Alt && Input.Keyboard.Pressed(Keys.Enter)) || Input.Keyboard.Pressed(Keys.F4))
+			// toggle fullscreen
+			if (Controls.FullScreen.ConsumePress())
 				Settings.ToggleFullscreen();
+
+			if (Controls.ReloadAssets.ConsumePress() && !IsMidTransition)
+			{
+				Log.Info($"--- User has initiated a{(Input.Keyboard.CtrlOrCommand ? " full" : string.Empty)} manual reload. ---");
+				ReloadAssets(Input.Keyboard.CtrlOrCommand); // F5 - Reload changed; Ctrl + F5 - Reload all
+			}
 		}
 	}
 

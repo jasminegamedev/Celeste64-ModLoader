@@ -27,7 +27,7 @@ public class BindControlMenu : Menu
 		if (!isForController)
 		{
 			Keys? pressed = Input.Keyboard.FirstPressed();
-			if (pressed != null)
+			if (pressed != null && pressed != Keys.Unknown && pressed != Keys.Application && pressed != Keys.ScrollLock) // We don't have icons for these currently, so don't allow them
 			{
 				Controls.AddBinding(button, (Keys)pressed);
 				RootMenu?.PopSubMenu();
@@ -82,11 +82,9 @@ public class BindControlMenu : Menu
 
 	protected override void RenderItems(Batcher batch)
 	{
-
 		batch.PushMatrix(Matrix3x2.CreateScale(TitleScale));
 		UI.Text(batch, Title, Vec2.Zero, new Vec2(0.5f, 0), Color.White);
 		batch.PopMatrix();
-
 
 		batch.PushMatrix(Matrix3x2.CreateScale(0.75f));
 		UI.Text(batch, $"Menu will close automatically in {(int)Math.Ceiling(waitBeforeClosingTime - inMenuTime)}", new(0, Game.Height * 0.15f), new Vec2(0.5f, 0), Color.White);

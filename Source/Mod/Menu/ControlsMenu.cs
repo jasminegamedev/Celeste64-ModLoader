@@ -51,6 +51,8 @@ public class ControlsMenu : Menu
 		Add(new InputBind(Controls.Menu.Name + "Right", Controls.Menu.Horizontal.Positive, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });
 
 		Add(new SubHeader("ControlsHeaderAdvanced"));
+		Add(new InputBind(Controls.FullScreen.Name, Controls.FullScreen, rootMenu, isForController));
+		Add(new InputBind(Controls.ReloadAssets.Name, Controls.ReloadAssets, rootMenu, isForController));
 		Add(new InputBind(Controls.DebugMenu.Name, Controls.DebugMenu, rootMenu, isForController));
 		Add(new InputBind(Controls.Restart.Name, Controls.Restart, rootMenu, isForController));
 

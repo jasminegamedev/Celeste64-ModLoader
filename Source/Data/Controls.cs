@@ -19,6 +19,8 @@ public static class Controls
 	public static readonly VirtualButton CreateFile = new("CreateFile");
 	public static readonly VirtualButton DebugMenu = new("DebugMenu");
 	public static readonly VirtualButton Restart = new("Restart");
+	public static readonly VirtualButton FullScreen = new("FullScreen");
+	public static readonly VirtualButton ReloadAssets = new("ReloadAssets");
 
 	public static ControlsConfig_V01 Instance = new();
 
@@ -324,6 +326,10 @@ public static class Controls
 			it.BindTo(DebugMenu);
 		foreach (var it in FindAction(config, "Restart"))
 			it.BindTo(Restart);
+		foreach (var it in FindAction(config, "FullScreen"))
+			it.BindTo(FullScreen);
+		foreach (var it in FindAction(config, "ReloadAssets"))
+			it.BindTo(ReloadAssets);
 	}
 
 	public static void Clear()
@@ -342,6 +348,8 @@ public static class Controls
 		CreateFile.Clear();
 		DebugMenu.Clear();
 		Restart.Clear();
+		FullScreen.Clear();
+		ReloadAssets.Clear();
 	}
 
 	public static void Consume()
@@ -360,6 +368,8 @@ public static class Controls
 		CreateFile.Consume();
 		DebugMenu.Consume();
 		Restart.Consume();
+		FullScreen.Consume();
+		ReloadAssets.Consume();
 	}
 
 	private static readonly Dictionary<string, Dictionary<string, string>> prompts = [];
@@ -447,7 +457,6 @@ public static class Controls
 
 				if (Gamepads.Nintendo.Equals(binding.NotFor) || !Gamepads.Nintendo.Equals(binding.OnlyFor) || (binding.NotFor == null && binding.OnlyFor == null)) //only non switch prompts atm
 					locations.Add(lookup);
-
 			}
 		}
 
@@ -471,6 +480,18 @@ public static class Controls
 			else if (buttonName == "Select")
 			{
 				buttonName = "PS4_Select";
+			}
+		}
+
+		if (OperatingSystem.IsMacOS())
+		{
+			if (buttonName == "LeftAlt" || buttonName == "RightAlt")
+			{
+				buttonName = "Option";
+			}
+			else if (buttonName == "LeftOS" || buttonName == "RightOS")
+			{
+				buttonName = "Command";
 			}
 		}
 
