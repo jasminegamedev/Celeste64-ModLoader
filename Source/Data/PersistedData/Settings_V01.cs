@@ -64,11 +64,16 @@ public sealed class Settings_V01 : PersistedData
 	/// Fuji Custom - The Current Game Resolution Scale.
 	/// </summary>
 	public int ResolutionScale { get; set; } = 1;
-	
+
 	/// <summary>
 	/// Fuji Custom - Whether the QuickStart feature is enabled
 	/// </summary>
 	public bool EnableQuickStart { get; set; } = true;
+
+	/// <summary>
+	/// Fuji Custom - Whether to enable automatic hot reload on file change
+	/// </summary>
+	public bool EnableAutoReload { get; set; } = true;
 
 
 	public override JsonTypeInfo GetTypeInfo()

@@ -76,6 +76,11 @@ public sealed class Settings
 	/// </summary>
 	public static bool EnableQuickStart => Instance.EnableQuickStart;
 
+	/// <summary>
+	/// Fuji Custom - Whether auto hot reload is enabled
+	/// </summary>
+	public static bool EnableAutoReload => Instance.EnableAutoReload;
+
 	public static void ToggleFullscreen()
 	{
 		Instance.Fullscreen = !Instance.Fullscreen;
@@ -91,6 +96,12 @@ public sealed class Settings
 	{
 		Instance.EnableAdditionalLogging = !EnableAdditionalLogging;
 	}
+
+	public static void ToggleEnableAutoReload()
+	{
+		Instance.EnableAutoReload = !EnableAutoReload;
+	}
+
 
 	public static void ToggleEnableDebugMenu()
 	{

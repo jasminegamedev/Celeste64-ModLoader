@@ -65,6 +65,8 @@
 		"FujiEnableDebugMenu.desc": "Enable access to the Debug Menu by pressing F6",
 		"FujiAdditionalLog": "Enable Additional Logging",
 		"FujiAdditionalLog.desc": "Outputs more info to the console which may be useful to developers",
+		"FujiAutoReload": "Enable Auto Reload",
+		"FujiAutoReload.desc": "If enabled, automatically reloads mods whenever a file is changed",
 		"FujiFailedToLoad": "Failed to load the following mods:",
 		"FujiOpenLogFile": "Open Log File",
 		"FujiOpenLogFile.desc": "Open the Game's Log File for more information",
