@@ -197,6 +197,13 @@ public class Game : Module
 
 	public override void Update()
 	{
+		if (Input.Keyboard.Pressed(Keys.F5))
+		{
+			if (Scene is Startup || Scene is GameErrorMessage) return;
+
+			ReloadAssets(Input.Keyboard.CtrlOrCommand); // F5 - Reload changed; Ctrl + F5 - Reload all
+		}
+
 		if (IsDynamicRes)
 		{
 			if (Height_old != Height || Width_old != Width)
