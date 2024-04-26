@@ -75,6 +75,11 @@ public sealed class Settings_V01 : PersistedData
 	/// </summary>
 	public bool EnableQuickStart { get; set; } = true;
 
+	/// <summary>
+	/// Fuji Custom - Whether to enable automatic hot reload on file change
+	/// </summary>
+	public bool EnableAutoReload { get; set; } = true;
+
 
 	public override JsonTypeInfo GetTypeInfo()
 	{

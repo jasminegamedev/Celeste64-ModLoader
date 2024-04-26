@@ -167,7 +167,7 @@ public class World : Scene
 				FromPause = true,
 				ToPause = true,
 				ToBlack = new SlideWipe(),
-				PerformAssetReload = Game.Instance.NeedsReload,
+				PerformAssetReload = ModManager.Instance.NeedsReload,
 				Saving = true
 			})));
 		}
@@ -523,10 +523,9 @@ public class World : Scene
 
 		if (paused == false)
 		{
-			if (Game.Instance.NeedsReload)
+			if (ModManager.Instance.NeedsReload)
 			{
-				Game.Instance.NeedsReload = false;
-				Game.Instance.ReloadAssets();
+				Game.Instance.ReloadAssets(false);
 			}
 
 			var ply = Get<Player>();

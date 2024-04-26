@@ -24,6 +24,7 @@ public class GameOptionsMenu : Menu
 		FujiOptionsMenu.Add(new Slider("OptionsResolution", 1, 5, () => Settings.ResolutionScale, Settings.SetResolutionScale));
 		FujiOptionsMenu.Add(new Toggle("OptionsQuickStart", Settings.ToggleQuickStart, () => Settings.EnableQuickStart));
 		FujiOptionsMenu.Add(new Toggle("FujiAdditionalLog", Settings.ToggleEnableAdditionalLogs, () => Settings.EnableAdditionalLogging));
+		FujiOptionsMenu.Add(new Toggle("FujiAutoReload", Settings.ToggleEnableAutoReload, () => Settings.EnableAutoReload));
 		FujiOptionsMenu.Add(new Spacer());
 		FujiOptionsMenu.Add(new Option("FujiOpenUserPath", () =>
 		{

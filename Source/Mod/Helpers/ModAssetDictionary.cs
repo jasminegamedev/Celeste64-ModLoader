@@ -9,13 +9,21 @@ public class ModAssetDictionary<V>(ModAssetDictionary<V>.GetDictionary getDictio
 	public delegate Dictionary<string, V> GetDictionary(GameMod mod);
 
 	/// <summary>
-	/// Clear out all the assets of this type for every mod.
+	/// Clear out all assets from this dictionary.
+	/// If a GameMod is passed as the first argument, only clear assets from that mod.
 	/// </summary>
-	public void Clear()
+	public void Clear(GameMod? target)
 	{
-		foreach (var mod in ModManager.Instance.Mods)
+		if (target != null)
 		{
-			getDictionary(mod).Clear();
+			getDictionary(target).Clear();
+		}
+		else
+		{
+			foreach (var mod in ModManager.Instance.Mods)
+			{
+				getDictionary(mod).Clear();
+			}
 		}
 	}
 

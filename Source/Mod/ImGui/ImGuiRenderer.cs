@@ -109,7 +109,7 @@ internal class ImGuiRenderer
 					Matrix.CreateOrthographicOffCenter(0f, target!.Width, target.Height, 0f, -1.0f, 1.0f));
 		}
 
-		if (spriteMaterial == null)
+		if (spriteMaterial == null && Assets.Shaders.ContainsKey("Sprite"))
 		{
 			spriteMaterial = new Material(Assets.Shaders["Sprite"]);
 
