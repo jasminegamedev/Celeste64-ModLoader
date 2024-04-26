@@ -328,7 +328,10 @@ public class Game : Module
 					}
 
 					// Re-sort mods after loading.
-					ModManager.Instance.Mods = ModManager.Instance.Mods.OrderBy(mod => mod.ModInfo.Id).ToList();
+					ModManager.Instance.Mods = ModManager.Instance.Mods
+					.OrderBy(mod => mod.ModInfo.Id) // Alphabetical
+					.OrderBy(mod => !(mod is VanillaGameMod)) // Put the vanilla mod first
+					.ToList();
 
 					Language.Current.Use();
 				}
