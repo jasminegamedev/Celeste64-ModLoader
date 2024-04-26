@@ -127,7 +127,7 @@ public sealed class ModManager
 		}
 		else
 		{
-			Log.Info($"Mod archive for mod {ctx.Mod.ModInfo.Name} changed. Reloading assets.");
+			Log.Info($"Mod archive for mod {ctx.Mod.ModInfo.Name} changed. {(Settings.EnableAutoReload ? "Reloading assets." : "Queued for reload.")}");
 		}
 		ctx.Mod.SetNeedsReloadRecursive();
 		if (Settings.EnableAutoReload) Game.Instance.ReloadAssets(false);
