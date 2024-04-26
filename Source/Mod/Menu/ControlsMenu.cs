@@ -6,7 +6,6 @@ public class ControlsMenu : Menu
 
 	private bool isForController;
 
-
 	public override void Closed()
 	{
 		base.Closed();
@@ -50,6 +49,7 @@ public class ControlsMenu : Menu
 		Add(new InputBind(Controls.Menu.Name + "Down", Controls.Menu.Vertical.Positive, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });
 		Add(new InputBind(Controls.Menu.Name + "Left", Controls.Menu.Horizontal.Negative, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });
 		Add(new InputBind(Controls.Menu.Name + "Right", Controls.Menu.Horizontal.Positive, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });
+
 		Add(new SubHeader("ControlsHeaderAdvanced"));
 		Add(new InputBind(Controls.DebugMenu.Name, Controls.DebugMenu, rootMenu, isForController));
 		Add(new InputBind(Controls.Restart.Name, Controls.Restart, rootMenu, isForController));

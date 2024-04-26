@@ -63,6 +63,7 @@
 		"ControlsHeaderMenu": "Menu (Requires at least 1 binding)",
 		"ControlsHeaderAdvanced": "Advanced",
 		"ControlsResetToDefault": "Reset To Default",
+		"PressToBind": "Press any button to bind it to \"{0}\"",
 		"Jump": "Jump",
 		"Dash": "Dash",
 		"Climb": "Climb",

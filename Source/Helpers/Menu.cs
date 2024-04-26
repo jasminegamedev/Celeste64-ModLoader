@@ -4,7 +4,7 @@ public class Menu
 {
 	public static float Spacing => 4 * Game.RelativeScale;
 	public static float SpacerHeight => 12 * Game.RelativeScale;
-	public const float TitleScale = 0.75f;
+	protected float TitleScale = 0.75f;
 
 	public abstract class Item
 	{
@@ -50,7 +50,7 @@ public class Menu
 		public override bool Pressed()
 		{
 			Audio.Play(Sfx.ui_select);
-			rootMenu?.PushSubMenu(new BindControlMenu(rootMenu, button, isForController, DeadZone));
+			rootMenu?.PushSubMenu(new BindControlMenu(rootMenu, button, locString, isForController, DeadZone));
 			return true;
 		}
 
@@ -512,16 +512,16 @@ public class Menu
 		if (showScrollbar && items.Count > maxItemsCount)
 		{
 			// TODO: This will need to be redone if we implement mouse support and want it to interact with menus.
-			int padding = 4;
-			int scrollSize = 16;
-			int xPos = Game.Width - scrollSize - padding;
-			int scrollBarHeight = Game.Height - (scrollSize * 2) - padding * 4;
-			int scrollStartPos = padding * 2 + scrollSize;
+			float padding = 4 * Game.RelativeScale;
+			float scrollSize = 16 * Game.RelativeScale;
+			float xPos = Game.Width - scrollSize - padding;
+			float scrollBarHeight = Game.Height - (scrollSize * 2) - padding * 4;
+			float scrollStartPos = padding * 2 + scrollSize;
 			batch.PushMatrix(Vec2.Zero, false);
 			batch.Rect(new Rect(xPos, padding, scrollSize, scrollSize), Color.White);
 			batch.Rect(new Rect(xPos, scrollStartPos, scrollSize, scrollBarHeight), Color.Gray);
-			int scrollYPos = (int)MathF.Ceiling(scrollStartPos + ((float)scrolledAmount * scrollBarHeight / items.Count));
-			int scrollYHeight = scrollBarHeight * maxItemsCount / items.Count;
+			float scrollYPos = (int)MathF.Ceiling(scrollStartPos + (scrolledAmount * scrollBarHeight / items.Count));
+			float scrollYHeight = scrollBarHeight * maxItemsCount / items.Count;
 			batch.Rect(new Rect(xPos, scrollYPos, scrollSize, scrollYHeight), Color.White);
 			batch.Rect(new Rect(xPos, Game.Height - scrollSize - padding, scrollSize, scrollSize), Color.White);
 			batch.PopMatrix();

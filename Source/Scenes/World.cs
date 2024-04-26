@@ -458,6 +458,8 @@ public class World : Scene
 					return;
 				}
 
+				// Fuji Custom
+				// Quick Restart if the player presses the restart button.
 				if (Controls.Restart.ConsumePress() && Get<Player>() is { Dead: false } livingPlayer)
 				{
 					SetPaused(false);

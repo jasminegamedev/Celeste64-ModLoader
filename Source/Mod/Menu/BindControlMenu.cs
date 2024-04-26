@@ -9,14 +9,16 @@ public class BindControlMenu : Menu
 	private bool isForController;
 	private float deadZone;
 
-	public BindControlMenu(Menu? rootMenu, VirtualButton button, bool isForController, float deadZone = 0)
+	public BindControlMenu(Menu? rootMenu, VirtualButton button, string buttonName, bool isForController, float deadZone = 0)
 	{
 		RootMenu = rootMenu;
 
 		this.button = button;
 		this.deadZone = deadZone;
 		this.isForController = isForController;
-		Title = Loc.Str($"Press Button to bind {button.Name}");
+		Title = string.Format(Loc.Str("PressToBind"), buttonName);
+		TitleScale = 1;
+
 		inMenuTime = 0;
 	}
 
@@ -76,5 +78,14 @@ public class BindControlMenu : Menu
 		{
 			RootMenu?.PopSubMenu();
 		}
+	}
+
+	protected override void RenderItems(Batcher batch)
+	{
+		base.RenderItems(batch);
+
+		batch.PushMatrix(Matrix3x2.CreateScale(0.75f));
+		UI.Text(batch, $"Menu will close automatically in {(int)Math.Ceiling(waitBeforeClosingTime - inMenuTime)}", new(0, 1), new Vec2(0.5f, 0), new(8421504));
+		batch.PopMatrix();
 	}
 }

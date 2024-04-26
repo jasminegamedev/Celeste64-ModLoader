@@ -52,11 +52,14 @@ public class GameOptionsMenu : Menu
 		Add(new Spacer());
 		Add(new Slider("OptionsBGM", 0, 10, () => Settings.MusicVolume, Settings.SetMusicVolume));
 		Add(new Slider("OptionsSFX", 0, 10, () => Settings.SfxVolume, Settings.SetSfxVolume));
-		Add(new Spacer());
 
+		Add(new Spacer());
 		Add(new Submenu("KeyboardConfig", rootMenu, KeyboardControlsMenu));
 		Add(new Submenu("ControllerConfig", rootMenu, ControllerControlsMenu));
-
 		Add(new Submenu("FujiOptions", rootMenu, FujiOptionsMenu));
+		Add(new Option("Exit", () =>
+		{
+			PopRootSubMenu();
+		}));
 	}
 }
