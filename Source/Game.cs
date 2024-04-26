@@ -202,7 +202,7 @@ public class Game : Module
 
 	public override void Update()
 	{
-		if (Input.Keyboard.Pressed(Keys.F5))
+		if (Input.Keyboard.Pressed(Keys.F5) && !IsMidTransition)
 		{
 			if (Scene is Startup || Scene is GameErrorMessage) return;
 
@@ -486,12 +486,6 @@ public class Game : Module
 			// toggle fullsrceen
 			if ((Input.Keyboard.Alt && Input.Keyboard.Pressed(Keys.Enter)) || Input.Keyboard.Pressed(Keys.F4))
 				Settings.ToggleFullscreen();
-
-			// reload state
-			if (Input.Keyboard.Ctrl && Input.Keyboard.Pressed(Keys.R) && !IsMidTransition)
-			{
-				ReloadAssets(true);
-			}
 		}
 	}
 
