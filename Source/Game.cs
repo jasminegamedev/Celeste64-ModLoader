@@ -206,6 +206,7 @@ public class Game : Module
 		{
 			if (Scene is Startup || Scene is GameErrorMessage) return;
 
+			Log.Info($"--- User has initiated a{(Input.Keyboard.CtrlOrCommand ? " full" : String.Empty)} reload. ---");
 			ReloadAssets(Input.Keyboard.CtrlOrCommand); // F5 - Reload changed; Ctrl + F5 - Reload all
 		}
 
