@@ -28,6 +28,19 @@ public abstract class GameMod
 	internal bool Loaded = false;
 	internal bool NeedsReload = false;
 
+	internal void SetNeedsReloadRecursive()
+	{
+		NeedsReload = true;
+
+		foreach (var dependent in GetDependents())
+		{
+			if (!dependent.NeedsReload)
+			{
+				dependent.SetNeedsReloadRecursive();
+			}
+		}
+	}
+
 	/// <summary>
 	/// Cleanup tasks that have to be performed when this mod gets unloaded.
 	/// Called after <see cref="OnModUnloaded"/>, not inside of it,
@@ -415,7 +428,7 @@ public abstract class GameMod
 	{
 		if (needsReload)
 		{
-			NeedsReload = true;
+			SetNeedsReloadRecursive();
 		}
 	}
 
@@ -440,6 +453,24 @@ public abstract class GameMod
 	}
 
 	/// <summary>
+	/// Get all mods which depend on this mod.
+	/// </summary>
+	internal List<GameMod> GetDependencies()
+	{
+		var depMods = new List<GameMod>();
+
+		foreach (var mod in ModManager.Instance.Mods)
+		{
+			if (ModInfo.Dependencies.ContainsKey(mod.ModInfo.Id))
+			{
+				depMods.Add(mod);
+			}
+		}
+
+		return depMods;
+	}
+
+	/// <summary>
 	/// Disables the mod "safely" (accounts for dependent mods, etc.)
 	/// If it returns true, this means it is not safe to disable the mod.
 	/// You should first simulate the operation with DisableSafe(true).
@@ -454,7 +485,15 @@ public abstract class GameMod
 		{
 			if (!simulate)
 			{
-				ModSettings.GetOrMakeModSettings(dependent.ModInfo.Id).Enabled = false;
+				var modSettings = ModSettings.TryGetModSettings(dependent.ModInfo.Id);
+				if (modSettings != null && modSettings.Enabled)
+				{
+					modSettings.Enabled = false;
+
+					var mod = ModManager.Instance.Mods.First(mod => mod.ModInfo.Id == dependent.ModInfo.Id);
+					mod.NeedsReload = true;
+					mod.DisableSafe(simulate);
+				}
 			}
 
 			if (dependent == ModManager.Instance.CurrentLevelMod)
@@ -485,7 +524,15 @@ public abstract class GameMod
 	{
 		foreach (var dep in ModInfo.Dependencies.Keys.ToList())
 		{
-			ModSettings.GetOrMakeModSettings(dep).Enabled = true;
+			var modSettings = ModSettings.TryGetModSettings(dep);
+			if (modSettings != null && !modSettings.Enabled)
+			{
+				modSettings.Enabled = true;
+
+				var mod = ModManager.Instance.Mods.First(mod => mod.ModInfo.Id == dep);
+				mod.NeedsReload = true;
+				mod.EnableDependencies();
+			}
 		}
 	}
 

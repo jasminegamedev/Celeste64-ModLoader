@@ -261,6 +261,41 @@ public static class ModLoader
 		}
 	}
 
+	internal static void ReloadChangedMod(GameMod mod)
+	{
+		Log.Info($"Re-registering mod {mod.ModInfo.Id}");
+
+		// Re-register the changed mod to refresh its modules
+		ModManager.Instance.DeregisterMod(mod);
+		HookManager.Instance.ClearHooksOfMod(mod.ModInfo);
+
+		IModFilesystem newFs;
+		if (mod.Filesystem is ZipModFilesystem)
+		{
+			newFs = new ZipModFilesystem(mod.Filesystem.Root);
+		}
+		else if (mod.Filesystem is FolderModFilesystem)
+		{
+			newFs = new FolderModFilesystem(mod.Filesystem.Root);
+		}
+		else
+		{
+			throw new Exception("Can't determine type of filesystem");
+		}
+
+		Assets.Unload(mod);
+		Load(mod.ModInfo, newFs);
+
+		if (mod.Enabled)
+		{
+			GameMod reloadedMod = ModManager.Instance.Mods.First((modIterator) => { return modIterator.ModInfo.Id == mod.ModInfo.Id; });
+
+			Assets.LoadAssetsForMod(reloadedMod);
+		}
+
+		mod.NeedsReload = false;
+	}
+
 	private static ModInfo? LoadModInfo(string modFolder, IModFilesystem fs)
 	{
 		if (!fs.TryOpenFile(Assets.FujiJSON, stream => JsonSerializer.Deserialize(stream, ModInfoContext.Default.ModInfo), out var info))

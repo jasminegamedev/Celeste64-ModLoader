@@ -129,7 +129,7 @@ public sealed class ModManager
 		{
 			Log.Info($"Mod archive for mod {ctx.Mod.ModInfo.Name} changed. Reloading assets.");
 		}
-		ctx.Mod.NeedsReload = true;
+		ctx.Mod.SetNeedsReloadRecursive();
 		Game.Instance.ReloadAssets(false);
 	}
 

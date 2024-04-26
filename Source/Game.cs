@@ -299,40 +299,29 @@ public class Game : Module
 				}
 				else
 				{
-					List<GameMod> modsToReload = ModManager.Instance.Mods.Where(mod => mod.NeedsReload).ToList();
-					foreach (var modToReload in modsToReload)
+					List<GameMod> modsToReload = ModManager.Instance.Mods
+						.Where(mod => mod.NeedsReload)
+						.OrderBy(mod => mod.ModInfo.Id)
+						.ToList();
+
+					while (modsToReload.Count > 0)
 					{
-						Log.Info($"Re-registering mod {modToReload.ModInfo.Id}");
-
-						// Re-register the changed mod to refresh its modules
-						ModManager.Instance.DeregisterMod(modToReload);
-						HookManager.Instance.ClearHooksOfMod(modToReload.ModInfo);
-
-						IModFilesystem newFs;
-						if (modToReload.Filesystem is ZipModFilesystem)
+						bool loadedModThisIteration = false;
+						for (int i = modsToReload.Count - 1; i >= 0; i--)
 						{
-							newFs = new ZipModFilesystem(modToReload.Filesystem.Root);
-						}
-						else if (modToReload.Filesystem is FolderModFilesystem)
-						{
-							newFs = new FolderModFilesystem(modToReload.Filesystem.Root);
-						}
-						else
-						{
-							throw new Exception("Can't determine type of filesystem");
+							// Only Reload this mod when all of it's dependencies are already loaded
+							if (!modsToReload[i].GetDependencies().Any(mod => mod.NeedsReload))
+							{
+								ModLoader.ReloadChangedMod(modsToReload[i]);
+								loadedModThisIteration = true;
+								modsToReload.Remove(modsToReload[i]);
+							}
 						}
 
-						Assets.Unload(modToReload);
-						ModLoader.Load(modToReload.ModInfo, newFs);
-
-						if (modToReload.Enabled)
+						if (!loadedModThisIteration)
 						{
-							GameMod reloadedMod = ModManager.Instance.Mods.First((mod) => { return mod.ModInfo.Id == modToReload.ModInfo.Id; });
-
-							Assets.LoadAssetsForMod(reloadedMod);
+							throw new Exception($"Could not reload {modsToReload.Count} mods due to dependencies not reloading properly.");
 						}
-
-						modToReload.NeedsReload = false;
 					}
 
 					// Re-sort mods after loading.
