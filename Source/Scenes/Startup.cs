@@ -132,6 +132,11 @@ public class Startup : Scene
 		}
 
 		UI.Text(batcher, loadInfo, bounds.BottomLeft + new Vec2(4 * Game.RelativeScale, -28 * Game.RelativeScale), Vec2.Zero, Color.White);
+
+		batcher.PushMatrix(Matrix3x2.CreateScale(0.75f));
+		UI.Text(batcher, Game.Instance.GetFullVersionString(), bounds.TopLeft + new Vec2(4 * Game.RelativeScale, 4 * Game.RelativeScale), Vec2.Zero, Color.LightGray);
+		batcher.PopMatrix();
+
 		if (areModsRegistered && assetQueueSize > 0)
 		{
 			batcher.Rect(new Rect(0, bounds.Bottom - (6 * Game.RelativeScale), target.Width / assetQueueSize * queueIndex, bounds.Bottom), Color.White); // Progress bar

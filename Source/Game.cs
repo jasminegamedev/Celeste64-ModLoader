@@ -117,6 +117,11 @@ public class Game : Module
 		imGuiManager = new ImGuiManager();
 	}
 
+	public string GetFullVersionString()
+	{
+		return $"{VersionString} + {LoaderVersion}";
+	}
+
 	public void SetResolutionScale(int scale)
 	{
 		ResolutionScale = scale;
