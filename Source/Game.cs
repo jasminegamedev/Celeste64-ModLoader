@@ -99,8 +99,6 @@ public class Game : Module
 	public Scene? Scene => scenes.TryPeek(out var scene) ? scene : null;
 	public World? World => Scene as World;
 
-	internal bool doUpdate = true;
-
 	public Game()
 	{
 		if (IsDynamicRes)
