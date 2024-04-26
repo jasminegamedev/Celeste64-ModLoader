@@ -40,6 +40,9 @@ public class Startup : Scene
 			Controls.LoadControlsByFileName(Controls.DefaultFileName);
 		}
 
+		// TODO: Move me once asset redo is merged!!
+		App.VSync = Settings.VSync;
+
 		// enter game
 		//Assets.Levels[0].Enter(new AngledWipe());
 		if (Input.Keyboard.CtrlOrCommand && !Game.Instance.IsMidTransition && Settings.EnableQuickStart)

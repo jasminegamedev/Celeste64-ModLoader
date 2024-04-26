@@ -44,6 +44,11 @@ public sealed class Settings_V01 : PersistedData
 	/// </summary>
 	public string Language { get; set; } = "english";
 
+	/// <summary>
+	/// Whether to use V-Sync
+	/// </summary>
+	public bool EnableVSync { get; set; } = true;
+
 
 	/// <summary>
 	/// Fuji Custom - Whether we should write to the log file or not.
@@ -64,7 +69,7 @@ public sealed class Settings_V01 : PersistedData
 	/// Fuji Custom - The Current Game Resolution Scale.
 	/// </summary>
 	public int ResolutionScale { get; set; } = 1;
-	
+
 	/// <summary>
 	/// Fuji Custom - Whether the QuickStart feature is enabled
 	/// </summary>

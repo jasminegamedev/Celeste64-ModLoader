@@ -52,6 +52,11 @@ public sealed class Settings
 	public static string Language => Instance.Language;
 
 	/// <summary>
+	/// Whether V-Sync is enabled
+	/// </summary>
+	public static bool VSync => Instance.EnableVSync;
+
+	/// <summary>
 	/// Fuji Custom - Whether we should write to the log file or not.
 	/// </summary>
 	public static bool WriteLog => Instance.WriteLog;
@@ -105,6 +110,12 @@ public sealed class Settings
 	public static void ToggleZGuide()
 	{
 		Instance.ZGuide = !Instance.ZGuide;
+	}
+
+	public static void ToggleVSync()
+	{
+		Instance.EnableVSync = !Instance.EnableVSync;
+		App.VSync = Instance.EnableVSync;
 	}
 
 	public static void SetCameraInverted(InvertCameraOptions value)

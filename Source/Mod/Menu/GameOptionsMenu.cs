@@ -39,6 +39,7 @@ public class GameOptionsMenu : Menu
 		Add(new Toggle("OptionsFullscreen", Settings.ToggleFullscreen, () => Settings.Fullscreen));
 		Add(new Toggle("OptionsZGuide", Settings.ToggleZGuide, () => Settings.ZGuide));
 		Add(new Toggle("OptionsTimer", Settings.ToggleTimer, () => Settings.SpeedrunTimer));
+		Add(new Toggle("OptionsVSync", Settings.ToggleVSync, () => Settings.VSync));
 		if (Assets.Languages.Count > 1)
 		{
 			Add(new OptionList("OptionsLanguage",

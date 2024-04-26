@@ -43,6 +43,8 @@
 		"OptionsSFX.desc": "Control the Sound Effects Volume",
 		"OptionsInvertCamera": "Inverted Camera",
 		"OptionsInvertCamera.desc": "Control if the Camera X and Y axes are inverted",
+		"OptionsVSync": "V-Sync",
+		"OptionsVSync.desc": "Toggle V-Sync",
 		"OptionsResolution": "Resolution Scale",
 		"OptionsResolution.desc": "Change the Resolution Scale",
 		"OptionsQuickStart": "Enable Quick Start",
