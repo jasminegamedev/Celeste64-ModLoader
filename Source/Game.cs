@@ -206,7 +206,7 @@ public class Game : Module
 		{
 			if (Scene is Startup || Scene is GameErrorMessage) return;
 
-			Log.Info($"--- User has initiated a{(Input.Keyboard.CtrlOrCommand ? " full" : String.Empty)} reload. ---");
+			Log.Info($"--- User has initiated a{(Input.Keyboard.CtrlOrCommand ? " full" : String.Empty)} manual reload. ---");
 			ReloadAssets(Input.Keyboard.CtrlOrCommand); // F5 - Reload changed; Ctrl + F5 - Reload all
 		}
 
@@ -312,6 +312,19 @@ public class Game : Module
 						.Where(mod => mod.NeedsReload)
 						.OrderBy(mod => mod.ModInfo.Id)
 						.ToList();
+
+					if (Settings.EnableAdditionalLogging)
+					{
+						StringBuilder reloadList = new();
+
+						reloadList.Append($"Reloading {modsToReload.Count} mods: ");
+						foreach (GameMod mod in modsToReload)
+						{
+							reloadList.Append($"\n- {mod.ModInfo.Id}");
+						}
+
+						Log.Info(reloadList);
+					}
 
 					while (modsToReload.Count > 0)
 					{
