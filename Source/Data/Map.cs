@@ -15,6 +15,7 @@ public class Map
 {
 	public class ActorFactory(Func<Map, SledgeEntity, Actor?> create)
 	{
+		public GameMod? Mod;
 		public bool UseSolidsAsBounds;
 		public bool IsSolidGeometry;
 		public Func<Map, SledgeEntity, Actor?> Create = create;

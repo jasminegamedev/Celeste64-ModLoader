@@ -21,6 +21,8 @@ public sealed class ModManager
 
 	internal GameMod? CurrentLevelMod { get; set; }
 
+	internal bool NeedsReload => Mods.Any(mod => mod.NeedsReload);
+
 	internal void Unload()
 	{
 		_modFilesystemCleanupTimerToken.Cancel();
@@ -56,11 +58,12 @@ public sealed class ModManager
 	{
 		Mods.Add(mod);
 		GlobalFilesystem.Add(mod);
-		if (mod.Filesystem != null)
-			mod.Filesystem.OnFileChanged += OnModFileChanged;
 
 		if (mod.Enabled)
 		{
+			if (mod.Filesystem != null)
+				mod.Filesystem.OnFileChanged += OnModFileChanged;
+
 			mod.OnModLoaded();
 			mod.Loaded = true;
 		}
@@ -84,7 +87,7 @@ public sealed class ModManager
 		}
 
 		mod.OnUnloadedCleanup?.Invoke();
-		
+
 		mod.ModInfo.AssemblyContext?.Dispose();
 	}
 
@@ -114,7 +117,7 @@ public sealed class ModManager
 				filepath.ToLower() == Assets.LevelsJSON.ToLower() ||
 				filepath.ToLower() == Assets.FujiJSON.ToLower())
 			{
-				Log.Info($"File Changed: {filepath} (From mod {ctx.Mod.ModInfo.Name}). Reloading assets.");
+				Log.Info($"File Changed: {filepath} (From mod {ctx.Mod.ModInfo.Name}). {(Settings.EnableAutoReload ? "Reloading assets." : "Queued for reload.")}");
 			}
 			else
 			{
@@ -124,10 +127,10 @@ public sealed class ModManager
 		}
 		else
 		{
-			Log.Info($"Mod archive for mod {ctx.Mod.ModInfo.Name} changed. Reloading assets.");
+			Log.Info($"Mod archive for mod {ctx.Mod.ModInfo.Name} changed. {(Settings.EnableAutoReload ? "Reloading assets." : "Queued for reload.")}");
 		}
-
-		Game.Instance.ReloadAssets();
+		ctx.Mod.SetNeedsReloadRecursive();
+		if (Settings.EnableAutoReload) Game.Instance.ReloadAssets(false);
 	}
 
 	internal void Update(float deltaTime)
@@ -256,6 +259,16 @@ public sealed class ModManager
 		foreach (var mod in EnabledMods)
 		{
 			mod.OnPlayerStateChanged(player, state);
+		}
+	}
+
+	internal void AfterSceneRender(Batcher batch)
+	{
+		foreach (var mod in EnabledMods)
+		{
+			mod.AfterSceneRender(batch);
+			batch.Render(Game.Instance.target);
+			batch.Clear();
 		}
 	}
 }

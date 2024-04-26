@@ -135,7 +135,7 @@ public class Language
 
 		HashSet<int> codepoints = [];
 
-		// add ascii codepoinets always
+		// add ascii codepoints always
 		for (int i = 32; i < 128; i++)
 			codepoints.Add(i);
 

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Celeste64;
 
 public class GameOptionsMenu : Menu
@@ -26,6 +28,12 @@ public class GameOptionsMenu : Menu
 		FujiOptionsMenu.Add(new Slider("OptionsResolution", 1, 5, () => Settings.ResolutionScale, Settings.SetResolutionScale));
 		FujiOptionsMenu.Add(new Toggle("OptionsQuickStart", Settings.ToggleQuickStart, () => Settings.EnableQuickStart));
 		FujiOptionsMenu.Add(new Toggle("FujiAdditionalLog", Settings.ToggleEnableAdditionalLogs, () => Settings.EnableAdditionalLogging));
+		FujiOptionsMenu.Add(new Toggle("FujiAutoReload", Settings.ToggleEnableAutoReload, () => Settings.EnableAutoReload));
+		FujiOptionsMenu.Add(new Spacer());
+		FujiOptionsMenu.Add(new Option("FujiOpenUserPath", () =>
+		{
+			new Process { StartInfo = new ProcessStartInfo(App.UserPath) { UseShellExecute = true } }.Start();
+		}));
 		FujiOptionsMenu.Add(new Option("Exit", () =>
 		{
 			PopRootSubMenu();
@@ -36,6 +44,7 @@ public class GameOptionsMenu : Menu
 		Add(new Toggle("OptionsFullscreen", Settings.ToggleFullscreen, () => Settings.Fullscreen));
 		Add(new Toggle("OptionsZGuide", Settings.ToggleZGuide, () => Settings.ZGuide));
 		Add(new Toggle("OptionsTimer", Settings.ToggleTimer, () => Settings.SpeedrunTimer));
+		Add(new Toggle("OptionsVSync", Settings.ToggleVSync, () => Settings.VSync));
 		if (Assets.Languages.Count > 1)
 		{
 			Add(new OptionList("OptionsLanguage",
