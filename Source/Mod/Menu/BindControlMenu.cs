@@ -24,6 +24,7 @@ public class BindControlMenu : Menu
 
 	protected override void HandleInput()
 	{
+		// Only accept keys and mouse buttons if this is not for controller. Otherwise, only accept controller buttons and sticks
 		if (!isForController)
 		{
 			Keys? pressed = Input.Keyboard.FirstPressed();
@@ -73,6 +74,8 @@ public class BindControlMenu : Menu
 			}
 		}
 
+		// Closes automatically after <waitBeforeClosingTime> seconds
+		// This is to prevent users from being forced to bind if they click by mistake.
 		inMenuTime += Time.Delta;
 		if (inMenuTime > waitBeforeClosingTime)
 		{

@@ -86,6 +86,8 @@
 		"MenuRight": "Menu Right",
 		"MenuLeft": "Menu Left",	
 		"DebugMenu": "Debug Menu",
+		"FullScreen": "Full Screen",
+		"ReloadAssets": "Reload Assets",
 
 		"Skin": "Skin",
 		"Skin.desc": "Choose a Skin to Wear",

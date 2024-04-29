@@ -20,11 +20,13 @@ public class ControlsMenu : Menu
 	public ControlsMenu(Menu? rootMenu, bool isForController)
 	{
 		RootMenu = rootMenu;
+		// This menu can be used for either controller or keyboard bindings, which are separated based on this isForController flag.
 		this.isForController = isForController;
 
 		GameTarget = new Target(Game.Width, Game.Height);
 		Game.OnResolutionChanged += () => GameTarget = new Target(Game.Width, Game.Height);
 
+		// Standard gameplay bindings.
 		Add(new SubHeader("ControlsHeaderGame"));
 		Add(new InputBind(Controls.Jump.Name, Controls.Jump, rootMenu, isForController));
 		Add(new InputBind(Controls.Dash.Name, Controls.Dash, rootMenu, isForController));
@@ -38,6 +40,8 @@ public class ControlsMenu : Menu
 		Add(new InputBind(Controls.Camera.Name + "Left", Controls.Camera.Horizontal.Negative, rootMenu, isForController));
 		Add(new InputBind(Controls.Camera.Name + "Right", Controls.Camera.Horizontal.Positive, rootMenu, isForController));
 
+		// Menu Item bindings are special, because they must always have at least 1 binding, to prevent the user from getting stuck.
+		// This is what the RequiresBinding flag is for.
 		Add(new SubHeader("ControlsHeaderMenu"));
 		Add(new InputBind(Controls.Pause.Name, Controls.Pause, rootMenu, isForController) { RequiresBinding = true });
 		Add(new InputBind(Controls.Confirm.Name, Controls.Confirm, rootMenu, isForController) { RequiresBinding = true });
@@ -50,6 +54,7 @@ public class ControlsMenu : Menu
 		Add(new InputBind(Controls.Menu.Name + "Left", Controls.Menu.Horizontal.Negative, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });
 		Add(new InputBind(Controls.Menu.Name + "Right", Controls.Menu.Horizontal.Positive, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });
 
+		// Advanced Bindings for special things that don't really fit into any category.
 		Add(new SubHeader("ControlsHeaderAdvanced"));
 		Add(new InputBind(Controls.FullScreen.Name, Controls.FullScreen, rootMenu, isForController));
 		Add(new InputBind(Controls.ReloadAssets.Name, Controls.ReloadAssets, rootMenu, isForController));
@@ -58,6 +63,7 @@ public class ControlsMenu : Menu
 
 		Add(new Spacer());
 
+		// Reset all bindings for this control type to their default value.
 		Add(new Option("ControlsResetToDefault", () =>
 		{
 			Controls.ResetAllBindings(isForController);
@@ -73,6 +79,7 @@ public class ControlsMenu : Menu
 	{
 		base.HandleInput();
 
+		// Reset current binding to it's default value
 		if (Controls.CopyFile.ConsumePress())
 		{
 			if (items[Index] is InputBind bind)
@@ -81,6 +88,7 @@ public class ControlsMenu : Menu
 			}
 		}
 
+		// Clear current binding so there are no bindings (Or 1 binding if RequiredBinding flag is true, where it will keep just the last binding)
 		if (Controls.CreateFile.ConsumePress())
 		{
 			if (items[Index] is InputBind bind)
@@ -90,6 +98,10 @@ public class ControlsMenu : Menu
 		}
 	}
 
+	/// <summary>
+	/// Render bindings and input legend
+	/// </summary>
+	/// <param name="batch"></param>
 	protected override void RenderItems(Batcher batch)
 	{
 		batch.PushMatrix(new Vec2(GameTarget.Bounds.Center.X, GameTarget.Bounds.Center.Y - 16f), false);

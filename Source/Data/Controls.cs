@@ -221,42 +221,6 @@ public static class Controls
 		LoadConfig(Instance);
 	}
 
-	private static List<ControlsConfigBinding>? GetButtonBindings(ControlsConfig_V01 config, VirtualButton virtualButton)
-	{
-		string[] nameParts = virtualButton.Name.Split("/");
-
-		if (nameParts.Length == 3)
-		{
-			var stickConfig = config.Sticks[nameParts[0]];
-
-			if (stickConfig != null)
-			{
-				if (nameParts[1] == "Horizontal" && nameParts[2] == "Positive")
-				{
-					return stickConfig.Right;
-				}
-				else if (nameParts[1] == "Horizontal" && nameParts[2] == "Negative")
-				{
-					return stickConfig.Left;
-				}
-				else if (nameParts[1] == "Vertical" && nameParts[2] == "Negative")
-				{
-					return stickConfig.Up;
-				}
-				else if (nameParts[1] == "Vertical" && nameParts[2] == "Positive")
-				{
-					return stickConfig.Down;
-				}
-			}
-		}
-		else if (config.Actions.ContainsKey(virtualButton.Name))
-		{
-			return config.Actions[virtualButton.Name];
-		}
-
-		return null;
-	}
-
 	[DisallowHooks]
 	public static void SaveToFile()
 	{
@@ -278,7 +242,8 @@ public static class Controls
 		}
 	}
 
-	public static void LoadConfig(ControlsConfig_V01? config = null)
+	[DisallowHooks]
+	internal static void LoadConfig(ControlsConfig_V01? config = null)
 	{
 		static ControlsConfigStick FindStick(ControlsConfig_V01? config, string name)
 		{
@@ -374,48 +339,22 @@ public static class Controls
 
 	private static readonly Dictionary<string, Dictionary<string, string>> prompts = [];
 
-	private static string GetControllerName(Gamepads pad) => pad switch
-	{
-		Gamepads.DualShock4 => "PlayStation",
-		Gamepads.DualSense => "PlayStation",
-		Gamepads.Nintendo => "Nintendo Switch",
-		Gamepads.Xbox => "Xbox Series",
-		_ => "Xbox Series",
-	};
-
+	/// <summary>
+	/// Get the icon texture for the first binding of a virtual button.
+	/// </summary>
+	/// <param name="button">Virtual button to get an icon for.</param>
+	/// <returns></returns>
 	public static Subtexture GetPrompt(VirtualButton button)
 	{
-		return Assets.Subtextures.GetValueOrDefault(GetPromptLocation(button));
+		return Assets.Subtextures.GetValueOrDefault(GetPromptLocations(button, Input.Controllers.Any() && Input.Controllers[0].Connected).FirstOrDefault(""));
 	}
 
-	public static string GetPromptLocation(VirtualButton button)
-	{
-		var gamepad = Input.Controllers[0];
-
-		var deviceTypeName =
-					gamepad.Connected ? GetControllerName(gamepad.Gamepad) : "PC";
-		if (!prompts.TryGetValue(deviceTypeName, out var list))
-			prompts[deviceTypeName] = list = [];
-
-		var action = Instance.Actions.ContainsKey(button.Name) ? Instance.Actions[button.Name] : ControlsConfig_V01.Defaults.Actions[button.Name];
-
-		var binding = action.FirstOrDefault(b => b.IsForController() == gamepad.Connected);
-
-		if (binding != null)
-		{
-			string buttonName = binding.GetBindingName();
-
-			buttonName = GetButtonOverrides(buttonName, gamepad.Gamepad);
-
-			if (!list.TryGetValue(binding.GetBindingName(), out var lookup))
-				list[binding.GetBindingName()] = lookup = $"Controls/{deviceTypeName}/{buttonName}";
-
-			return lookup;
-		}
-
-		return "";
-	}
-
+	/// <summary>
+	/// Get icon textures for all bindings for a virtual button.
+	/// </summary>
+	/// <param name="button">Virtual button to get icons for.</param>
+	/// <param name="isForController">True if we should show controller icons. False to show keyboard icons.</param>
+	/// <returns></returns>
 	public static List<Subtexture> GetPrompts(VirtualButton button, bool isForController)
 	{
 		List<Subtexture> subtextures = [];
@@ -450,7 +389,7 @@ public static class Controls
 				if (!prompts.TryGetValue(deviceTypeName, out var list))
 					prompts[deviceTypeName] = list = [];
 
-				buttonName = GetButtonOverrides(buttonName, gamepad.Gamepad);
+				buttonName = GetButtonOverrides(binding, buttonName, gamepad.Gamepad);
 
 				if (!list.TryGetValue(buttonName, out var lookup))
 					list[buttonName] = lookup = $"Controls/{promptDeviceTypeName}/{buttonName}";
@@ -463,14 +402,110 @@ public static class Controls
 		return locations;
 	}
 
+	private static List<ControlsConfigBinding>? GetButtonBindings(ControlsConfig_V01 config, VirtualButton virtualButton)
+	{
+		string[] nameParts = virtualButton.Name.Split("/");
+
+		if (nameParts.Length == 3)
+		{
+			var stickConfig = config.Sticks[nameParts[0]];
+
+			if (stickConfig != null)
+			{
+				if (nameParts[1] == "Horizontal" && nameParts[2] == "Positive")
+				{
+					return stickConfig.Right;
+				}
+				else if (nameParts[1] == "Horizontal" && nameParts[2] == "Negative")
+				{
+					return stickConfig.Left;
+				}
+				else if (nameParts[1] == "Vertical" && nameParts[2] == "Negative")
+				{
+					return stickConfig.Up;
+				}
+				else if (nameParts[1] == "Vertical" && nameParts[2] == "Positive")
+				{
+					return stickConfig.Down;
+				}
+			}
+		}
+		else if (config.Actions.ContainsKey(virtualButton.Name))
+		{
+			return config.Actions[virtualButton.Name];
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Gets a controller name for a gamepad. This is used to determine which folder we pull icons from.
+	/// PS4 and PS5 are shared, since most of their icons are the same. This is different from how this was handled in vanilla Celeste 64, which had them split.
+	/// </summary>
+	/// <param name="pad"></param>
+	/// <returns></returns>
+	private static string GetControllerName(Gamepads pad) => pad switch
+	{
+		Gamepads.DualShock4 => "PlayStation",
+		Gamepads.DualSense => "PlayStation",
+		Gamepads.Nintendo => "Nintendo Switch",
+		Gamepads.Xbox => "Xbox Series",
+		_ => "Xbox Series",
+	};
+
 	/// <summary>
 	/// Used for special cases where there may be multiple options for a button, like with different control types.
 	/// </summary>
 	/// <param name="buttonName"></param>
 	/// <param name="gamepadType"></param>
 	/// <returns></returns>
-	private static string GetButtonOverrides(string buttonName, Gamepads gamepadType)
+	private static string GetButtonOverrides(ControlsConfigBinding binding, string buttonName, Gamepads gamepadType)
 	{
+		// Mouse buttons need special names, since Left and Right could refer to Keyboard Left or Mouse Left.
+		switch (binding.MouseButton)
+		{
+			case MouseButtons.Left:
+				buttonName = "MouseLeft";
+				break;
+			case MouseButtons.Right:
+				buttonName = "MouseRight";
+				break;
+			case MouseButtons.Middle:
+				buttonName = "MouseMiddle";
+				break;
+			default:
+				break;
+		}
+
+		// This is needed to workaround 2 problems with how foster's buttons are set up.
+		// Normally, these can get their name from the enum name directly, but these have some special cases.
+		// The first issue is that the face buttons have multiple enum entries for the same value, with some being obsolete. We need to force it to get the correct name.
+		// The second issue is that Select and Back seem to currently be swapped. So we account for this here. If this gets fixed in foster, we should remove the last 2 cases.
+		switch (binding.Button)
+		{
+			case Buttons.South:
+				buttonName = "South";
+				break;
+			case Buttons.East:
+				buttonName = "East";
+				break;
+			case Buttons.West:
+				buttonName = "West";
+				break;
+			case Buttons.North:
+				buttonName = "North";
+				break;
+			case Buttons.Select:
+				buttonName = "Back";
+				break;
+			case Buttons.Back:
+				buttonName = "Select";
+				break;
+			default:
+				break;
+		}
+
+		// PS4 has unique icons separate from PS5. We account for that here.
 		if (gamepadType == Gamepads.DualShock4)
 		{
 			if (buttonName == "Start")
@@ -483,6 +518,7 @@ public static class Controls
 			}
 		}
 
+		// Separate MacOS special names from Windows.
 		if (OperatingSystem.IsMacOS())
 		{
 			if (buttonName == "LeftAlt" || buttonName == "RightAlt")

@@ -41,6 +41,14 @@ public class Menu
 		}
 	}
 
+	/// <summary>
+	/// Represents a Input Binding Menu Item.
+	/// This will show all the current bindings for a virtual buttons, and if you click it, it will open a binding menu to add new bindings.
+	/// </summary>
+	/// <param name="locString">Localization key for label that shows. Shold represent the button name.</param>
+	/// <param name="button">Virtual button we are trying to bind to</param>
+	/// <param name="rootMenu">Root menu for the menu we are currently in</param>
+	/// <param name="isForController">True if this is a controller binding, false for keyboard</param>
 	public class InputBind(Loc.Localized locString, VirtualButton button, Menu? rootMenu, bool isForController) : Item
 	{
 		public override Loc.Localized? LocString => locString;
@@ -65,6 +73,13 @@ public class Menu
 		}
 	}
 
+	/// <summary>
+	/// Represents a submenu menu item.
+	/// When pressed, it will open the given submenu
+	/// </summary>
+	/// <param name="locString">Localization key for the submenu label</param>
+	/// <param name="rootMenu">Root Menu for the menu that we are currently inside of.</param>
+	/// <param name="submenu">Submenu to open when clicked.</param>
 	public class Submenu(Loc.Localized locString, Menu? rootMenu, Menu? submenu = null) : Item
 	{
 		public override Loc.Localized? LocString => locString;
@@ -83,11 +98,17 @@ public class Menu
 		}
 	}
 
+	/// <summary>
+	/// Spacer menu item to allow a row of separation between menu items.
+	/// </summary>
 	public class Spacer : Item
 	{
 		public override bool Selectable => false;
 	}
 
+	/// <summary>
+	/// Basic slider component that allows you to pick an int value between a min and a max.
+	/// </summary>
 	public class Slider : Item
 	{
 		private readonly List<string> labels = [];
@@ -111,12 +132,21 @@ public class Menu
 		public override void Slide(int dir) => set(Calc.Clamp(get() + dir, min, max));
 	}
 
+	/// <summary>
+	/// Represents a subheader menu item.
+	/// This allows a basic text only entry in a list of menu items to represent a subheader for a group of items.
+	/// </summary>
+	/// <param name="locString"></param>
 	public class SubHeader(Loc.Localized locString) : Item
 	{
 		public override Loc.Localized? LocString => locString;
 		public override bool Selectable { get; } = false;
 	}
 
+	/// <summary>
+	/// Menu item that allows you to pick an item from a list of strings.
+	/// Note: For static lists of options, a Multiselect using an enum is recommended. This item is more for dynamic lists where the options can change dynamically.
+	/// </summary>
 	public class OptionList : Item
 	{
 		private readonly int min;
@@ -161,6 +191,11 @@ public class Menu
 		}
 	}
 
+	/// <summary>
+	/// Basic menu item that will run an action when clicked
+	/// </summary>
+	/// <param name="locString">Localization key for Option Label</param>
+	/// <param name="action">Action to run when pressed</param>
 	public class Option(Loc.Localized locString, Action? action = null) : Item
 	{
 		public override Loc.Localized? LocString => locString;
@@ -177,6 +212,12 @@ public class Menu
 		}
 	}
 
+	/// <summary>
+	/// Menu item representing a basic boolean value that can be turned off and on.
+	/// </summary>
+	/// <param name="locString">Localization key for Toggle Label</param>
+	/// <param name="action">action to run when pressed. This should be where you set the boolean value</param>
+	/// <param name="get">function that gets the current state of the boolean value</param>
 	public class Toggle(Loc.Localized locString, Action action, Func<bool> get) : Item
 	{
 		private string labelOff => $"{locString} : {Loc.Str("OptionsToggleOff")}";
@@ -196,6 +237,13 @@ public class Menu
 		}
 	}
 
+	/// <summary>
+	/// Multiselect component that lets you pick a list of strings.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="locString"></param>
+	/// <param name="set"></param>
+	/// <param name="get"></param>
 	public class MultiSelect(Loc.Localized locString, List<string> options, Func<int> get, Action<int> set) : Item
 	{
 		public override Loc.Localized LocString => locString;
@@ -214,6 +262,13 @@ public class Menu
 		}
 	}
 
+	/// <summary>
+	/// Multiselect component that lets you pick a value from an enum.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="locString"></param>
+	/// <param name="set"></param>
+	/// <param name="get"></param>
 	public class MultiSelect<T>(Loc.Localized locString, Action<T> set, Func<T> get)
 		: MultiSelect(locString, GetEnumOptions(), () => (int)(object)get(), i => set((T)(object)i))
 		where T : struct, Enum
