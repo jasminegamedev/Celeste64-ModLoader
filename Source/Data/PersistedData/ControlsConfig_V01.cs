@@ -63,6 +63,14 @@ public class ControlsConfig_V01 : PersistedData
 				new(Keys.B),
 				new(Buttons.North)
 			],
+			["ResetBindings"] = [
+				new(Keys.V),
+				new(Buttons.LeftShoulder)
+			],
+			["ClearBindings"] = [
+				new(Keys.B),
+				new(Buttons.North)
+			],
 			["FullScreen"] = [
 				new(Keys.F4),
 			],

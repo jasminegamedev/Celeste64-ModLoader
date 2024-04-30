@@ -12,6 +12,7 @@ public class ControlsMenu : Menu
 
 	public override void Initialized()
 	{
+		// The first item is a subheader, so we need to start at 1 to account for this.
 		Index = 1;
 	}
 
@@ -45,6 +46,8 @@ public class ControlsMenu : Menu
 		Add(new InputBind(Controls.CopyFile.Name, Controls.CopyFile, rootMenu, isForController) { RequiresBinding = true });
 		Add(new InputBind(Controls.CreateFile.Name, Controls.CreateFile, rootMenu, isForController) { RequiresBinding = true });
 		Add(new InputBind(Controls.DeleteFile.Name, Controls.DeleteFile, rootMenu, isForController) { RequiresBinding = true });
+		Add(new InputBind(Controls.ResetBindings.Name, Controls.ResetBindings, rootMenu, isForController) { RequiresBinding = true });
+		Add(new InputBind(Controls.ClearBindings.Name, Controls.ClearBindings, rootMenu, isForController) { RequiresBinding = true });
 		Add(new InputBind(Controls.Menu.Name + "Up", Controls.Menu.Vertical.Negative, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });
 		Add(new InputBind(Controls.Menu.Name + "Down", Controls.Menu.Vertical.Positive, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });
 		Add(new InputBind(Controls.Menu.Name + "Left", Controls.Menu.Horizontal.Negative, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });

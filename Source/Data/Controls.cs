@@ -1,5 +1,4 @@
 using Celeste64.Mod;
-using System.Text.Json;
 
 namespace Celeste64;
 
@@ -17,6 +16,8 @@ public static class Controls
 	public static readonly VirtualButton CopyFile = new("CopyFile");
 	public static readonly VirtualButton DeleteFile = new("DeleteFile");
 	public static readonly VirtualButton CreateFile = new("CreateFile");
+	public static readonly VirtualButton ResetBindings = new("ResetBindings");
+	public static readonly VirtualButton ClearBindings = new("ClearBindings");
 	public static readonly VirtualButton DebugMenu = new("DebugMenu");
 	public static readonly VirtualButton Restart = new("Restart");
 	public static readonly VirtualButton FullScreen = new("FullScreen");
@@ -47,27 +48,28 @@ public static class Controls
 
 		if (controls == null)
 		{
-			controls = ControlsConfig_V01.Defaults;
-			using var stream = File.Create(controlsFile);
-			JsonSerializer.Serialize(stream, ControlsConfig_V01.Defaults, ControlsConfig_V01Context.Default.ControlsConfig_V01);
-			stream.Flush();
+			controls = new ControlsConfig_V01();
 		}
-		else
+
+		// Add any default actions and sticks that are missing.
+		foreach (var defaultAction in ControlsConfig_V01.Defaults.Actions)
 		{
-			// Add any default actions and sticks that are missing.
-			foreach (var action in ControlsConfig_V01.Defaults.Actions)
+			if (!controls.Actions.ContainsKey(defaultAction.Key))
 			{
-				if (!controls.Actions.ContainsKey(action.Key))
-				{
-					controls.Actions.Add(action.Key, action.Value);
-				}
+				controls.Actions[defaultAction.Key] = [.. defaultAction.Value];
 			}
-			foreach (var stick in ControlsConfig_V01.Defaults.Sticks)
+		}
+		foreach (var defaultStick in ControlsConfig_V01.Defaults.Sticks)
+		{
+			if (!controls.Sticks.ContainsKey(defaultStick.Key))
 			{
-				if (!controls.Sticks.ContainsKey(stick.Key))
+				controls.Sticks[defaultStick.Key] = new ControlsConfigStick()
 				{
-					controls.Sticks.Add(stick.Key, stick.Value);
-				}
+					Up = [.. defaultStick.Value.Up],
+					Down = [.. defaultStick.Value.Down],
+					Left = [.. defaultStick.Value.Left],
+					Right = [.. defaultStick.Value.Right],
+				};
 			}
 		}
 
@@ -287,6 +289,10 @@ public static class Controls
 			it.BindTo(DeleteFile);
 		foreach (var it in FindAction(config, "CreateFile"))
 			it.BindTo(CreateFile);
+		foreach (var it in FindAction(config, "ResetBindings"))
+			it.BindTo(ResetBindings);
+		foreach (var it in FindAction(config, "ClearBindings"))
+			it.BindTo(ClearBindings);
 		foreach (var it in FindAction(config, "DebugMenu"))
 			it.BindTo(DebugMenu);
 		foreach (var it in FindAction(config, "Restart"))
@@ -311,6 +317,8 @@ public static class Controls
 		CopyFile.Clear();
 		DeleteFile.Clear();
 		CreateFile.Clear();
+		ResetBindings.Clear();
+		ClearBindings.Clear();
 		DebugMenu.Clear();
 		Restart.Clear();
 		FullScreen.Clear();
@@ -331,6 +339,8 @@ public static class Controls
 		CopyFile.Consume();
 		DeleteFile.Consume();
 		CreateFile.Consume();
+		ResetBindings.Consume();
+		ClearBindings.Consume();
 		DebugMenu.Consume();
 		Restart.Consume();
 		FullScreen.Consume();

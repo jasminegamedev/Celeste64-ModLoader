@@ -81,6 +81,8 @@
 		"CreateFile": "Create File",
 		"CopyFile": "Create File",
 		"DeleteFile": "Delete File",
+		"ResetBindings": "Reset Bindings",
+		"ClearBindings": "Clear Bindings",
 		"MenuDown": "Menu Down",
 		"MenuUp": "Menu Up",
 		"MenuRight": "Menu Right",

@@ -475,12 +475,12 @@ public class Menu
 
 			if (items[Index] is InputBind bind)
 			{
-				if (Controls.CopyFile.ConsumePress())
+				if (Controls.ResetBindings.ConsumePress())
 				{
 					// Reset current binding to it's default value
 					Controls.ResetBinding(bind.GetButton(), bind.IsForController);
 				}
-				else if (Controls.CreateFile.ConsumePress())
+				else if (Controls.ClearBindings.ConsumePress())
 				{
 					// Clear current binding so there are no bindings (Or 1 binding if RequiredBinding flag is true, where it will keep just the last binding)
 					Controls.ClearBinding(bind.GetButton(), bind.IsForController, bind.RequiresBinding);
