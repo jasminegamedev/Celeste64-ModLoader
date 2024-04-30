@@ -384,15 +384,13 @@ public class World : Scene
 	{
 		if (Paused)
 		{
+			pauseMenu.Update();
+
 			if (Controls.Pause.ConsumePress() || (pauseMenu.IsInMainMenu && Controls.Cancel.ConsumePress()))
 			{
 				pauseMenu.CloseSubMenus();
 				SetPaused(false);
 				Audio.Play(Sfx.ui_unpause);
-			}
-			else
-			{
-				pauseMenu.Update();
 			}
 		}
 

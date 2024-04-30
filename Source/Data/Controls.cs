@@ -69,6 +69,7 @@ public static class Controls
 					Down = [.. defaultStick.Value.Down],
 					Left = [.. defaultStick.Value.Left],
 					Right = [.. defaultStick.Value.Right],
+					Deadzone = defaultStick.Value.Deadzone
 				};
 			}
 		}
@@ -117,7 +118,7 @@ public static class Controls
 	internal static void AddBinding(VirtualButton virtualButton, Axes axis, bool inverted, float deadzone = 0.0f)
 	{
 		var bindings = GetButtonBindings(Instance, virtualButton);
-		if (bindings != null && !bindings.Any(a => a.Axis == axis))
+		if (bindings != null && !bindings.Any(a => a.Axis == axis && a.AxisInverted == inverted))
 		{
 			bindings.Add(new(axis, deadzone, inverted));
 			bindings.Last().BindTo(virtualButton);
@@ -217,6 +218,7 @@ public static class Controls
 			Instance.Sticks[stick.Key].Down.AddRange(stick.Value.Down.Where(b => b.IsForController() == forController));
 			Instance.Sticks[stick.Key].Left.AddRange(stick.Value.Left.Where(b => b.IsForController() == forController));
 			Instance.Sticks[stick.Key].Right.AddRange(stick.Value.Right.Where(b => b.IsForController() == forController));
+			Instance.Sticks[stick.Key].Deadzone = stick.Value.Deadzone;
 		}
 
 		// Reload bindings
@@ -504,6 +506,18 @@ public static class Controls
 				break;
 			case Buttons.North:
 				buttonName = "North";
+				break;
+			case Buttons.Up:
+				buttonName = "ButtonUp";
+				break;
+			case Buttons.Down:
+				buttonName = "ButtonDown";
+				break;
+			case Buttons.Left:
+				buttonName = "ButtonLeft";
+				break;
+			case Buttons.Right:
+				buttonName = "ButtonRight";
 				break;
 			case Buttons.Select:
 				buttonName = "Back";
