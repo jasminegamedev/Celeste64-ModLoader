@@ -55,6 +55,7 @@ public class Menu
 
 		public float DeadZone;
 		public bool RequiresBinding;
+		public bool IsForController => isForController;
 		public override bool Pressed()
 		{
 			Audio.Play(Sfx.ui_select);
@@ -471,6 +472,20 @@ public class Menu
 
 			if (Controls.Confirm.Pressed && items[Index].Pressed())
 				Controls.Consume();
+
+			if (items[Index] is InputBind bind)
+			{
+				if (Controls.CopyFile.ConsumePress())
+				{
+					// Reset current binding to it's default value
+					Controls.ResetBinding(bind.GetButton(), bind.IsForController);
+				}
+				else if (Controls.CreateFile.ConsumePress())
+				{
+					// Clear current binding so there are no bindings (Or 1 binding if RequiredBinding flag is true, where it will keep just the last binding)
+					Controls.ClearBinding(bind.GetButton(), bind.IsForController, bind.RequiresBinding);
+				}
+			}
 		}
 	}
 

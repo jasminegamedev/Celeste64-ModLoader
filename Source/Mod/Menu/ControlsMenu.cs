@@ -4,8 +4,6 @@ public class ControlsMenu : Menu
 {
 	private Target GameTarget;
 
-	private bool isForController;
-
 	public override void Closed()
 	{
 		base.Closed();
@@ -20,8 +18,6 @@ public class ControlsMenu : Menu
 	public ControlsMenu(Menu? rootMenu, bool isForController)
 	{
 		RootMenu = rootMenu;
-		// This menu can be used for either controller or keyboard bindings, which are separated based on this isForController flag.
-		this.isForController = isForController;
 
 		GameTarget = new Target(Game.Width, Game.Height);
 		Game.OnResolutionChanged += () => GameTarget = new Target(Game.Width, Game.Height);
@@ -73,29 +69,6 @@ public class ControlsMenu : Menu
 		{
 			PopRootSubMenu();
 		}));
-	}
-
-	protected override void HandleInput()
-	{
-		base.HandleInput();
-
-		// Reset current binding to it's default value
-		if (Controls.CopyFile.ConsumePress())
-		{
-			if (items[Index] is InputBind bind)
-			{
-				Controls.ResetBinding(bind.GetButton(), isForController);
-			}
-		}
-
-		// Clear current binding so there are no bindings (Or 1 binding if RequiredBinding flag is true, where it will keep just the last binding)
-		if (Controls.CreateFile.ConsumePress())
-		{
-			if (items[Index] is InputBind bind)
-			{
-				Controls.ClearBinding(bind.GetButton(), isForController, bind.RequiresBinding);
-			}
-		}
 	}
 
 	/// <summary>
