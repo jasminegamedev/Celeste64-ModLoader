@@ -11,7 +11,7 @@ internal class FujiDebugMenu : ImGuiHandler
 
 	public override void Update()
 	{
-		if (Input.Keyboard.Pressed(Keys.F6))
+		if (Controls.DebugMenu.Pressed)
 		{
 			visible = !visible;
 		}
