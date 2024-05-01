@@ -362,11 +362,11 @@ public class Overworld : Scene
 					pauseMenu.Add(new Menu.Submenu("PauseModsMenu", pauseMenu, modMenu));
 					pauseMenu.Add(new Menu.Option("Exit", () =>
 					{
-						if (Game.Instance.NeedsReload)
+						if (ModManager.Instance.NeedsReload)
 						{
-							Game.Instance.NeedsReload = false;
-							Game.Instance.ReloadAssets();
+							Game.Instance.ReloadAssets(false);
 						}
+
 						Paused = false;
 					}));
 
@@ -453,10 +453,9 @@ public class Overworld : Scene
 				{
 					pauseMenu.CloseSubMenus();
 				}
-				if (Game.Instance.NeedsReload)
+				if (ModManager.Instance.NeedsReload)
 				{
-					Game.Instance.NeedsReload = false;
-					Game.Instance.ReloadAssets();
+					Game.Instance.ReloadAssets(false);
 				}
 				Audio.Play(Sfx.ui_unpause);
 				Paused = false;

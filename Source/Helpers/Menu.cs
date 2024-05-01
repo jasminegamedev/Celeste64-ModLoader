@@ -6,7 +6,7 @@ public class Menu
 {
 	public static float Spacing => 4 * Game.RelativeScale;
 	public static float SpacerHeight => 12 * Game.RelativeScale;
-	public const float TitleScale = 0.75f;
+	protected float TitleScale = 0.75f;
 
 	public abstract class Item
 	{
@@ -43,6 +43,46 @@ public class Menu
 		}
 	}
 
+	/// <summary>
+	/// Represents a Input Binding Menu Item.
+	/// This will show all the current bindings for a virtual buttons, and if you click it, it will open a binding menu to add new bindings.
+	/// </summary>
+	/// <param name="locString">Localization key for label that shows. Shold represent the button name.</param>
+	/// <param name="button">Virtual button we are trying to bind to</param>
+	/// <param name="rootMenu">Root menu for the menu we are currently in</param>
+	/// <param name="isForController">True if this is a controller binding, false for keyboard</param>
+	public class InputBind(Loc.Localized locString, VirtualButton button, Menu? rootMenu, bool isForController) : Item
+	{
+		public override Loc.Localized? LocString => locString;
+
+		public float DeadZone;
+		public bool RequiresBinding;
+		public bool IsForController => isForController;
+		public override bool Pressed()
+		{
+			Audio.Play(Sfx.ui_select);
+			rootMenu?.PushSubMenu(new BindControlMenu(rootMenu, button, locString, isForController, DeadZone));
+			return true;
+		}
+
+		public virtual List<Subtexture> GetTextures()
+		{
+			return Controls.GetPrompts(button, isForController);
+		}
+
+		public VirtualButton GetButton()
+		{
+			return button;
+		}
+	}
+
+	/// <summary>
+	/// Represents a submenu menu item.
+	/// When pressed, it will open the given submenu
+	/// </summary>
+	/// <param name="locString">Localization key for the submenu label</param>
+	/// <param name="rootMenu">Root Menu for the menu that we are currently inside of.</param>
+	/// <param name="submenu">Submenu to open when clicked.</param>
 	public class Submenu(Loc.Localized locString, Menu? rootMenu, Menu? submenu = null) : Item
 	{
 		public override Loc.Localized? LocString => locString;
@@ -61,11 +101,17 @@ public class Menu
 		}
 	}
 
+	/// <summary>
+	/// Spacer menu item to allow a row of separation between menu items.
+	/// </summary>
 	public class Spacer : Item
 	{
 		public override bool Selectable => false;
 	}
 
+	/// <summary>
+	/// Basic slider component that allows you to pick an int value between a min and a max.
+	/// </summary>
 	public class Slider : Item
 	{
 		private readonly List<string> labels = [];
@@ -89,12 +135,21 @@ public class Menu
 		public override void Slide(int dir) => set(Calc.Clamp(get() + dir, min, max));
 	}
 
+	/// <summary>
+	/// Represents a subheader menu item.
+	/// This allows a basic text only entry in a list of menu items to represent a subheader for a group of items.
+	/// </summary>
+	/// <param name="locString"></param>
 	public class SubHeader(Loc.Localized locString) : Item
 	{
 		public override Loc.Localized? LocString => locString;
 		public override bool Selectable { get; } = false;
 	}
 
+	/// <summary>
+	/// Menu item that allows you to pick an item from a list of strings.
+	/// Note: For static lists of options, a Multiselect using an enum is recommended. This item is more for dynamic lists where the options can change dynamically.
+	/// </summary>
 	public class OptionList : Item
 	{
 		private readonly int min;
@@ -139,6 +194,11 @@ public class Menu
 		}
 	}
 
+	/// <summary>
+	/// Basic menu item that will run an action when clicked
+	/// </summary>
+	/// <param name="locString">Localization key for Option Label</param>
+	/// <param name="action">Action to run when pressed</param>
 	public class Option(Loc.Localized locString, Action? action = null) : Item
 	{
 		public override Loc.Localized? LocString => locString;
@@ -155,6 +215,12 @@ public class Menu
 		}
 	}
 
+	/// <summary>
+	/// Menu item representing a basic boolean value that can be turned off and on.
+	/// </summary>
+	/// <param name="locString">Localization key for Toggle Label</param>
+	/// <param name="action">action to run when pressed. This should be where you set the boolean value</param>
+	/// <param name="get">function that gets the current state of the boolean value</param>
 	public class Toggle(Loc.Localized locString, Action action, Func<bool> get) : Item
 	{
 		private string labelOff => $"{locString} : {Loc.Str("OptionsToggleOff")}";
@@ -174,6 +240,13 @@ public class Menu
 		}
 	}
 
+	/// <summary>
+	/// Multiselect component that lets you pick a list of strings.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="locString"></param>
+	/// <param name="set"></param>
+	/// <param name="get"></param>
 	public class MultiSelect(Loc.Localized locString, List<string> options, Func<int> get, Action<int> set) : Item
 	{
 		public override Loc.Localized LocString => locString;
@@ -192,6 +265,13 @@ public class Menu
 		}
 	}
 
+	/// <summary>
+	/// Multiselect component that lets you pick a value from an enum.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="locString"></param>
+	/// <param name="set"></param>
+	/// <param name="get"></param>
 	public class MultiSelect<T>(Loc.Localized locString, Action<T> set, Func<T> get)
 		: MultiSelect(locString, GetEnumOptions(), () => (int)(object)get(), i => set((T)(object)i))
 		where T : struct, Enum
@@ -408,7 +488,7 @@ public class Menu
 				step = -1;
 
 			Index += step;
-			while (!items[(items.Count + Index) % items.Count].Selectable)
+			while (step != 0 && !items[(items.Count + Index) % items.Count].Selectable)
 				Index += step;
 			Index = (items.Count + Index) % items.Count;
 
@@ -435,6 +515,20 @@ public class Menu
 
 			if (Controls.Confirm.Pressed && items[Index].Pressed())
 				Controls.Consume();
+
+			if (items[Index] is InputBind bind)
+			{
+				if (Controls.ResetBindings.ConsumePress())
+				{
+					// Reset current binding to it's default value
+					Controls.ResetBinding(bind.GetButton(), bind.IsForController);
+				}
+				else if (Controls.ClearBindings.ConsumePress())
+				{
+					// Clear current binding so there are no bindings (Or 1 binding if RequiredBinding flag is true, where it will keep just the last binding)
+					Controls.ClearBinding(bind.GetButton(), bind.IsForController, bind.RequiresBinding);
+				}
+			}
 		}
 	}
 
@@ -499,6 +593,25 @@ public class Menu
 				batch.PopMatrix();
 				position.Y += font.LineHeight;
 			}
+			else if (items[i] is InputBind)
+			{
+				UI.Text(batch, text, position, new Vec2(1.0f, 0), color);
+
+				InputBind item = (InputBind)items[i];
+				var textures = item.GetTextures();
+				foreach (var texture in textures)
+				{
+					batch.PushMatrix(
+						Matrix3x2.CreateScale(TitleScale) *
+						Matrix3x2.CreateTranslation(position));
+					position.X += (24 * Game.RelativeScale);
+					UI.Icon(batch, texture, "", Vec2.Zero);
+					batch.PopMatrix();
+				}
+				position.Y += font.LineHeight;
+				position.Y += Spacing;
+				position.X = 0;
+			}
 			else
 			{
 				UI.Text(batch, text, position, justify, color);
@@ -508,20 +621,20 @@ public class Menu
 		}
 		batch.PopMatrix();
 
-		// Render a scrolbar if there are too many items to show on screen at once
+		// Render a scrollbar if there are too many items to show on screen at once
 		if (showScrollbar && items.Count > maxItemsCount)
 		{
 			// TODO: This will need to be redone if we implement mouse support and want it to interact with menus.
-			int padding = 4;
-			int scrollSize = 16;
-			int xPos = Game.Width - scrollSize - padding;
-			int scrollBarHeight = Game.Height - (scrollSize * 2) - padding * 4;
-			int scrollStartPos = padding * 2 + scrollSize;
+			float padding = 4 * Game.RelativeScale;
+			float scrollSize = 16 * Game.RelativeScale;
+			float xPos = Game.Width - scrollSize - padding;
+			float scrollBarHeight = Game.Height - (scrollSize * 2) - padding * 4;
+			float scrollStartPos = padding * 2 + scrollSize;
 			batch.PushMatrix(Vec2.Zero, false);
 			batch.Rect(new Rect(xPos, padding, scrollSize, scrollSize), Color.White);
 			batch.Rect(new Rect(xPos, scrollStartPos, scrollSize, scrollBarHeight), Color.Gray);
-			int scrollYPos = (int)MathF.Ceiling(scrollStartPos + ((float)scrolledAmount * scrollBarHeight / items.Count));
-			int scrollYHeight = scrollBarHeight * maxItemsCount / items.Count;
+			float scrollYPos = (int)MathF.Ceiling(scrollStartPos + (scrolledAmount * scrollBarHeight / items.Count));
+			float scrollYHeight = scrollBarHeight * maxItemsCount / items.Count;
 			batch.Rect(new Rect(xPos, scrollYPos, scrollSize, scrollYHeight), Color.White);
 			batch.Rect(new Rect(xPos, Game.Height - scrollSize - padding, scrollSize, scrollSize), Color.White);
 			batch.PopMatrix();

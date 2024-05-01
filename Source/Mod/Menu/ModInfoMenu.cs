@@ -39,11 +39,14 @@ public class ModInfoMenu : Menu
 				//If we are trying to disable the current mod, don't
 				if (Mod != null && Mod != ModManager.Instance.CurrentLevelMod)
 				{
-					ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled = !ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled;
+					var modSettings = ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id);
+					modSettings.Enabled = !modSettings.Enabled;
+					Mod.NeedsReload = true;
 
-					if (ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled)
+					if (modSettings.Enabled)
 					{
 						Mod.EnableDependencies(); // Also enable dependencies of the mod being enabled (if any).
+						Mod.SetNeedsReloadRecursive();
 					}
 					else
 					{
@@ -52,7 +55,7 @@ public class ModInfoMenu : Menu
 							safeDisableErrorMenu = new Menu { Title = Loc.Str("ModSafeDisableErrorMessage") };
 							safeDisableErrorMenu.Add(new Option("Exit", () =>
 							{
-								ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation can't be done.
+								modSettings.Enabled = true; // Override the toggle if the operation can't be done.
 
 								PopRootSubMenu();
 							}));
@@ -61,7 +64,6 @@ public class ModInfoMenu : Menu
 
 							return;
 						}
-
 
 						if (Mod.GetDependents().Count > 0)
 						{
@@ -75,7 +77,7 @@ public class ModInfoMenu : Menu
 							}));
 							depWarningMenu.Add(new Option("Exit", () =>
 							{
-								ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation was cancelled.
+								modSettings.Enabled = true; // Override the toggle if the operation was cancelled.
 
 								RootMenu?.PopSubMenu();
 							}));
@@ -83,8 +85,6 @@ public class ModInfoMenu : Menu
 							RootMenu?.PushSubMenu(depWarningMenu);
 						}
 					}
-
-					Game.Instance.NeedsReload = true;
 				}
 				else
 				{

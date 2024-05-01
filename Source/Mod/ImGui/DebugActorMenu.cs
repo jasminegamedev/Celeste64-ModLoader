@@ -16,7 +16,7 @@ internal class DebugActorMenu : ImGuiHandler
 
 	public override void Update()
 	{
-		if (Input.Keyboard.Pressed(Keys.F6))
+		if (Controls.DebugMenu.Pressed)
 		{
 			if (Visible) Visible = false;
 			if (actorListWindowVisible) actorListWindowVisible = false;

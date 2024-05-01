@@ -7,8 +7,8 @@ public class ControlsConfig_V01 : PersistedData
 {
 	public override int Version => 1;
 
-	public Dictionary<string, List<ControlsConfigBinding_V01>> Actions { get; set; } = [];
-	public Dictionary<string, ControlsConfigStick_V01> Sticks { get; set; } = [];
+	public Dictionary<string, List<ControlsConfigBinding>> Actions { get; set; } = [];
+	public Dictionary<string, ControlsConfigStick> Sticks { get; set; } = [];
 
 	public static ControlsConfig_V01 Defaults = new()
 	{
@@ -45,8 +45,8 @@ public class ControlsConfig_V01 : PersistedData
 				new(Buttons.South) { OnlyFor = Gamepads.Nintendo },
 			],
 			["Pause"] = [
-				new(Keys.Enter),
 				new(Keys.Escape),
+				new(Keys.Enter),
 				new(Buttons.Start),
 				new(Buttons.Select),
 				new(Buttons.Back)
@@ -66,6 +66,26 @@ public class ControlsConfig_V01 : PersistedData
 			["RenameFile"] = [
 				new(Keys.R),
 				new(Buttons.West)
+			],
+			["ResetBindings"] = [
+				new(Keys.V),
+				new(Buttons.LeftShoulder)
+			],
+			["ClearBindings"] = [
+				new(Keys.B),
+				new(Buttons.North)
+			],
+			["FullScreen"] = [
+				new(Keys.F4),
+			],
+			["ReloadAssets"] = [
+				new(Keys.F5),
+			],
+			["DebugMenu"] = [
+				new(Keys.F6),
+			],
+			["Restart"] = [
+				new(Keys.R),
 			],
 		},
 
@@ -153,7 +173,7 @@ public class ControlsConfig_V01 : PersistedData
 	UseStringEnumConverter = true,
 	DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
 	AllowTrailingCommas = true,
-	Converters = [typeof(ControlsConfigBinding_V01Converter), typeof(ControlsConfigStick_V01Converter)]
+	Converters = [typeof(ControlsConfigBinding_Converter)]
 )]
 [JsonSerializable(typeof(ControlsConfig_V01))]
 internal partial class ControlsConfig_V01Context : JsonSerializerContext { }

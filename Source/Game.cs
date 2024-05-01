@@ -23,6 +23,7 @@ public struct Transition
 	public bool Saving;
 	public bool StopMusic;
 	public bool PerformAssetReload;
+	public bool ReloadAll;
 	public float HoldOnBlackFor;
 }
 
@@ -79,8 +80,8 @@ public class Game : Module
 	public static Game Instance => instance ?? throw new Exception("Game isn't running");
 
 	private readonly Stack<Scene> scenes = new();
-	private Target target = new(Width, Height, [TextureFormat.Color, TextureFormat.Depth24Stencil8]);
-	private readonly Batcher batcher = new();
+	public Target target { get; internal set; } = new(Width, Height, [TextureFormat.Color, TextureFormat.Depth24Stencil8]);
+	public Batcher batcher { get; internal set; } = new();
 	private Transition transition;
 	private TransitionStep transitionStep = TransitionStep.None;
 	private readonly FMOD.Studio.EVENT_CALLBACK audioEventCallback;
@@ -98,8 +99,6 @@ public class Game : Module
 	public Scene? Scene => scenes.TryPeek(out var scene) ? scene : null;
 	public World? World => Scene as World;
 
-	internal bool NeedsReload = false;
-
 	public Game()
 	{
 		if (IsDynamicRes)
@@ -116,6 +115,11 @@ public class Game : Module
 		// If this isn't stored, the delegate will get GC'd and everything will crash :)
 		audioEventCallback = MusicTimelineCallback;
 		imGuiManager = new ImGuiManager();
+	}
+
+	public string GetFullVersionString()
+	{
+		return $"{VersionString}\n{LoaderVersion}";
 	}
 
 	public void SetResolutionScale(int scale)
@@ -209,8 +213,6 @@ public class Game : Module
 			Width_old = Width;
 		}
 
-		imGuiManager.UpdateHandlers();
-
 		scenes.TryPeek(out var scene); // gets the top scene
 
 		// update top scene
@@ -235,6 +237,8 @@ public class Game : Module
 		{
 			HandleError(e);
 		}
+
+		imGuiManager.UpdateHandlers();
 
 		// handle transitions
 		if (transitionStep == TransitionStep.FadeOut)
@@ -284,13 +288,65 @@ public class Game : Module
 			{
 				Save.SaveToFile();
 				Settings.SaveToFile();
+				Controls.SaveToFile();
 				ModSettings.SaveToFile();
 			}
 
 			// reload assets if requested
 			if (transition.PerformAssetReload)
 			{
-				Assets.Load();
+				if (transition.ReloadAll)
+				{
+					Assets.Load();
+				}
+				else
+				{
+					List<GameMod> modsToReload = ModManager.Instance.Mods
+						.Where(mod => mod.NeedsReload)
+						.OrderBy(mod => mod.ModInfo.Id)
+						.ToList();
+
+					if (Settings.EnableAdditionalLogging)
+					{
+						StringBuilder reloadList = new();
+
+						reloadList.Append($"Reloading {modsToReload.Count} mods: ");
+						foreach (GameMod mod in modsToReload)
+						{
+							reloadList.Append($"\n- {mod.ModInfo.Id}");
+						}
+
+						Log.Info(reloadList);
+					}
+
+					while (modsToReload.Count > 0)
+					{
+						bool loadedModThisIteration = false;
+						for (int i = modsToReload.Count - 1; i >= 0; i--)
+						{
+							// Only Reload this mod when all of it's dependencies are already loaded
+							if (!modsToReload[i].GetDependencies().Any(mod => mod.NeedsReload))
+							{
+								ModLoader.ReloadChangedMod(modsToReload[i]);
+								loadedModThisIteration = true;
+								modsToReload.Remove(modsToReload[i]);
+							}
+						}
+
+						if (!loadedModThisIteration)
+						{
+							throw new Exception($"Could not reload {modsToReload.Count} mods due to dependencies not reloading properly.");
+						}
+					}
+
+					// Re-sort mods after loading.
+					ModManager.Instance.Mods = ModManager.Instance.Mods
+					.OrderBy(mod => mod.ModInfo.Id) // Alphabetical
+					.OrderBy(mod => !(mod is VanillaGameMod)) // Put the vanilla mod first
+					.ToList();
+
+					Language.Current.Use();
+				}
 			}
 
 			// perform transition
@@ -316,7 +372,7 @@ public class Game : Module
 			if (scenes.TryPeek(out var nextScene))
 			{
 				if (Settings.EnableAdditionalLogging) Log.Info("Switching scene: " + nextScene.GetType());
-				
+
 				try
 				{
 					nextScene.Entered();
@@ -418,21 +474,21 @@ public class Game : Module
 		}
 
 
-		if (scene is not Celeste64.Startup)
+		if (scene is not Celeste64.Startup && Scene is not GameErrorMessage)
 		{
-			// toggle fullsrceen
-			if ((Input.Keyboard.Alt && Input.Keyboard.Pressed(Keys.Enter)) || Input.Keyboard.Pressed(Keys.F4))
+			// toggle fullscreen
+			if (Controls.FullScreen.ConsumePress())
 				Settings.ToggleFullscreen();
 
-			// reload state
-			if (Input.Keyboard.Ctrl && Input.Keyboard.Pressed(Keys.R) && !IsMidTransition)
+			if (Controls.ReloadAssets.ConsumePress() && !IsMidTransition)
 			{
-				ReloadAssets();
+				Log.Info($"--- User has initiated a{(Input.Keyboard.CtrlOrCommand ? " full" : string.Empty)} manual reload. ---");
+				ReloadAssets(Input.Keyboard.CtrlOrCommand); // F5 - Reload changed; Ctrl + F5 - Reload all
 			}
 		}
 	}
 
-	internal void ReloadAssets()
+	internal void ReloadAssets(bool reloadAll)
 	{
 		if (!scenes.TryPeek(out var scene))
 			return;
@@ -448,7 +504,8 @@ public class Game : Module
 				Scene = () => new World(world.Entry),
 				ToPause = true,
 				ToBlack = new AngledWipe(),
-				PerformAssetReload = true
+				PerformAssetReload = true,
+				ReloadAll = reloadAll
 			});
 		}
 		else
@@ -459,7 +516,8 @@ public class Game : Module
 				Scene = () => new Titlescreen(),
 				ToPause = true,
 				ToBlack = new AngledWipe(),
-				PerformAssetReload = true
+				PerformAssetReload = true,
+				ReloadAll = reloadAll
 			});
 		}
 	}
@@ -477,6 +535,8 @@ public class Game : Module
 				try
 				{
 					scene.Render(target);
+
+					ModManager.Instance.AfterSceneRender(batcher);
 				}
 				catch (Exception e)
 				{

@@ -52,6 +52,11 @@ public sealed class Settings
 	public static string Language => Instance.Language;
 
 	/// <summary>
+	/// Whether V-Sync is enabled
+	/// </summary>
+	public static bool VSync => Instance.EnableVSync;
+
+	/// <summary>
 	/// Fuji Custom - Whether we should write to the log file or not.
 	/// </summary>
 	public static bool WriteLog => Instance.WriteLog;
@@ -76,6 +81,11 @@ public sealed class Settings
 	/// </summary>
 	public static bool EnableQuickStart => Instance.EnableQuickStart;
 
+	/// <summary>
+	/// Fuji Custom - Whether auto hot reload is enabled
+	/// </summary>
+	public static bool EnableAutoReload => Instance.EnableAutoReload;
+
 	public static void ToggleFullscreen()
 	{
 		Instance.Fullscreen = !Instance.Fullscreen;
@@ -92,6 +102,12 @@ public sealed class Settings
 		Instance.EnableAdditionalLogging = !EnableAdditionalLogging;
 	}
 
+	public static void ToggleEnableAutoReload()
+	{
+		Instance.EnableAutoReload = !EnableAutoReload;
+	}
+
+
 	public static void ToggleEnableDebugMenu()
 	{
 		Instance.EnableDebugMenu = !Instance.EnableDebugMenu;
@@ -105,6 +121,12 @@ public sealed class Settings
 	public static void ToggleZGuide()
 	{
 		Instance.ZGuide = !Instance.ZGuide;
+	}
+
+	public static void ToggleVSync()
+	{
+		Instance.EnableVSync = !Instance.EnableVSync;
+		App.VSync = Instance.EnableVSync;
 	}
 
 	public static void SetCameraInverted(InvertCameraOptions value)

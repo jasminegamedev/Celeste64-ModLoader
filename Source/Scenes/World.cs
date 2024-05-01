@@ -167,7 +167,7 @@ public class World : Scene
 				FromPause = true,
 				ToPause = true,
 				ToBlack = new SlideWipe(),
-				PerformAssetReload = Game.Instance.NeedsReload,
+				PerformAssetReload = ModManager.Instance.NeedsReload,
 				Saving = true
 			})));
 		}
@@ -384,15 +384,13 @@ public class World : Scene
 	{
 		if (Paused)
 		{
+			pauseMenu.Update();
+
 			if (Controls.Pause.ConsumePress() || (pauseMenu.IsInMainMenu && Controls.Cancel.ConsumePress()))
 			{
 				pauseMenu.CloseSubMenus();
 				SetPaused(false);
 				Audio.Play(Sfx.ui_unpause);
-			}
-			else
-			{
-				pauseMenu.Update();
 			}
 		}
 
@@ -455,6 +453,16 @@ public class World : Scene
 				if (Controls.Pause.ConsumePress() && IsPauseEnabled)
 				{
 					SetPaused(true);
+					return;
+				}
+
+				// Fuji Custom
+				// Quick Restart if the player presses the restart button.
+				if (Controls.Restart.ConsumePress() && Get<Player>() is { Dead: false } livingPlayer)
+				{
+					SetPaused(false);
+					Audio.StopBus(Sfx.bus_dialog, false);
+					livingPlayer?.Kill();
 					return;
 				}
 
@@ -523,10 +531,9 @@ public class World : Scene
 
 		if (paused == false)
 		{
-			if (Game.Instance.NeedsReload)
+			if (ModManager.Instance.NeedsReload)
 			{
-				Game.Instance.NeedsReload = false;
-				Game.Instance.ReloadAssets();
+				Game.Instance.ReloadAssets(false);
 			}
 
 			var ply = Get<Player>();
