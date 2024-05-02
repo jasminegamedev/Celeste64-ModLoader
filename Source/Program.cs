@@ -15,10 +15,10 @@ public class CommandParser
 		Group #2 is the arg name
 		Group #4 is the arg value (if it exists)
 	*/
-	string Pattern = """-{1,2}([a-z0-9-]+)(="?([^"-]+)"?)?\b""";
-	Regex Exp;
-	List<string> Flags = [];
-	Dictionary<string, string> Args = new();
+	public readonly string Pattern = """-{1,2}([a-z0-9-]+)(="?([^"-]+)"?)?\b""";
+	public readonly Regex Exp;
+	public readonly List<string> Flags = [];
+	public readonly Dictionary<string, string> Args = new();
 
 
 	public CommandParser(string[] args)
