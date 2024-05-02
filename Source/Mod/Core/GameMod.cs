@@ -160,8 +160,7 @@ public abstract class GameMod
 		}
 		catch (Exception e)
 		{
-			Log.Error($"Failed to save the settings of {ModInfo.Id}!");
-			Log.Error(e.Message);
+			LogHelper.Error($"Failed to save the settings of {ModInfo.Id}!", e);
 			return false;
 		}
 	}
@@ -219,8 +218,7 @@ public abstract class GameMod
 		}
 		catch (Exception e)
 		{
-			Log.Error($"Failed to save the settings of {ModInfo.Id}!");
-			Log.Error(e.Message);
+			LogHelper.Error($"Failed to save the settings of {ModInfo.Id}!", e);
 			return false;
 		}
 	}

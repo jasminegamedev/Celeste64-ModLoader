@@ -237,7 +237,6 @@ public class Game : Module
 		instance = null;
 
 		Log.Info("Shutting down...");
-		WriteToLog();
 	}
 
 	public bool IsMidTransition => transitionStep != TransitionStep.None;
@@ -284,63 +283,8 @@ public class Game : Module
 		}
 
 		scenes.Clear();
-		Log.Error("== ERROR ==\n\n" + e.ToString());
-		WriteToLog();
+		LogHelper.Error("An Unhandled Exception occurred: ", e);
 		UnsafelySetScene(new GameErrorMessage(e));
-	}
-
-	// Fuji Custom
-	public static void WriteToLog()
-	{
-		if (!Settings.WriteLog)
-		{
-			return;
-		}
-
-		// construct a log message
-		const string LogFileName = "Log.txt";
-		StringBuilder log = new();
-		lock (Log.Logs)
-			log.AppendLine(Log.Logs.ToString());
-
-		// write to file
-		string path = LogFileName;
-		{
-			if (App.Running)
-			{
-				try
-				{
-					path = Path.Join(App.UserPath, LogFileName);
-				}
-				catch
-				{
-					path = LogFileName;
-				}
-			}
-
-			File.WriteAllText(path, log.ToString());
-		}
-	}
-
-	internal static void OpenLog()
-	{
-		const string LogFileName = "Log.txt";
-		string path = "";
-		if (App.Running)
-		{
-			try
-			{
-				path = Path.Join(App.UserPath, LogFileName);
-			}
-			catch
-			{
-				path = LogFileName;
-			}
-		}
-		if (File.Exists(path))
-		{
-			new Process { StartInfo = new ProcessStartInfo(path) { UseShellExecute = true } }.Start();
-		}
 	}
 
 	internal void ReloadAssets(bool reloadAll)
@@ -629,8 +573,6 @@ public class Game : Module
 			// in case new music was played
 			Settings.SyncSettings();
 			transitionStep = TransitionStep.FadeIn;
-
-			WriteToLog();
 		}
 		else if (transitionStep == TransitionStep.FadeIn)
 		{
