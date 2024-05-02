@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 namespace Celeste64;
 
@@ -11,6 +12,8 @@ namespace Celeste64;
 public static class LogHelper
 {
 	public static readonly StringBuilder Logs = new StringBuilder();
+	// TODO: does this actually get the assembly name properly?
+	public static string? AsmName => Assembly.GetCallingAssembly().GetName().Name;
 
 	public static void Initialize()
 	{
@@ -21,25 +24,28 @@ public static class LogHelper
 
 	public static void Info(ReadOnlySpan<char> text)
 	{
-		Append(text);
-		Console.Out.WriteLine(text);
+		string outtext = $"[Info] [{AsmName}] {text}";
+		Append(outtext);
+		Console.Out.WriteLine(outtext);
 		WriteToLog();
 	}
 
 	public static void Warn(ReadOnlySpan<char> text)
 	{
-		Append($"[Warning] {text}");
+		string outtext = $"[Warning] [{AsmName}] {text}";
+		Append(outtext);
 		Console.ForegroundColor = ConsoleColor.Yellow;
-		Console.Out.WriteLine($"[Warning] {text}");
+		Console.Out.WriteLine(outtext);
 		Console.ResetColor();
 		WriteToLog();
 	}
 
 	public static void Error(ReadOnlySpan<char> text)
 	{
-		Append($"[Error] {text}");
+		string outtext = $"[Error] [{AsmName}] {text}";
+		Append(outtext);
 		Console.ForegroundColor = ConsoleColor.Red;
-		Console.Out.WriteLine($"[Error] {text}");
+		Console.Out.WriteLine(outtext);
 		Console.ResetColor();
 		WriteToLog();
 	}
