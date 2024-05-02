@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Validate Tag
-        - run: |
+        run: |
             if [[ "0.0.0" != ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
               echo "Error: Tag is not in a valid semvar format"
               exit 1
