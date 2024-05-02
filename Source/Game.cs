@@ -5,6 +5,7 @@ using System.Text;
 
 namespace Celeste64;
 
+#region Transition Struct
 /// <summary>
 /// Represents a game transition. Transitions are used to smoothly go from one game scene to the next.
 /// </summary>
@@ -68,9 +69,11 @@ public struct Transition
 	/// </summary>
 	public float HoldOnBlackFor;
 }
+#endregion
 
 public class Game : Module
 {
+	#region Properties
 	private enum TransitionStep
 	{
 		None,
@@ -159,7 +162,9 @@ public class Game : Module
 	/// Returns the World scene this game instance is running, or null if the active scene is not a World scene.
 	/// </summary>
 	public World? World => Scene as World;
+	#endregion
 
+	#region Constructor
 	public Game()
 	{
 		if (IsDynamicRes)
@@ -177,7 +182,9 @@ public class Game : Module
 		audioEventCallback = MusicTimelineCallback;
 		imGuiManager = new ImGuiManager();
 	}
+	#endregion
 
+	#region Methods
 	/// <summary>
 	/// Gets the full version string of the instance
 	/// </summary>
@@ -281,7 +288,9 @@ public class Game : Module
 		WriteToLog();
 		UnsafelySetScene(new GameErrorMessage(e));
 	}
+	#endregion
 
+	#region Update
 	public override void Update()
 	{
 		if (IsDynamicRes)
@@ -569,6 +578,7 @@ public class Game : Module
 			}
 		}
 	}
+	#endregion
 
 	internal void ReloadAssets(bool reloadAll)
 	{
@@ -604,6 +614,8 @@ public class Game : Module
 		}
 	}
 
+
+	#region Render
 	public override void Render()
 	{
 		Graphics.Clear(Color.Black);
@@ -644,6 +656,7 @@ public class Game : Module
 			}
 		}
 	}
+	#endregion
 
 	// Fuji Custom
 	public static void WriteToLog()
