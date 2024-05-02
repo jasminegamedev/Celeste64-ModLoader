@@ -288,6 +288,102 @@ public class Game : Module
 		WriteToLog();
 		UnsafelySetScene(new GameErrorMessage(e));
 	}
+
+	// Fuji Custom
+	public static void WriteToLog()
+	{
+		if (!Settings.WriteLog)
+		{
+			return;
+		}
+
+		// construct a log message
+		const string LogFileName = "Log.txt";
+		StringBuilder log = new();
+		lock (Log.Logs)
+			log.AppendLine(Log.Logs.ToString());
+
+		// write to file
+		string path = LogFileName;
+		{
+			if (App.Running)
+			{
+				try
+				{
+					path = Path.Join(App.UserPath, LogFileName);
+				}
+				catch
+				{
+					path = LogFileName;
+				}
+			}
+
+			File.WriteAllText(path, log.ToString());
+		}
+	}
+
+	internal static void OpenLog()
+	{
+		const string LogFileName = "Log.txt";
+		string path = "";
+		if (App.Running)
+		{
+			try
+			{
+				path = Path.Join(App.UserPath, LogFileName);
+			}
+			catch
+			{
+				path = LogFileName;
+			}
+		}
+		if (File.Exists(path))
+		{
+			new Process { StartInfo = new ProcessStartInfo(path) { UseShellExecute = true } }.Start();
+		}
+	}
+
+	internal void ReloadAssets(bool reloadAll)
+	{
+		if (!scenes.TryPeek(out var scene))
+			return;
+
+		if (IsMidTransition)
+			return;
+
+		if (scene is World world)
+		{
+			Goto(new Transition()
+			{
+				Mode = Transition.Modes.Replace,
+				Scene = () => new World(world.Entry),
+				ToPause = true,
+				ToBlack = new AngledWipe(),
+				PerformAssetReload = true,
+				ReloadAll = reloadAll
+			});
+		}
+		else
+		{
+			Goto(new Transition()
+			{
+				Mode = Transition.Modes.Replace,
+				Scene = () => new Titlescreen(),
+				ToPause = true,
+				ToBlack = new AngledWipe(),
+				PerformAssetReload = true,
+				ReloadAll = reloadAll
+			});
+		}
+	}
+
+	private FMOD.RESULT MusicTimelineCallback(FMOD.Studio.EVENT_CALLBACK_TYPE type, IntPtr _event, IntPtr parameters)
+	{
+		// notify that an audio event happened (but handle it on the main thread)
+		if (transitionStep == TransitionStep.None)
+			audioBeatCounterEvent = true;
+		return FMOD.RESULT.OK;
+	}
 	#endregion
 
 	#region Update
@@ -580,41 +676,6 @@ public class Game : Module
 	}
 	#endregion
 
-	internal void ReloadAssets(bool reloadAll)
-	{
-		if (!scenes.TryPeek(out var scene))
-			return;
-
-		if (IsMidTransition)
-			return;
-
-		if (scene is World world)
-		{
-			Goto(new Transition()
-			{
-				Mode = Transition.Modes.Replace,
-				Scene = () => new World(world.Entry),
-				ToPause = true,
-				ToBlack = new AngledWipe(),
-				PerformAssetReload = true,
-				ReloadAll = reloadAll
-			});
-		}
-		else
-		{
-			Goto(new Transition()
-			{
-				Mode = Transition.Modes.Replace,
-				Scene = () => new Titlescreen(),
-				ToPause = true,
-				ToBlack = new AngledWipe(),
-				PerformAssetReload = true,
-				ReloadAll = reloadAll
-			});
-		}
-	}
-
-
 	#region Render
 	public override void Render()
 	{
@@ -657,66 +718,4 @@ public class Game : Module
 		}
 	}
 	#endregion
-
-	// Fuji Custom
-	public static void WriteToLog()
-	{
-		if (!Settings.WriteLog)
-		{
-			return;
-		}
-
-		// construct a log message
-		const string LogFileName = "Log.txt";
-		StringBuilder log = new();
-		lock (Log.Logs)
-			log.AppendLine(Log.Logs.ToString());
-
-		// write to file
-		string path = LogFileName;
-		{
-			if (App.Running)
-			{
-				try
-				{
-					path = Path.Join(App.UserPath, LogFileName);
-				}
-				catch
-				{
-					path = LogFileName;
-				}
-			}
-
-			File.WriteAllText(path, log.ToString());
-		}
-	}
-
-	internal static void OpenLog()
-	{
-		const string LogFileName = "Log.txt";
-		string path = "";
-		if (App.Running)
-		{
-			try
-			{
-				path = Path.Join(App.UserPath, LogFileName);
-			}
-			catch
-			{
-				path = LogFileName;
-			}
-		}
-		if (File.Exists(path))
-		{
-			new Process { StartInfo = new ProcessStartInfo(path) { UseShellExecute = true } }.Start();
-		}
-	}
-
-	private FMOD.RESULT MusicTimelineCallback(FMOD.Studio.EVENT_CALLBACK_TYPE type, IntPtr _event, IntPtr parameters)
-	{
-		// notify that an audio event happened (but handle it on the main thread)
-		if (transitionStep == TransitionStep.None)
-			audioBeatCounterEvent = true;
-		return FMOD.RESULT.OK;
-	}
 }
