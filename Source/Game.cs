@@ -5,25 +5,67 @@ using System.Text;
 
 namespace Celeste64;
 
+/// <summary>
+/// Represents a game transition. Transitions are used to smoothly go from one game scene to the next.
+/// </summary>
 public struct Transition
 {
+	/// <summary>
+	/// Transition modes
+	/// </summary>
 	public enum Modes
 	{
+		/// <summary>
+		/// Replace the current scene
+		/// </summary>
 		Replace,
+		/// <summary>
+		/// Push a new scene to the stack
+		/// </summary>
 		Push,
+		/// <summary>
+		/// Remove the current scene from the stack
+		/// </summary>
 		Pop
 	}
 
+	/// <summary>
+	/// The mode of this transition - the action it will take upon being executed
+	/// </summary>
 	public Modes Mode;
+	/// <summary>
+	/// The scene this transition will go to next - nullable
+	/// </summary>
 	public Func<Scene>? Scene;
+	/// <summary>
+	/// The screen wipe used when entering the transition
+	/// </summary>
 	public ScreenWipe? ToBlack;
+	/// <summary>
+	/// The screen wipe used when exiting the transition
+	/// </summary>
 	public ScreenWipe? FromBlack;
 	public bool ToPause;
 	public bool FromPause;
+	/// <summary>
+	/// Whether to save player stats when doing the transition
+	/// </summary>
 	public bool Saving;
+	/// <summary>
+	/// Whether to stop the music when transitioning
+	/// </summary>
 	public bool StopMusic;
+	/// <summary>
+	/// Whether to perform an asset reload when transitioning
+	/// </summary>
 	public bool PerformAssetReload;
+	/// <summary>
+	/// Whether to reload all assets
+	/// </summary>
 	public bool ReloadAll;
+	/// <summary>
+	/// How long to hold on black when executing the transition (e.g. 1.0f -> one second)
+	/// </summary>
 	public float HoldOnBlackFor;
 }
 
@@ -51,6 +93,9 @@ public class Game : Module
 	public static event Action OnResolutionChanged = () => { };
 
 	private static float _resolutionScale = 1.0f;
+	/// <summary>
+	/// The current render resolution multiplier of the game
+	/// </summary>
 	public static float ResolutionScale
 	{
 		get => _resolutionScale;
@@ -77,11 +122,20 @@ public class Game : Module
 	public static float RelativeScale => _resolutionScale;
 
 	private static Game? instance;
+	/// <summary>
+	/// The current instance of the game. Use this for any non-static methods.
+	/// </summary>
 	public static Game Instance => instance ?? throw new Exception("Game isn't running");
 	public CommandParser? AppArgs;
 
 	private readonly Stack<Scene> scenes = new();
+	/// <summary>
+	/// The render target of this game instance
+	/// </summary>
 	public Target target { get; internal set; } = new(Width, Height, [TextureFormat.Color, TextureFormat.Depth24Stencil8]);
+	/// <summary>
+	/// The render batcher of this game instance
+	/// </summary>
 	public Batcher batcher { get; internal set; } = new();
 	private Transition transition;
 	private TransitionStep transitionStep = TransitionStep.None;
@@ -97,7 +151,13 @@ public class Game : Module
 	public SoundHandle? AmbienceWav;
 	public SoundHandle? MusicWav;
 
+	/// <summary>
+	/// Returns the topmost (i.e. currently active) scene of this game instance.
+	/// </summary>
 	public Scene? Scene => scenes.TryPeek(out var scene) ? scene : null;
+	/// <summary>
+	/// Returns the World scene this game instance is running, or null if the active scene is not a World scene.
+	/// </summary>
 	public World? World => Scene as World;
 
 	public Game()
@@ -118,11 +178,18 @@ public class Game : Module
 		imGuiManager = new ImGuiManager();
 	}
 
+	/// <summary>
+	/// Gets the full version string of the instance
+	/// </summary>
 	public string GetFullVersionString()
 	{
 		return $"{VersionString}\n{LoaderVersion}";
 	}
 
+	/// <summary>
+	/// Sets the resolution scale of the game and saves it to settings.
+	/// </summary>
+	/// <param name="scale">The scale</param>
 	public void SetResolutionScale(int scale)
 	{
 		ResolutionScale = scale;
@@ -168,6 +235,12 @@ public class Game : Module
 
 	public bool IsMidTransition => transitionStep != TransitionStep.None;
 
+	/// <summary>
+	/// Request a transition for this game instance.
+	/// 
+	/// Your request will be silently rejected if Game.IsMidTransition is already true.
+	/// </summary>
+	/// <param name="next">The transition to perform</param>
 	public void Goto(Transition next)
 	{
 		if (IsMidTransition) return;
@@ -182,6 +255,14 @@ public class Game : Module
 			Music.Stop();
 	}
 
+	/// <summary>
+	/// Set the scene of this instance directly.
+	/// 
+	/// DON'T USE unless you have a very good reason to. This clears the scene stack and replaces it
+	/// uncleanly with no regard for edge cases, meaning it may lead to crashes and loss of progress.
+	/// Game.Goto is strongly preferred over this method.
+	/// </summary>
+	/// <param name="next"></param>
 	public void UnsafelySetScene(Scene next)
 	{
 		scenes.Clear();
