@@ -389,16 +389,6 @@ public class World : Scene
 
 	public override void Update()
 	{
-		// note to self: remove this testing code when done
-		if (Input.Keyboard.Pressed(Keys.Minus))
-		{
-			Player ply = new Player();
-			Add(ply);
-			ply.Position = MainPlayer.Position + new Vec3(Rng.Float(-16f, 16), Rng.Float(-16f, 16), 0);
-			ply.DoUpdate = true;
-			ply.StateMachine.State = Player.States.Feather;
-		}
-
 		if (Paused)
 		{
 			pauseMenu.Update();
