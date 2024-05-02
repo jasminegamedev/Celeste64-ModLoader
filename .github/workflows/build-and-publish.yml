@@ -1,11 +1,27 @@
-name: Build and publish beta branch
+name: Build and publish branch
 
 on:
   workflow_dispatch:
     inputs:
       tag:
         required: true
-        description: Tag for the release that is generated. This must follow the format of `beta-X.Y.Z-*`
+        description: Tag for the release that is generated. This must use semvar like `X.Y.Z` for stable branches or `beta-X.Y.Z-*` for beta branches
+      is-beta:
+        type: boolean
+        default: false
+        description: Is this a beta release?
+      make-latest:
+        type: boolean
+        default: true
+        description: Should the generated release be flagged as the latest release?
+      prerelease:
+        type: boolean
+        default: false
+        description: Should the generated release be flagged as a prerelease?
+      draft:
+        type: boolean
+        default: true
+        description: Should the generated release be flagged as a draft?
 
 permissions:
   contents: write
@@ -19,10 +35,18 @@ jobs:
     name: Validate Inputs
     runs-on: ubuntu-latest
     steps:
-      - name: Validate Tag
+      - name: Validate Stable Tag
+        if: ${{ ! inputs.is-beta }}
+        run: |
+            if [[ !(${{ inputs.tag }} =~ ^[0-9]+\.[0-9]+\.[0-9]+$) ]]; then
+              echo "Error: Tag is not in a valid semvar format. Stable releases should follow the format of 'X.Y.Z'"
+              exit 1
+            fi
+      - name: Validate Beta Tag
+        if: ${{ inputs.is-beta }}
         run: |
             if [[ !(${{ inputs.tag }} =~ ^beta\-[0-9]+\.[0-9]+\.[0-9]+\-*) ]]; then
-              echo "Error: Tag is formatted correctly. This should follow the format of 'beta-X.Y.Z-*'"
+              echo "Error: Tag is formatted correctly. Beta releases should follow the format of 'beta-X.Y.Z-*'"
               exit 1
             fi
   create_release:
@@ -34,7 +58,7 @@ jobs:
       with:
         fetch-tags: true
 
-    - name: Create draft release
+    - name: Create release
       uses: ncipollo/release-action@v1
       with:
         tag: ${{ inputs.tag }} 
@@ -52,9 +76,9 @@ jobs:
           - **macOS:** Monterey or later, x64 or arm Intel-based or Apple Silicon with Rosetta
         allowUpdates: true
         name: "Fuji ${{ inputs.tag }} "
-        prerelease: true
-        makeLatest: false
-        draft: true
+        prerelease: ${{ inputs.prerelease }}
+        makeLatest: ${{ inputs.make-latest }}
+        draft: ${{ inputs.draft }}
 
   build:
     name: Build Artifacts
@@ -82,7 +106,7 @@ jobs:
 
     - name: Build
       run: |
-        dotnet publish Celeste64.Launcher/Celeste64.Launcher.csproj -c Release -r ${{ matrix.rid }} -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{ inputs.tag }}" -o build
+        dotnet publish Celeste64.Launcher/Celeste64.Launcher.csproj -c Release -r ${{ matrix.rid }} -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=BuildVersion=${{ inputs.tag }}" -o build
         cp -r Content Mods build
 
     - name: Compress
@@ -105,9 +129,7 @@ jobs:
         allowUpdates: true
         omitNameDuringUpdate: true
         omitBodyDuringUpdate: true
-        prerelease: true
-        makeLatest: false
-        draft: true
+        draft: ${{ inputs.draft }}
 
     - name: Cancel release
       if: ${{ failure() }}

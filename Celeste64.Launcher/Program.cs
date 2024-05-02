@@ -16,14 +16,19 @@ public class Program
 		{
 			ConsoleHelper.CreateConsole();
 		}
-		Version loaderVersion = typeof(Program).Assembly.GetName().Version!;
-		Game.LoaderVersion = $"Fuji: v.{loaderVersion.Major}.{loaderVersion.Minor}.{loaderVersion.Build}";
+		if (!string.IsNullOrEmpty(BuildProperties.BuildVersion()))
+		{
+			Game.LoaderVersion = $"Fuji: v.{BuildProperties.BuildVersion()}";
+		}
+		else
+		{
+			Version loaderVersion = typeof(Program).Assembly.GetName().Version!;
+			Game.LoaderVersion = $"Fuji: v.{loaderVersion.Major}.{loaderVersion.Minor}.{loaderVersion.Build}";
+		}
+
 		Game.IsDynamicRes = parsedArgs.Has("dynamic-res");
 		Game.AppArgs = parsedArgs; // Expose our parsed args to the game
-		if (!string.IsNullOrEmpty(BuildProperties.ModVersion()))
-		{
-			Game.LoaderVersion += "-" + BuildProperties.ModVersion();
-		}
+
 		Log.Info($"Celeste 64 v.{Game.GameVersion.Major}.{Game.GameVersion.Minor}.{Game.GameVersion.Build}");
 		Log.Info(Game.LoaderVersion);
 
