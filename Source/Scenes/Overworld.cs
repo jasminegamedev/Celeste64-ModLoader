@@ -526,13 +526,13 @@ public class Overworld : Scene
 
 				var modIcon = mod.Subtextures.TryGetValue(mod.ModInfo.Icon ?? "", out var value) ? value : strawberryImage;
 				var modIconSelectedSize = sel ? ModIconSizeLarge : ModIconSize;
-				var modIconSize = new Vec2(modIconSelectedSize / modIcon.Width, modIconSelectedSize / modIcon.Height);
+				var modIconSize = new Vec2(modIconSelectedSize / modIcon.Width, modIconSelectedSize / modIcon.Height) * Game.RelativeScale;
 
 				batch.Image(
 					modIcon,
 					new Vec2(
-						(sel ? -(ModIconSizeLarge - ModIconSize) : 0) + ModIconLeftMargin, // Horizontal
-						(sel ? -(ModIconSizeLarge - ModIconSize) : 0) + (ModIconSpacing * relativeIndex) + (bounds.Height / 2) - ModIconVertAdjust // Vertical
+						((sel ? -(ModIconSizeLarge - ModIconSize) : 0) + ModIconLeftMargin) * Game.RelativeScale, // Horizontal
+						((sel ? -(ModIconSizeLarge - ModIconSize) : 0) + (ModIconSpacing * relativeIndex) - ModIconVertAdjust) * Game.RelativeScale + (bounds.Height / 2)// Vertical
 					),
 					Vec2.Zero, modIconSize, 0, Color.White);
 			}
