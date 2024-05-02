@@ -6,6 +6,7 @@ namespace Celeste64;
 
 public class World : Scene
 {
+	#region Properties
 	public enum EntryReasons { Entered, Returned, Respawned }
 	public readonly record struct EntryInfo(string Map, string CheckPoint, bool Submap, EntryReasons Reason);
 
@@ -67,7 +68,9 @@ public class World : Scene
 	public static bool DebugDraw { get; private set; } = false;
 
 	public Map? Map { get; private set; }
+	#endregion
 
+	#region Constructor
 	public World(EntryInfo entry)
 	{
 		badMapWarningMenu.Title = $"placeholder";
@@ -234,6 +237,7 @@ public class World : Scene
 			if (Settings.EnableAdditionalLogging) Log.Info($"Respawned in {stopwatch.ElapsedMilliseconds}ms");
 		}
 	}
+	#endregion
 
 	public override void Disposed()
 	{
@@ -251,6 +255,15 @@ public class World : Scene
 		ModManager.Instance.CurrentLevelMod = null;
 	}
 
+	public override void Entered()
+	{
+		if (Get<Player>() is { } player)
+		{
+			player.SetSkin(Save.GetSkin());
+		}
+	}
+
+	#region Public Actor Methods
 	public T Request<T>() where T : Actor, IRecycle, new()
 	{
 		if (recycled.TryGetValue(typeof(T), out var list) && list.Count > 0)
@@ -315,7 +328,9 @@ public class World : Scene
 		}
 		return list;
 	}
+	#endregion
 
+	#region Update Loop
 	private void ResolveChanges()
 	{
 		// resolve adding/removing actors
@@ -369,14 +384,6 @@ public class World : Scene
 				}
 			}
 			destroying.Clear();
-		}
-	}
-
-	public override void Entered()
-	{
-		if (Get<Player>() is { } player)
-		{
-			player.SetSkin(Save.GetSkin());
 		}
 	}
 
@@ -521,7 +528,9 @@ public class World : Scene
 			Panic(err, $"Oops, critical error :(\n{err.Message}\nYou can try to recover from this error by pressing Retry,\nbut we can't promise stability!", Panicked);
 		} // We wrap most of Update() in a try-catch to hopefully catch errors that occur during gameplay.
 	}
+	#endregion
 
+	#region Gameplay Util Methods
 	public void SetPaused(bool paused)
 	{
 		if (paused == false && Panicked)
@@ -789,7 +798,9 @@ public class World : Scene
 		}
 		return null;
 	}
+	#endregion
 
+	#region Render
 	public override void Render(Target target)
 	{
 		debugRndTimer.Restart();
@@ -1036,6 +1047,7 @@ public class World : Scene
 			it.Model.Render(ref state);
 		}
 	}
+	#endregion
 
 	private void Panic(Exception error, string reason, bool level)
 	{
