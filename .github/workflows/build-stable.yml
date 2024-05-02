@@ -118,12 +118,12 @@ jobs:
     - name: Compress
       if: runner.os != 'Windows'
       run: |
-        cd build && zip -r ../Celeste64-Fuji-${{ matrix.rid }}.zip *
+        cd build && zip -r ../Celeste64-Fuji-${{ matrix.rid }}-${{ inputs.tag }}.zip *
 
     - name: Upload artifact to release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: Celeste64-Fuji-${{ matrix.rid }}.zip
+        artifacts: Celeste64-Fuji-${{ matrix.rid }}-${{ inputs.tag }}.zip
         commit: "${{ github.sha }}"
         tag: ${{ inputs.tag }} 
         allowUpdates: true
