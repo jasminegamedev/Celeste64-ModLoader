@@ -2,109 +2,43 @@ name: Build and publish beta branch
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ 'beta' ]
-    paths-ignore:
-      - "README.md"
-      - ".gitignore"
-      - ".editorconfig"
+    inputs:
+      tag:
+        required: true
+        description: Tag for the release that is generated. This must follow the format of `beta-X.Y.Z-*`
 
 permissions:
   contents: write
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
-  build:    
-    strategy:
-      matrix:
-        include:
-          - platform: macos-latest
-            arch: x64
-          - platform: macos-latest
-            arch: arm64
-          - platform: ubuntu-latest
-            arch: x64
-          - platform: ubuntu-latest
-            arch: arm64
-          - platform: ubuntu-latest
-            arch: arm
-          - platform: windows-latest
-            arch: x64
-    
-    runs-on: ${{ matrix.platform }}
+  validate_inputs:
+    name: Validate Inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Tag
+        run: |
+            if [[ !(${{ inputs.tag }} =~ ^beta\-[0-9]+\.[0-9]+\.[0-9]+\-*) ]]; then
+              echo "Error: Tag is formatted correctly. This should follow the format of 'beta-X.Y.Z-*'"
+              exit 1
+            fi
+  create_release:
+    name: Create Release
+    needs: validate_inputs
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Fetch all tags
-      run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-    - name: Get current short hash
-      id: vars
-      run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> "$env:GITHUB_OUTPUT"
-      if: runner.os == 'Windows'
-    - name : Get Short Hash Linux
-      run: |
-        calculatedSha=$(git rev-parse --short ${{ github.sha }})
-        echo "SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
-      if: runner.os != 'Windows'
-    - name: echo short hash
-      run: echo "Short SHA is ${{ env.SHORT_SHA }}"
-      if: runner.os == 'Windows'
-    - name: echo short hash
-      run: echo "Short SHA is $SHORT_SHA"
-      if: runner.os != 'Windows'
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.0.x
+        fetch-tags: true
 
-    - name: Build (linux and mac)
-      env:
-        os: ${{ runner.os == 'Windows' && 'win' || runner.os == 'macOS' && 'osx' || 'linux' }}
-      run: |
-        dotnet publish Celeste64.Launcher/Celeste64.Launcher.csproj -c Release -r ${{env.os}}-${{ matrix.arch }} -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{ env.SHORT_SHA }}" -o build && cp -r Content Mods build
-      if: runner.os != 'Windows'
-    - name: Build (windows)
-      env:
-        os: ${{ runner.os == 'Windows' && 'win' || runner.os == 'macOS' && 'osx' || 'linux' }}
-      run: |
-        dotnet publish Celeste64.Launcher/Celeste64.Launcher.csproj -c Release -r win-${{ matrix.arch }} -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{steps.vars.outputs.SHORT_SHA}}" -o build && xcopy Mods build\Mods /s /e /h /i /y && xcopy Content build\Content /s /e /h /i /y
-      if: runner.os == 'Windows'
-    - name: Compress (Windows)
-      run: |
-        Compress-Archive build/* Celeste64-Fuji-${{ runner.os }}-${{ matrix.arch }}.zip
-      if: runner.os == 'Windows'
-    
-    - name: Compress (macOS and Linux)
-      run: |
-        cd build && zip -r ../Celeste64-Fuji-${{ runner.os }}-${{ matrix.arch }}.zip *
-      if: runner.os != 'Windows'
-      
-    - name: Publish Github Release Windows
+    - name: Create draft release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: Celeste64-Fuji-${{ runner.os }}-${{ matrix.arch }}.zip
-        tag: "beta-${{steps.vars.outputs.SHORT_SHA}}"
-        body: |
-          # Instructions:
-
-          - Download and extract the zip file below according to your computer
-          - Run the Celeste64-Fuji application from the extracted files
-
-          # Requirements:
-
-          - **Windows:** 10 or later, x64 or arm
-          - **Linux:** [Distro support list](https://github.com/dotnet/core/blob/main/release-notes/8.0/supported-os.md), x64
-          - **macOS:** Monterey or later, x64 or arm sIntel-based or Apple Silicon with Rosetta
-        allowUpdates: true
-        name: "Fuji Beta Build ${{steps.vars.outputs.SHORT_SHA}}"
-        prerelease: true
-        makeLatest: false
+        tag: ${{ inputs.tag }} 
         commit: "${{ github.sha }}"
-      if: runner.os == 'Windows'
-
-    - name: Publish Github Release Linux and Mac
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: Celeste64-Fuji-${{ runner.os }}-${{ matrix.arch }}.zip
-        tag: "beta-${{ env.SHORT_SHA }}"
         body: |
           # Instructions:
 
@@ -117,8 +51,66 @@ jobs:
           - **Linux:** [Distro support list](https://github.com/dotnet/core/blob/main/release-notes/8.0/supported-os.md), x64 or arm
           - **macOS:** Monterey or later, x64 or arm Intel-based or Apple Silicon with Rosetta
         allowUpdates: true
-        name: "Fuji Beta Build ${{ env.SHORT_SHA }}"
+        name: "Fuji ${{ inputs.tag }} "
         prerelease: true
         makeLatest: false
-        commit: "${{ github.sha }}"
+        draft: true
+
+  build:
+    name: Build Artifacts
+    needs: create_release
+    strategy:
+      matrix:
+        include:
+          - { platform: macos-latest, rid: osx-arm64 }
+          - { platform: macos-latest, rid: osx-x64 }
+          - { platform: ubuntu-latest, rid: linux-arm }
+          - { platform: ubuntu-latest, rid: linux-arm64 }
+          - { platform: ubuntu-latest, rid: linux-x64 }
+          - { platform: windows-latest, rid: win-x64 }
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-tags: true
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Build
+      run: |
+        dotnet publish Celeste64.Launcher/Celeste64.Launcher.csproj -c Release -r ${{ matrix.rid }} -p:ImportByWildcardBeforeSolution=false "-p:EmbeddedBuildProperty=ModVersion=${{ inputs.tag }}" -o build
+        cp -r Content Mods build
+
+    - name: Compress
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd build && Compress-Archive * ../Celeste64-Fuji-${{ matrix.rid }}.zip
+
+    - name: Compress
       if: runner.os != 'Windows'
+      run: |
+        cd build && zip -r ../Celeste64-Fuji-${{ matrix.rid }}.zip *
+
+    - name: Upload artifact to release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: Celeste64-Fuji-${{ matrix.rid }}.zip
+        commit: "${{ github.sha }}"
+        tag: ${{ inputs.tag }} 
+        allowUpdates: true
+        omitNameDuringUpdate: true
+        omitBodyDuringUpdate: true
+        prerelease: true
+        makeLatest: false
+        draft: true
+
+    - name: Cancel release
+      if: ${{ failure() }}
+      run: gh release delete --cleanup-tag -y ${{ inputs.tag }} 
+      env:
+        GH_TOKEN: ${{ github.token }}

@@ -5,7 +5,7 @@ on:
     inputs:
       tag:
         required: true
-        description: Tag for the release that is generated. This should use semvar `like X.Y.Z`
+        description: Tag for the release that is generated. This must use semvar like `X.Y.Z`
 
 permissions:
   contents: write
