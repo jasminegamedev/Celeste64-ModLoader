@@ -12,8 +12,14 @@ namespace Celeste64;
 public static class LogHelper
 {
 	public static readonly StringBuilder Logs = new StringBuilder();
-	// TODO: does this actually get the assembly name properly?
-	public static string? AsmName => Assembly.GetCallingAssembly().GetName().Name;
+	/*
+	 A simple Assembly.GetCallingAssembly() is not good enough for our needs here. 
+	 We need to travel up the stack to get the actual assembly name.
+
+	 Even then, this gets the wrong assembly name sometimes :(
+	 todo: figure out a 100% reliable way to get this
+	*/
+	public static string? AsmName => new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.Assembly.GetName().Name;
 
 	public static void Initialize()
 	{
