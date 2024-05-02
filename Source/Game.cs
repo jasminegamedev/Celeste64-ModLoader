@@ -78,6 +78,7 @@ public class Game : Module
 
 	private static Game? instance;
 	public static Game Instance => instance ?? throw new Exception("Game isn't running");
+	public CommandParser? AppArgs;
 
 	private readonly Stack<Scene> scenes = new();
 	public Target target { get; internal set; } = new(Width, Height, [TextureFormat.Color, TextureFormat.Depth24Stencil8]);
