@@ -431,6 +431,11 @@ public class Map
 			it.LocalBounds = bounds;
 		}
 
+		if (it is Player)
+		{
+			world.MainPlayer = (Player)it;
+		}
+
 		world.Add(it);
 	}
 

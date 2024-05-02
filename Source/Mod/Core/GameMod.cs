@@ -70,7 +70,7 @@ public abstract class GameMod
 	public Game? Game => Game.Instance;
 	public World? World => Game?.World;
 	public Map? Map => World?.Map;
-	public Player? Player => World?.Get<Player>();
+	public Player? Player => World?.MainPlayer;
 
 	// Common Metadata about this mod.
 	public bool Enabled => this is VanillaGameMod || ModSettingsData.Enabled;

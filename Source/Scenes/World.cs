@@ -49,13 +49,13 @@ public class World : Scene
 	private float strawbCounterEase = 0;
 	private int strawbCounterWas;
 
-	private bool IsInEndingArea => Get<Player>() is { } player && Overlaps<EndingArea>(player.Position);
+	private bool IsInEndingArea => MainPlayer is { } player && Overlaps<EndingArea>(player.Position);
 	private bool IsPauseEnabled
 	{
 		get
 		{
 			if (Game.Instance.IsMidTransition) return false;
-			if (Get<Player>() is not { } player) return true;
+			if (MainPlayer is not { } player) return true;
 			return player.IsAbleToPause;
 		}
 	}
@@ -68,6 +68,7 @@ public class World : Scene
 	public static bool DebugDraw { get; private set; } = false;
 
 	public Map? Map { get; private set; }
+	public Player? MainPlayer;
 	#endregion
 
 	#region Constructor
@@ -149,7 +150,7 @@ public class World : Scene
 			{
 				SetPaused(false);
 				Audio.StopBus(Sfx.bus_dialog, false);
-				Get<Player>()?.Kill();
+				MainPlayer?.Kill();
 			}));
 			if (Assets.EnabledSkins.Count > 1)
 			{
@@ -256,7 +257,7 @@ public class World : Scene
 
 	public override void Entered()
 	{
-		if (Get<Player>() is { } player)
+		if (MainPlayer is { } player)
 		{
 			player.SetSkin(Save.GetSkin());
 		}
@@ -388,6 +389,16 @@ public class World : Scene
 
 	public override void Update()
 	{
+		// note to self: remove this testing code when done
+		if (Input.Keyboard.Pressed(Keys.Minus))
+		{
+			Player ply = new Player();
+			Add(ply);
+			ply.Position = MainPlayer.Position + new Vec3(Rng.Float(-16f, 16), Rng.Float(-16f, 16), 0);
+			ply.DoUpdate = true;
+			ply.StateMachine.State = Player.States.Feather;
+		}
+
 		if (Paused)
 		{
 			pauseMenu.Update();
@@ -436,13 +447,13 @@ public class World : Scene
 					Calc.Approach(ref strawbCounterWiggle, 0, Time.Delta / .6f);
 
 				// hold stawb for a while
-				if ((Get<Player>()?.IsStrawberryCounterVisible ?? false))
+				if ((MainPlayer?.IsStrawberryCounterVisible ?? false))
 					strawbCounterCooldown = 2.0f;
 				else
 					strawbCounterCooldown -= Time.Delta;
 
 				// ease strawb in/out
-				if (IsInEndingArea || Paused || strawbCounterCooldown > 0 || (Get<Player>()?.IsStrawberryCounterVisible ?? false))
+				if (IsInEndingArea || Paused || strawbCounterCooldown > 0 || (MainPlayer?.IsStrawberryCounterVisible ?? false))
 					strawbCounterEase = Calc.Approach(strawbCounterEase, 1, Time.Delta * 6.0f);
 				else
 					strawbCounterEase = Calc.Approach(strawbCounterEase, 0, Time.Delta * 6.0f);
@@ -464,7 +475,7 @@ public class World : Scene
 
 				// Fuji Custom
 				// Quick Restart if the player presses the restart button.
-				if (Controls.Restart.ConsumePress() && Get<Player>() is { Dead: false } livingPlayer)
+				if (Controls.Restart.ConsumePress() && MainPlayer is { Dead: false } livingPlayer)
 				{
 					SetPaused(false);
 					Audio.StopBus(Sfx.bus_dialog, false);
@@ -473,7 +484,7 @@ public class World : Scene
 				}
 
 				// ONLY update the player when dead
-				if (Get<Player>() is { Dead: true } player)
+				if (MainPlayer is { Dead: true } player)
 				{
 					player.Update();
 					player.LateUpdate();
@@ -543,7 +554,7 @@ public class World : Scene
 				Game.Instance.ReloadAssets(false);
 			}
 
-			var ply = Get<Player>();
+			var ply = MainPlayer;
 			if (ply != null)
 			{
 				if (ply.Skin != Save.GetSkin())
