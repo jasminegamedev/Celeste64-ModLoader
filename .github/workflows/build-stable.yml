@@ -113,7 +113,7 @@ jobs:
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
-        cd build && Compress-Archive * ../Celeste64-Fuji-${{ matrix.rid }}.zip
+        cd build && Compress-Archive * ../Celeste64-Fuji-${{ matrix.rid }}-${{ inputs.tag }}.zip
 
     - name: Compress
       if: runner.os != 'Windows'
