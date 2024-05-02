@@ -67,7 +67,7 @@ jobs:
     - name: Create draft release
       uses: ncipollo/release-action@v1
       with:
-        tag: ${{ inputs.tags }} 
+        tag: ${{ inputs.tag }} 
         commit: "${{ github.sha }}"
         artifacts: Celeste64-Fuji-${{ matrix.rid }}.zip
         body: |
@@ -82,11 +82,8 @@ jobs:
           - **Linux:** [Distro support list](https://github.com/dotnet/core/blob/main/release-notes/8.0/supported-os.md), x64 or arm
           - **macOS:** Monterey or later, x64 or arm Intel-based or Apple Silicon with Rosetta
         allowUpdates: true
-        name: "Fuji ${{ inputs.tags }} "
+        name: "Fuji ${{ inputs.tag }} "
         prerelease: false
         makeLatest: true
         draft: true
-
-    outputs:
-      version:  ${{ inputs.tags }} 
 
