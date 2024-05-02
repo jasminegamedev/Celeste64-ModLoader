@@ -19,6 +19,7 @@ public class Program
 		Version loaderVersion = typeof(Program).Assembly.GetName().Version!;
 		Game.LoaderVersion = $"Fuji: v.{loaderVersion.Major}.{loaderVersion.Minor}.{loaderVersion.Build}";
 		Game.IsDynamicRes = parsedArgs.Has("dynamic-res");
+		Game.AppArgs = parsedArgs; // Expose our parsed args to the game
 		if (!string.IsNullOrEmpty(BuildProperties.ModVersion()))
 		{
 			Game.LoaderVersion += "-" + BuildProperties.ModVersion();
@@ -39,8 +40,6 @@ public class Program
 		try
 		{
 			App.Run<Game>(Game.GamePath, 1280, 720);
-
-			Game.Instance.AppArgs = parsedArgs; // Expose our parsed args to the game instance
 		}
 		catch (Exception e)
 		{

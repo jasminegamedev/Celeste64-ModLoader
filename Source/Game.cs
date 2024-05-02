@@ -129,7 +129,7 @@ public class Game : Module
 	/// The current instance of the game. Use this for any non-static methods.
 	/// </summary>
 	public static Game Instance => instance ?? throw new Exception("Game isn't running");
-	public CommandParser? AppArgs;
+	public static CommandParser? AppArgs;
 
 	private readonly Stack<Scene> scenes = new();
 	/// <summary>
