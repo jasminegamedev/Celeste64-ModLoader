@@ -15,8 +15,19 @@ defaults:
     shell: bash
 
 jobs:
+  validate_inputs:
+    name: Validate Inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Tag
+      - run: |
+          if [[ "0.0.0" != ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Tag is not in a valid semvar format"
+            exit 1
+          fi
   create_release:
     name: Create Release
+    needs: validate_inputs
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
