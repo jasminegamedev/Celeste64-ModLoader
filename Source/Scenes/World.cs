@@ -88,8 +88,7 @@ public class World : Scene
 
 		badMapWarningMenu.Add(new Menu.Option("FujiOpenLogFile", () =>
 		{
-			Game.WriteToLog();
-			Game.OpenLog();
+			LogHelper.OpenLog();
 		}));
 
 		badMapWarningMenu.Add(new Menu.Option("QuitToMainMenu", () => Game.Instance.Goto(new Transition()
@@ -522,8 +521,7 @@ public class World : Scene
 		catch (Exception err)
 		{
 			string currentModName = ModManager.Instance.CurrentLevelMod != null && ModManager.Instance.CurrentLevelMod.ModInfo != null ? ModManager.Instance.CurrentLevelMod.ModInfo.Id : "unknown";
-			Log.Error($"--- ERROR in the map {currentModName}:{Entry.Map}. More details below ---");
-			Log.Error(err.ToString());
+			LogHelper.Error($"--- ERROR in the map {currentModName}:{Entry.Map}. More details below ---", err);
 
 			Panic(err, $"Oops, critical error :(\n{err.Message}\nYou can try to recover from this error by pressing Retry,\nbut we can't promise stability!", Panicked);
 		} // We wrap most of Update() in a try-catch to hopefully catch errors that occur during gameplay.

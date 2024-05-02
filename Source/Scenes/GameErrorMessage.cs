@@ -12,8 +12,7 @@ public class GameErrorMessage : Scene
 
 		menu.Add(new Menu.Option("FujiOpenLogFile", () =>
 		{
-			Game.WriteToLog();
-			Game.OpenLog();
+			LogHelper.OpenLog();
 		}));
 
 		menu.Add(new Menu.Option("QuitToMainMenu", () =>

@@ -154,8 +154,7 @@ public class Map
 
 			readExceptionMessage = e.Message;
 
-			Log.Error($"Failed to load map {name}, more details below.");
-			Log.Error(e.ToString());
+			LogHelper.Error($"Failed to load map {name}", e);
 		}
 
 		if (Data != null)

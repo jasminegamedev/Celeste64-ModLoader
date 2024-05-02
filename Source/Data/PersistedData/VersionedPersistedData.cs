@@ -24,7 +24,7 @@ public abstract class VersionedPersistedData<V> : PersistedData where V : Persis
 		}
 		catch (Exception e)
 		{
-			Log.Error(e.ToString());
+			LogHelper.Error("Failed to load versioned persisted data", e);
 			return null;
 		}
 	}

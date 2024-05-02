@@ -56,7 +56,7 @@ public class DecimalOrHexConverter : JsonConverter<int>
 			}
 			catch (Exception ex)
 			{
-				Log.Error("Error: Could not parse value in skin file: " + ex.ToString());
+				LogHelper.Error("Error: Could not parse value in skin file: ", ex);
 				return 0;
 			}
 		}
