@@ -16,6 +16,7 @@ public class Program
 		{
 			ConsoleHelper.CreateConsole();
 		}
+
 		if (!string.IsNullOrEmpty(BuildProperties.BuildVersion()))
 		{
 			Game.LoaderVersion = $"Fuji: v.{BuildProperties.BuildVersion()}";
@@ -33,10 +34,6 @@ public class Program
 
 		LogHelper.Initialize();
 
-		if (!string.IsNullOrEmpty(BuildProperties.ModVersion()))
-		{
-			Game.LoaderVersion += "-" + BuildProperties.ModVersion();
-		}
 		Log.Info($"Celeste 64 v.{Game.GameVersion.Major}.{Game.GameVersion.Minor}.{Game.GameVersion.Build}");
 		Log.Info(Game.LoaderVersion);
 
