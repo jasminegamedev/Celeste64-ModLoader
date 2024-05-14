@@ -5,5 +5,5 @@ namespace Celeste64.Launcher;
 public partial class BuildProperties
 {
 	[BuildProperty]
-	public static partial string ModVersion();
+	public static partial string BuildVersion();
 }

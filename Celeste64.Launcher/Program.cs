@@ -16,8 +16,16 @@ public class Program
 		{
 			ConsoleHelper.CreateConsole();
 		}
-		Version loaderVersion = typeof(Program).Assembly.GetName().Version!;
-		Game.LoaderVersion = $"Fuji: v.{loaderVersion.Major}.{loaderVersion.Minor}.{loaderVersion.Build}";
+		if (!string.IsNullOrEmpty(BuildProperties.BuildVersion()))
+		{
+			Game.LoaderVersion = $"Fuji: v.{BuildProperties.BuildVersion()}";
+		}
+		else
+		{
+			Version loaderVersion = typeof(Program).Assembly.GetName().Version!;
+			Game.LoaderVersion = $"Fuji: v.{loaderVersion.Major}.{loaderVersion.Minor}.{loaderVersion.Build}";
+		}
+
 		Game.IsDynamicRes = parsedArgs.Has("dynamic-res");
 
 		// Expose our parsed args to the game
