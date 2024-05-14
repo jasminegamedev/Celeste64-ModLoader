@@ -118,7 +118,7 @@ public static class Assets
 
 		if (modFs == null)
 		{
-			Log.Error($"Error loading assets for {mod.ModInfo.Id}. Mod FileSystem not initialized.");
+			Log.Error($"Failed to load assets for {mod.ModInfo.Id}. Mod FileSystem not initialized.");
 			return;
 		}
 

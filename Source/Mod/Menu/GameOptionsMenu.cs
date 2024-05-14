@@ -34,6 +34,10 @@ public class GameOptionsMenu : Menu
 		{
 			new Process { StartInfo = new ProcessStartInfo(App.UserPath) { UseShellExecute = true } }.Start();
 		}));
+		FujiOptionsMenu.Add(new Option("FujiOpenLogFile", () =>
+		{
+			LogHelper.OpenLog();
+		}));
 		FujiOptionsMenu.Add(new Option("Exit", () =>
 		{
 			PopRootSubMenu();

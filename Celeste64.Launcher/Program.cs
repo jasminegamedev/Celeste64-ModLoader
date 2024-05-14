@@ -27,8 +27,16 @@ public class Program
 		}
 
 		Game.IsDynamicRes = parsedArgs.Has("dynamic-res");
-		Game.AppArgs = parsedArgs; // Expose our parsed args to the game
 
+		// Expose our parsed args to the game
+		Game.AppArgs = parsedArgs;
+
+		LogHelper.Initialize();
+
+		if (!string.IsNullOrEmpty(BuildProperties.ModVersion()))
+		{
+			Game.LoaderVersion += "-" + BuildProperties.ModVersion();
+		}
 		Log.Info($"Celeste 64 v.{Game.GameVersion.Major}.{Game.GameVersion.Minor}.{Game.GameVersion.Build}");
 		Log.Info(Game.LoaderVersion);
 

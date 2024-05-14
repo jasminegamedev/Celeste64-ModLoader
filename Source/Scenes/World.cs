@@ -49,13 +49,13 @@ public class World : Scene
 	private float strawbCounterEase = 0;
 	private int strawbCounterWas;
 
-	private bool IsInEndingArea => Get<Player>() is { } player && Overlaps<EndingArea>(player.Position);
+	private bool IsInEndingArea => MainPlayer is { } player && Overlaps<EndingArea>(player.Position);
 	private bool IsPauseEnabled
 	{
 		get
 		{
 			if (Game.Instance.IsMidTransition) return false;
-			if (Get<Player>() is not { } player) return true;
+			if (MainPlayer is not { } player) return true;
 			return player.IsAbleToPause;
 		}
 	}
@@ -68,6 +68,7 @@ public class World : Scene
 	public static bool DebugDraw { get; private set; } = false;
 
 	public Map? Map { get; private set; }
+	public Player? MainPlayer;
 	#endregion
 
 	#region Constructor
@@ -88,8 +89,7 @@ public class World : Scene
 
 		badMapWarningMenu.Add(new Menu.Option("FujiOpenLogFile", () =>
 		{
-			Game.WriteToLog();
-			Game.OpenLog();
+			LogHelper.OpenLog();
 		}));
 
 		badMapWarningMenu.Add(new Menu.Option("QuitToMainMenu", () => Game.Instance.Goto(new Transition()
@@ -150,7 +150,7 @@ public class World : Scene
 			{
 				SetPaused(false);
 				Audio.StopBus(Sfx.bus_dialog, false);
-				Get<Player>()?.Kill();
+				MainPlayer?.Kill();
 			}));
 			if (Assets.EnabledSkins.Count > 1)
 			{
@@ -257,7 +257,7 @@ public class World : Scene
 
 	public override void Entered()
 	{
-		if (Get<Player>() is { } player)
+		if (MainPlayer is { } player)
 		{
 			player.SetSkin(Save.GetSkin());
 		}
@@ -437,13 +437,13 @@ public class World : Scene
 					Calc.Approach(ref strawbCounterWiggle, 0, Time.Delta / .6f);
 
 				// hold stawb for a while
-				if ((Get<Player>()?.IsStrawberryCounterVisible ?? false))
+				if ((MainPlayer?.IsStrawberryCounterVisible ?? false))
 					strawbCounterCooldown = 2.0f;
 				else
 					strawbCounterCooldown -= Time.Delta;
 
 				// ease strawb in/out
-				if (IsInEndingArea || Paused || strawbCounterCooldown > 0 || (Get<Player>()?.IsStrawberryCounterVisible ?? false))
+				if (IsInEndingArea || Paused || strawbCounterCooldown > 0 || (MainPlayer?.IsStrawberryCounterVisible ?? false))
 					strawbCounterEase = Calc.Approach(strawbCounterEase, 1, Time.Delta * 6.0f);
 				else
 					strawbCounterEase = Calc.Approach(strawbCounterEase, 0, Time.Delta * 6.0f);
@@ -465,7 +465,7 @@ public class World : Scene
 
 				// Fuji Custom
 				// Quick Restart if the player presses the restart button.
-				if (Controls.Restart.ConsumePress() && Get<Player>() is { Dead: false } livingPlayer)
+				if (Controls.Restart.ConsumePress() && MainPlayer is { Dead: false } livingPlayer)
 				{
 					SetPaused(false);
 					Audio.StopBus(Sfx.bus_dialog, false);
@@ -474,7 +474,7 @@ public class World : Scene
 				}
 
 				// ONLY update the player when dead
-				if (Get<Player>() is { Dead: true } player)
+				if (MainPlayer is { Dead: true } player)
 				{
 					player.Update();
 					player.LateUpdate();
@@ -522,8 +522,7 @@ public class World : Scene
 		catch (Exception err)
 		{
 			string currentModName = ModManager.Instance.CurrentLevelMod != null && ModManager.Instance.CurrentLevelMod.ModInfo != null ? ModManager.Instance.CurrentLevelMod.ModInfo.Id : "unknown";
-			Log.Error($"--- ERROR in the map {currentModName}:{Entry.Map}. More details below ---");
-			Log.Error(err.ToString());
+			LogHelper.Error($"--- ERROR in the map {currentModName}:{Entry.Map}. More details below ---", err);
 
 			Panic(err, $"Oops, critical error :(\n{err.Message}\nYou can try to recover from this error by pressing Retry,\nbut we can't promise stability!", Panicked);
 		} // We wrap most of Update() in a try-catch to hopefully catch errors that occur during gameplay.
@@ -545,7 +544,7 @@ public class World : Scene
 				Game.Instance.ReloadAssets(false);
 			}
 
-			var ply = Get<Player>();
+			var ply = MainPlayer;
 			if (ply != null)
 			{
 				if (ply.Skin != Save.GetSkin())

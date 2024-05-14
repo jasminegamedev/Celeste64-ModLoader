@@ -3,6 +3,7 @@ namespace Celeste64;
 public class Theo : NPC
 {
 	public virtual string TALK_FLAG => "THEO";
+	public Player? TalkingTo;
 
 	public Theo() : base(Assets.Models["theo"])
 	{
@@ -19,8 +20,8 @@ public class Theo : NPC
 
 	public virtual CoEnumerator Conversation(Cutscene cs)
 	{
-		yield return Co.Run(cs.MoveToDistance(World.Get<Player>(), Position.XY(), 16));
-		yield return Co.Run(cs.FaceEachOther(World.Get<Player>(), this));
+		yield return Co.Run(cs.MoveToDistance(TalkingTo, Position.XY(), 16));
+		yield return Co.Run(cs.FaceEachOther(TalkingTo, this));
 
 		int index = Save.CurrentRecord.GetFlag(TALK_FLAG) + 1;
 		yield return Co.Run(cs.Say(Loc.Lines($"Theo{index}")));
