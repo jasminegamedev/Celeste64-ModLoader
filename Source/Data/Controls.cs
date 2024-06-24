@@ -123,6 +123,11 @@ public static class Controls
 	#endregion
 
 	#region Saving and Loading
+
+	/// <summary>
+	/// Load Controls from a file
+	/// </summary>
+	/// <param name="file_name"></param>
 	internal static void LoadControlsFromFile(string file_name)
 	{
 		if (file_name == string.Empty) file_name = DefaultFileName;
@@ -153,6 +158,9 @@ public static class Controls
 		LoadBindings(Instance, typeof(Controls));
 	}
 
+	/// <summary>
+	/// Save control bindings to a file
+	/// </summary>
 	internal static void SaveToFile()
 	{
 		var savePath = Path.Join(App.UserPath, DefaultFileName);
@@ -174,6 +182,12 @@ public static class Controls
 	}
 	#endregion
 
+	/// <summary>
+	/// Add any default bindings that are not currently set up.
+	/// </summary>
+	/// <param name="config"></param>
+	/// <param name="controlsType"></param>
+	/// <param name="controlsInstance"></param>
 	private static void AddMissingBindings(ControlsConfig_V01 config, Type controlsType, object? controlsInstance = null)
 	{
 		foreach (var prop in controlsType.GetProperties())
@@ -204,6 +218,14 @@ public static class Controls
 		}
 	}
 
+	/// <summary>
+	/// Get default bindings for a virtual button, based on attributes.
+	/// If button is from a virtual stick, get bindings from that instead.
+	/// </summary>
+	/// <param name="virtualButton"></param>
+	/// <param name="instanceType"></param>
+	/// <param name="instance"></param>
+	/// <returns></returns>
 	private static IEnumerable<ControlsConfigBinding> GetDefaultActionBindings(VirtualButton virtualButton, Type instanceType, object? instance = null)
 	{
 		string[] nameParts = virtualButton.Name.Split("/");
@@ -258,6 +280,14 @@ public static class Controls
 		return Enumerable.Empty<ControlsConfigBinding>();
 	}
 
+	/// <summary>
+	/// Get default bindings for a virtual stick.
+	/// </summary>
+	/// <param name="virtualStick"></param>
+	/// <param name="instanceType"></param>
+	/// <param name="stickDirection"></param>
+	/// <param name="instance"></param>
+	/// <returns></returns>
 	private static IEnumerable<ControlsConfigBinding> GetDefaultStickBindings(VirtualStick virtualStick, Type instanceType, StickDirection? stickDirection = null, object? instance = null)
 	{
 		var attributes = instanceType
@@ -273,6 +303,10 @@ public static class Controls
 		return Enumerable.Empty<ControlsConfigBinding>();
 	}
 
+	/// <summary>
+	/// Load bindings from a mod config.
+	/// </summary>
+	/// <param name="mod"></param>
 	internal static void LoadModConfig(GameMod mod)
 	{
 		if (mod.SettingsType != null)
@@ -283,6 +317,12 @@ public static class Controls
 		}
 	}
 
+	/// <summary>
+	/// Bind a new Key to a virtual button.
+	/// </summary>
+	/// <param name="virtualButton"></param>
+	/// <param name="key"></param>
+	/// <param name="config"></param>
 	internal static void AddBinding(VirtualButton virtualButton, Keys key, ControlsConfig_V01? config = null)
 	{
 		if (config == null)
@@ -299,6 +339,12 @@ public static class Controls
 		Consume();
 	}
 
+	/// <summary>
+	/// Bind a new Controller button to a virtual button.
+	/// </summary>
+	/// <param name="virtualButton"></param>
+	/// <param name="button"></param>
+	/// <param name="config"></param>
 	internal static void AddBinding(VirtualButton virtualButton, Buttons button, ControlsConfig_V01? config = null)
 	{
 		if (config == null)
@@ -315,6 +361,12 @@ public static class Controls
 		Consume();
 	}
 
+	/// <summary>
+	/// Bind a new Mouse button to a virtual button.
+	/// </summary>
+	/// <param name="virtualButton"></param>
+	/// <param name="mouseButton"></param>
+	/// <param name="config"></param>
 	internal static void AddBinding(VirtualButton virtualButton, MouseButtons mouseButton, ControlsConfig_V01? config = null)
 	{
 		if (config == null)
@@ -331,6 +383,14 @@ public static class Controls
 		Consume();
 	}
 
+	/// <summary>
+	/// Bind a new axis value to a virtual button.
+	/// </summary>
+	/// <param name="virtualButton"></param>
+	/// <param name="axis"></param>
+	/// <param name="inverted"></param>
+	/// <param name="deadzone"></param>
+	/// <param name="config"></param>
 	internal static void AddBinding(VirtualButton virtualButton, Axes axis, bool inverted, float deadzone = 0.0f, ControlsConfig_V01? config = null)
 	{
 		if (config == null)
@@ -347,6 +407,13 @@ public static class Controls
 		Consume();
 	}
 
+	/// <summary>
+	/// Removes all bindings from a virtual button, unless requiresBinding is true, in which case it will keep the last one.
+	/// </summary>
+	/// <param name="virtualButton"></param>
+	/// <param name="forController"></param>
+	/// <param name="requiresBinding"></param>
+	/// <param name="config"></param>
 	internal static void ClearBinding(VirtualButton virtualButton, bool forController, bool requiresBinding = false, ControlsConfig_V01? config = null)
 	{
 		if (config == null)
@@ -381,6 +448,12 @@ public static class Controls
 		}
 	}
 
+	/// <summary>
+	/// Resets bindings for a single virtual button to their default values.
+	/// </summary>
+	/// <param name="virtualButton"></param>
+	/// <param name="forController"></param>
+	/// <param name="mod"></param>
 	internal static void ResetBinding(VirtualButton virtualButton, bool forController, GameMod? mod = null)
 	{
 		ControlsConfig_V01 config;
@@ -422,6 +495,11 @@ public static class Controls
 		}
 	}
 
+	/// <summary>
+	/// Resets all bindings for this control type to their default values.
+	/// </summary>
+	/// <param name="forController"></param>
+	/// <param name="mod"></param>
 	internal static void ResetAllBindings(bool forController, GameMod? mod = null)
 	{
 		ControlsConfig_V01 config;
@@ -488,6 +566,12 @@ public static class Controls
 		LoadBindings(config, settingsType, settingsObject);
 	}
 
+	/// <summary>
+	/// Actually bind things to the Virtual Buttons.
+	/// </summary>
+	/// <param name="config"></param>
+	/// <param name="controlsType"></param>
+	/// <param name="controlsInstance"></param>
 	internal static void LoadBindings(ControlsConfig_V01 config, Type controlsType, object? controlsInstance = null)
 	{
 		ClearBindingsForType(controlsType, controlsInstance);
@@ -514,6 +598,13 @@ public static class Controls
 		}
 	}
 
+	/// <summary>
+	/// Find stick from its name
+	/// </summary>
+	/// <param name="config"></param>
+	/// <param name="name"></param>
+	/// <returns></returns>
+	/// <exception cref="Exception"></exception>
 	private static ControlsConfigStick FindStick(ControlsConfig_V01? config, string name)
 	{
 		if (config != null && config.Sticks.TryGetValue(name, out var stick))
@@ -521,6 +612,13 @@ public static class Controls
 		throw new Exception($"Missing Stick Binding for '{name}'");
 	}
 
+	/// <summary>
+	/// Find an action binding from its name
+	/// </summary>
+	/// <param name="config"></param>
+	/// <param name="name"></param>
+	/// <returns></returns>
+	/// <exception cref="Exception"></exception>
 	private static List<ControlsConfigBinding> FindAction(ControlsConfig_V01? config, string name)
 	{
 		if (config != null && config.Actions.TryGetValue(name, out var action))
@@ -528,6 +626,11 @@ public static class Controls
 		throw new Exception($"Missing Action Binding for '{name}'");
 	}
 
+	/// <summary>
+	/// Reset virtual button bindings.
+	/// </summary>
+	/// <param name="controlsType"></param>
+	/// <param name="controlsInstance"></param>
 	internal static void ClearBindingsForType(Type controlsType, object? controlsInstance = null)
 	{
 		foreach (var prop in controlsType.GetProperties())
@@ -551,6 +654,9 @@ public static class Controls
 		}
 	}
 
+	/// <summary>
+	/// Consume virtual button presses.
+	/// </summary>
 	public static void Consume()
 	{
 		foreach (var prop in typeof(Controls).GetProperties())
