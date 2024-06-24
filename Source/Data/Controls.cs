@@ -40,7 +40,7 @@ public static class Controls
 	[DefaultStickBinding(StickDirection.Up, Axes.RightY, 0.0f, true)]
 	[DefaultStickBinding(StickDirection.Down, Keys.S)]
 	[DefaultStickBinding(StickDirection.Down, Axes.RightY, 0.0f, false)]
-	[DefaultStickBinding(StickDirection.Left, Keys.S)]
+	[DefaultStickBinding(StickDirection.Left, Keys.A)]
 	[DefaultStickBinding(StickDirection.Left, Axes.RightX, 0.0f, true)]
 	[DefaultStickBinding(StickDirection.Right, Keys.D)]
 	[DefaultStickBinding(StickDirection.Right, Axes.RightX, 0.0f, false)]

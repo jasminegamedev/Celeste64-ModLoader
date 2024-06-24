@@ -37,7 +37,8 @@ public sealed class ControlsConfigBinding
 		else
 			return true;
 
-		if (!ForGamepads.Contains(Input.Controllers[index].Gamepad))
+		Gamepads gamepad = Input.Controllers.Any() ? Input.Controllers[index].Gamepad : Gamepads.Xbox;
+		if (!ForGamepads.Contains(gamepad))
 			return false;
 
 		return true;
