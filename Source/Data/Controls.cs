@@ -805,9 +805,6 @@ public class DefaultBindingAttribute : Attribute
 {
 	public ControlsConfigBinding Binding;
 
-	public Gamepads? onlyFor;
-	public Gamepads? notFor;
-
 	public DefaultBindingAttribute(Keys key)
 	{
 		Binding = new ControlsConfigBinding(key);

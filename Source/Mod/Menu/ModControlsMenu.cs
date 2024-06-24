@@ -1,4 +1,5 @@
 using Celeste64.Mod;
+using System.Reflection;
 
 namespace Celeste64;
 
@@ -9,10 +10,15 @@ public class ModControlsMenu : Menu
 	//Items list always includes the Back item and reset to default, so check if it's more than 2 to know if we should display it.
 	internal bool ShouldDisplay => items.Count > 2;
 
+	private GameMod? Mod;
+
 	public override void Closed()
 	{
 		base.Closed();
-		Controls.SaveToFile();
+		if (Mod != null)
+		{
+			Mod.SaveSettings();
+		}
 	}
 
 	public ModControlsMenu(Menu? rootMenu)
@@ -24,17 +30,50 @@ public class ModControlsMenu : Menu
 
 	public void AddItems(GameMod mod, bool isForController)
 	{
+		Mod = mod;
 		items.Clear();
 		if (mod.SettingsType != null)
 		{
 			foreach (var prop in mod.SettingsType.GetProperties())
 			{
+				var propType = prop.PropertyType;
+
+				if (prop.GetCustomAttribute<SettingIgnoreAttribute>() != null)
+					continue;
+
+				string propName = prop.Name;
+				string? nameAttibute = prop.GetCustomAttribute<SettingNameAttribute>()?.Name;
+				if (!string.IsNullOrEmpty(nameAttibute))
+				{
+					propName = Loc.TryGetModString(mod, nameAttibute, out string localizedName) ?
+						localizedName :
+						nameAttibute;
+				}
+
+				Menu.Item? newItem = null;
+
+				if (prop.GetCustomAttribute<SettingSpacerAttribute>() != null)
+				{
+					Add(new Spacer());
+				}
+
+				bool changingNeedsReload = prop.GetCustomAttribute<SettingNeedsReloadAttribute>() != null;
+
+				string? subheader = prop.GetCustomAttribute<SettingSubHeaderAttribute>()?.SubHeader;
+				if (!string.IsNullOrEmpty(subheader))
+				{
+					string subHeader = Loc.TryGetModString(mod, subheader, out string localizedSubHeader) ?
+						localizedSubHeader :
+						subheader;
+					Add(new SubHeader((Loc.Unlocalized)subHeader));
+				}
+
 				if (prop.PropertyType == typeof(VirtualButton))
 				{
 					VirtualButton? vb = prop.GetValue(mod.Settings) as VirtualButton;
 					if (vb != null)
 					{
-						Add(new InputBind(vb.Name, vb, RootMenu, isForController, mod));
+						Add(new InputBind((Loc.Unlocalized)(propName), vb, RootMenu, isForController, mod));
 					}
 				}
 				if (prop.PropertyType == typeof(VirtualStick))
@@ -42,10 +81,10 @@ public class ModControlsMenu : Menu
 					VirtualStick? vs = prop.GetValue(mod.Settings) as VirtualStick;
 					if (vs != null)
 					{
-						Add(new InputBind(vs.Name + "Up", vs.Vertical.Negative, RootMenu, isForController));
-						Add(new InputBind(vs.Name + "Down", vs.Vertical.Positive, RootMenu, isForController));
-						Add(new InputBind(vs.Name + "Left", vs.Horizontal.Negative, RootMenu, isForController));
-						Add(new InputBind(vs.Name + "Right", vs.Horizontal.Positive, RootMenu, isForController));
+						Add(new InputBind((Loc.Unlocalized)(propName + " Up"), vs.Vertical.Negative, RootMenu, isForController, mod));
+						Add(new InputBind((Loc.Unlocalized)(propName + " Down"), vs.Vertical.Positive, RootMenu, isForController, mod));
+						Add(new InputBind((Loc.Unlocalized)(propName + " Left"), vs.Horizontal.Negative, RootMenu, isForController, mod));
+						Add(new InputBind((Loc.Unlocalized)(propName + " Right"), vs.Horizontal.Positive, RootMenu, isForController, mod));
 					}
 				}
 			}
@@ -81,10 +120,10 @@ public class ModControlsMenu : Menu
 		UI.Prompt(batch, Controls.Confirm, Loc.Str("Bind"), at, out width, 1.0f);
 		at.X -= width + 8 * Game.RelativeScale;
 
-		UI.Prompt(batch, Controls.CreateFile, Loc.Str("Clear"), at, out width, 1.0f);
+		UI.Prompt(batch, Controls.ClearBindings, Loc.Str("Clear"), at, out width, 1.0f);
 		at.X -= width + 8 * Game.RelativeScale;
 
-		UI.Prompt(batch, Controls.CopyFile, Loc.Str("Reset"), at, out width, 1.0f);
+		UI.Prompt(batch, Controls.ResetBindings, Loc.Str("Reset"), at, out width, 1.0f);
 		batch.PopMatrix();
 	}
 }
