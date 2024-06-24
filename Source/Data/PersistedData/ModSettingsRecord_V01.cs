@@ -18,6 +18,8 @@ public sealed class ModSettingsRecord_V01 : PersistedData
 	public Dictionary<string, float> SettingsFloatData { get; set; } = [];
 	public Dictionary<string, bool> SettingsBoolData { get; set; } = [];
 
+	public ControlsConfig_V01 ModControlBindings { get; set; } = new ControlsConfig_V01();
+
 	public string GetStringSetting(string name, string defaultValue = "")
 		=> SettingsStringData.TryGetValue(name, out string? value) ? value : defaultValue;
 

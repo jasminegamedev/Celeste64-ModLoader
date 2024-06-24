@@ -11,8 +11,7 @@ public sealed class ControlsConfigBinding
 	public Axes? Axis { get; set; }
 	public float AxisDeadzone { get; set; }
 	public bool AxisInverted { get; set; }
-	public Gamepads? OnlyFor { get; set; }
-	public Gamepads? NotFor { get; set; }
+	public Gamepads[]? ForGamepads { get; set; }
 
 	public ControlsConfigBinding() { }
 	public ControlsConfigBinding(Keys input) => Key = input;
@@ -27,7 +26,7 @@ public sealed class ControlsConfigBinding
 
 	private bool Condition(VirtualButton vb, VirtualButton.IBinding binding)
 	{
-		if (!OnlyFor.HasValue && !NotFor.HasValue)
+		if (ForGamepads == null || !ForGamepads.Any())
 			return true;
 
 		int index;
@@ -38,10 +37,7 @@ public sealed class ControlsConfigBinding
 		else
 			return true;
 
-		if (OnlyFor.HasValue && Input.Controllers[index].Gamepad != OnlyFor.Value)
-			return false;
-
-		if (NotFor.HasValue && Input.Controllers[index].Gamepad == NotFor.Value)
+		if (!ForGamepads.Contains(Input.Controllers[index].Gamepad))
 			return false;
 
 		return true;

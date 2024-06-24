@@ -214,6 +214,8 @@ public abstract class GameMod
 
 		try
 		{
+			Controls.LoadModConfig(this);
+
 			return LoadSettingsForType("Settings.", SettingsType, Settings);
 		}
 		catch (Exception e)
@@ -586,6 +588,13 @@ public abstract class GameMod
 	/// Called when a mod is unloaded, or when it becomes disabled
 	/// </summary>
 	public virtual void OnModUnloaded() { }
+
+
+	/// <summary>
+	/// Called once at the beginning of every frame, before game logic
+	/// </summary>
+	/// <param name="deltaTime">How much time passed since the previous update</param>
+	public virtual void PreUpdate(float deltaTime) { }
 
 	/// <summary>
 	/// Called once every frame
