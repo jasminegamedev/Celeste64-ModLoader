@@ -28,7 +28,7 @@ public class Overworld : Scene
 		public float HighlightEase;
 		public float SelectionEase;
 
-		public Entry(LevelInfo level, GameMod mod)
+		public Entry(LevelInfo level, GameMod? mod)
 		{
 			Level = level;
 			Target = new Target(CardWidth, CardHeight);
@@ -360,11 +360,11 @@ public class Overworld : Scene
 					pauseMenu.Add(new Menu.Submenu("PauseModsMenu", pauseMenu, modMenu));
 					pauseMenu.Add(new Menu.Option("Exit", () =>
 					{
-						if (Game.Instance.NeedsReload)
+						if (ModManager.Instance.NeedsReload)
 						{
-							Game.Instance.NeedsReload = false;
-							Game.Instance.ReloadAssets();
+							Game.Instance.ReloadAssets(false);
 						}
+
 						Paused = false;
 					}));
 
@@ -431,16 +431,20 @@ public class Overworld : Scene
 		}
 		else if (Paused)
 		{
+			if (pauseMenu != null)
+			{
+				pauseMenu.Update();
+			}
+
 			if (Controls.Pause.ConsumePress() || (pauseMenu is { IsInMainMenu: true } && Controls.Cancel.ConsumePress()))
 			{
 				if (pauseMenu != null)
 				{
 					pauseMenu.CloseSubMenus();
 				}
-				if (Game.Instance.NeedsReload)
+				if (ModManager.Instance.NeedsReload)
 				{
-					Game.Instance.NeedsReload = false;
-					Game.Instance.ReloadAssets();
+					Game.Instance.ReloadAssets(false);
 				}
 				Audio.Play(Sfx.ui_unpause);
 				Paused = false;
@@ -522,13 +526,13 @@ public class Overworld : Scene
 
 				var modIcon = mod.Subtextures.TryGetValue(mod.ModInfo.Icon ?? "", out var value) ? value : strawberryImage;
 				var modIconSelectedSize = sel ? ModIconSizeLarge : ModIconSize;
-				var modIconSize = new Vec2(modIconSelectedSize / modIcon.Width, modIconSelectedSize / modIcon.Height);
+				var modIconSize = new Vec2(modIconSelectedSize / modIcon.Width, modIconSelectedSize / modIcon.Height) * Game.RelativeScale;
 
 				batch.Image(
 					modIcon,
 					new Vec2(
-						(sel ? -(ModIconSizeLarge - ModIconSize) : 0) + ModIconLeftMargin, // Horizontal
-						(sel ? -(ModIconSizeLarge - ModIconSize) : 0) + (ModIconSpacing * relativeIndex) + (bounds.Height / 2) - ModIconVertAdjust // Vertical
+						((sel ? -(ModIconSizeLarge - ModIconSize) : 0) + ModIconLeftMargin) * Game.RelativeScale, // Horizontal
+						((sel ? -(ModIconSizeLarge - ModIconSize) : 0) + (ModIconSpacing * relativeIndex) - ModIconVertAdjust) * Game.RelativeScale + (bounds.Height / 2)// Vertical
 					),
 					Vec2.Zero, modIconSize, 0, Color.White);
 			}
@@ -598,8 +602,6 @@ public class Overworld : Scene
 
 		if (Paused && pauseMenu != null)
 		{
-			pauseMenu.Update();
-
 			batch.Rect(bounds, Color.Black * 0.70f);
 
 			pauseMenu.Render(batch, bounds.Center);

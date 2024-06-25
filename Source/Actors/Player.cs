@@ -318,6 +318,8 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 
 	public ReadOnlyCollection<StatusEffect> StatusEffects => statusEffects.AsReadOnly();
 
+	public bool DoUpdate = true;
+
 	public Player()
 	{
 		ResetDefaultValues();
@@ -519,10 +521,14 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 
 	public override void Update()
 	{
+		if (!DoUpdate) return;
+
 		// only update camera if not dead
 		if (StateMachine.State != States.Respawn && StateMachine.State != States.Dead &&
-			StateMachine.State != States.StrawbReveal && StateMachine.State != States.Cassette && StateMachine.State != States.LoadingZone)
+			StateMachine.State != States.StrawbReveal && StateMachine.State != States.Cassette && StateMachine.State != States.LoadingZone &&
+			this == world?.MainPlayer)
 		{
+
 			// Rotate Camera
 			{
 				var invertX = Settings.InvertCamera == InvertCameraOptions.X || Settings.InvertCamera == InvertCameraOptions.Both;
@@ -716,46 +722,49 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 			}
 		}
 
-		// update camera origin position
+		if (this == world?.MainPlayer)
 		{
-			float ZPad = StateMachine.State == States.Climbing ? 0 : 8;
-			CameraOriginPos.X = Position.X;
-			CameraOriginPos.Y = Position.Y;
-
-			float targetZ;
-			if (OnGround)
-				targetZ = Position.Z;
-			else if (Position.Z < CameraOriginPos.Z)
-				targetZ = Position.Z;
-			else if (Position.Z > CameraOriginPos.Z + ZPad)
-				targetZ = Position.Z - ZPad;
-			else
-				targetZ = CameraOriginPos.Z;
-
-			if (CameraOriginPos.Z != targetZ)
-				CameraOriginPos.Z += (targetZ - CameraOriginPos.Z) * (1 - MathF.Pow(.001f, Time.Delta));
-		}
-
-		// update camera position
-		{
-			Vec3 lookAt, cameraPos;
-
-			if (CameraOverride.HasValue)
+			// update camera origin position
 			{
-				lookAt = CameraOverride.Value.LookAt;
-				cameraPos = CameraOverride.Value.Position;
-			}
-			else
-			{
-				GetCameraTarget(out lookAt, out cameraPos, out _);
+				float ZPad = StateMachine.State == States.Climbing ? 0 : 8;
+				CameraOriginPos.X = Position.X;
+				CameraOriginPos.Y = Position.Y;
+
+				float targetZ;
+				if (OnGround)
+					targetZ = Position.Z;
+				else if (Position.Z < CameraOriginPos.Z)
+					targetZ = Position.Z;
+				else if (Position.Z > CameraOriginPos.Z + ZPad)
+					targetZ = Position.Z - ZPad;
+				else
+					targetZ = CameraOriginPos.Z;
+
+				if (CameraOriginPos.Z != targetZ)
+					CameraOriginPos.Z += (targetZ - CameraOriginPos.Z) * (1 - MathF.Pow(.001f, Time.Delta));
 			}
 
-			World.Camera.Position += (cameraPos - World.Camera.Position) * (1 - MathF.Pow(0.01f, Time.Delta));
-			World.Camera.LookAt = lookAt;
+			// update camera position
+			{
+				Vec3 lookAt, cameraPos;
 
-			float targetFOV = Calc.ClampedMap(velocity.XY().Length(), MaxSpeed * 1.2f, 120, 1, 1.2f);
+				if (CameraOverride.HasValue)
+				{
+					lookAt = CameraOverride.Value.LookAt;
+					cameraPos = CameraOverride.Value.Position;
+				}
+				else
+				{
+					GetCameraTarget(out lookAt, out cameraPos, out _);
+				}
 
-			World.Camera.FOVMultiplier = Calc.Approach(World.Camera.FOVMultiplier, targetFOV, Time.Delta / 4);
+				World.Camera.Position += (cameraPos - World.Camera.Position) * (1 - MathF.Pow(0.01f, Time.Delta));
+				World.Camera.LookAt = lookAt;
+
+				float targetFOV = Calc.ClampedMap(velocity.XY().Length(), MaxSpeed * 1.2f, 120, 1, 1.2f);
+
+				World.Camera.FOVMultiplier = Calc.Approach(World.Camera.FOVMultiplier, targetFOV, Time.Delta / 4);
+			}
 		}
 
 		// update model
@@ -2301,13 +2310,20 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 
 		if (!Game.Instance.IsMidTransition && DrawOrbsEase > 0.30f)
 		{
-			var entry = World.Entry with { Reason = World.EntryReasons.Respawned };
-			Game.Instance.Goto(new Transition()
+			if (this == world?.MainPlayer)
 			{
-				Mode = Transition.Modes.Replace,
-				Scene = () => new World(entry),
-				ToBlack = new AngledWipe()
-			});
+				var entry = World.Entry with { Reason = World.EntryReasons.Respawned };
+				Game.Instance.Goto(new Transition()
+				{
+					Mode = Transition.Modes.Replace,
+					Scene = () => new World(entry),
+					ToBlack = new AngledWipe()
+				});
+			}
+			else
+			{
+				world?.Destroy(this);
+			}
 		}
 	}
 

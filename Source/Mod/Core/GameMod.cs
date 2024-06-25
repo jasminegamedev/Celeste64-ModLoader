@@ -26,6 +26,20 @@ public abstract class GameMod
 	internal readonly Dictionary<string, Dictionary<string, List<Language.Line>>> DialogLines = new(StringComparer.OrdinalIgnoreCase);
 	internal readonly List<LevelInfo> Levels = new();
 	internal bool Loaded = false;
+	internal bool NeedsReload = false;
+
+	internal void SetNeedsReloadRecursive()
+	{
+		NeedsReload = true;
+
+		foreach (var dependent in GetDependents())
+		{
+			if (!dependent.NeedsReload)
+			{
+				dependent.SetNeedsReloadRecursive();
+			}
+		}
+	}
 
 	/// <summary>
 	/// Cleanup tasks that have to be performed when this mod gets unloaded.
@@ -56,7 +70,7 @@ public abstract class GameMod
 	public Game? Game => Game.Instance;
 	public World? World => Game?.World;
 	public Map? Map => World?.Map;
-	public Player? Player => World?.Get<Player>();
+	public Player? Player => World?.MainPlayer;
 
 	// Common Metadata about this mod.
 	public bool Enabled => this is VanillaGameMod || ModSettingsData.Enabled;
@@ -146,8 +160,7 @@ public abstract class GameMod
 		}
 		catch (Exception e)
 		{
-			Log.Error($"Failed to save the settings of {ModInfo.Id}!");
-			Log.Error(e.Message);
+			LogHelper.Error($"Failed to save the settings of {ModInfo.Id}!", e);
 			return false;
 		}
 	}
@@ -201,12 +214,13 @@ public abstract class GameMod
 
 		try
 		{
+			Controls.LoadModConfig(this);
+
 			return LoadSettingsForType("Settings.", SettingsType, Settings);
 		}
 		catch (Exception e)
 		{
-			Log.Error($"Failed to save the settings of {ModInfo.Id}!");
-			Log.Error(e.Message);
+			LogHelper.Error($"Failed to save the settings of {ModInfo.Id}!", e);
 			return false;
 		}
 	}
@@ -414,7 +428,7 @@ public abstract class GameMod
 	{
 		if (needsReload)
 		{
-			Game.Instance.NeedsReload = true;
+			SetNeedsReloadRecursive();
 		}
 	}
 
@@ -439,6 +453,24 @@ public abstract class GameMod
 	}
 
 	/// <summary>
+	/// Get all mods which depend on this mod.
+	/// </summary>
+	internal List<GameMod> GetDependencies()
+	{
+		var depMods = new List<GameMod>();
+
+		foreach (var mod in ModManager.Instance.Mods)
+		{
+			if (ModInfo.Dependencies.ContainsKey(mod.ModInfo.Id))
+			{
+				depMods.Add(mod);
+			}
+		}
+
+		return depMods;
+	}
+
+	/// <summary>
 	/// Disables the mod "safely" (accounts for dependent mods, etc.)
 	/// If it returns true, this means it is not safe to disable the mod.
 	/// You should first simulate the operation with DisableSafe(true).
@@ -453,7 +485,15 @@ public abstract class GameMod
 		{
 			if (!simulate)
 			{
-				ModSettings.GetOrMakeModSettings(dependent.ModInfo.Id).Enabled = false;
+				var modSettings = ModSettings.TryGetModSettings(dependent.ModInfo.Id);
+				if (modSettings != null && modSettings.Enabled)
+				{
+					modSettings.Enabled = false;
+
+					var mod = ModManager.Instance.Mods.First(mod => mod.ModInfo.Id == dependent.ModInfo.Id);
+					mod.NeedsReload = true;
+					mod.DisableSafe(simulate);
+				}
 			}
 
 			if (dependent == ModManager.Instance.CurrentLevelMod)
@@ -484,7 +524,15 @@ public abstract class GameMod
 	{
 		foreach (var dep in ModInfo.Dependencies.Keys.ToList())
 		{
-			ModSettings.GetOrMakeModSettings(dep).Enabled = true;
+			var modSettings = ModSettings.TryGetModSettings(dep);
+			if (modSettings != null && !modSettings.Enabled)
+			{
+				modSettings.Enabled = true;
+
+				var mod = ModManager.Instance.Mods.First(mod => mod.ModInfo.Id == dep);
+				mod.NeedsReload = true;
+				mod.EnableDependencies();
+			}
 		}
 	}
 
@@ -496,6 +544,8 @@ public abstract class GameMod
 	/// <param name="factory"></param>
 	public void AddActorFactory(string name, Map.ActorFactory factory)
 	{
+		factory.Mod = this;
+
 		if (Map.ModActorFactories.TryAdd(name, factory))
 		{
 			OnUnloadedCleanup += () => Map.ModActorFactories.Remove(name);
@@ -508,10 +558,10 @@ public abstract class GameMod
 
 
 	// Passthrough functions to simplify adding Hooks to the Hook Manager.
-	public static void RegisterHook(Hook hook) => HookManager.Instance.RegisterHook(hook);
-	public static void RegisterILHook(ILHook iLHook) => HookManager.Instance.RegisterILHook(iLHook);
-	public static void RemoveHook(Hook hook) => HookManager.Instance.RemoveHook(hook);
-	public static void RemoveILHook(ILHook iLHook) => HookManager.Instance.RemoveILHook(iLHook);
+	public void RegisterHook(Hook hook) => HookManager.Instance.RegisterHook(hook, ModInfo);
+	public void RegisterILHook(ILHook iLHook) => HookManager.Instance.RegisterILHook(iLHook, ModInfo);
+	public void DeregisterHook(Hook hook) => HookManager.Instance.DeregisterHook(hook, ModInfo);
+	public void DeregisterILHook(ILHook iLHook) => HookManager.Instance.DeregisterILHook(iLHook, ModInfo);
 
 	/// <summary>
 	/// Registers the provided custom player state,
@@ -538,6 +588,13 @@ public abstract class GameMod
 	/// Called when a mod is unloaded, or when it becomes disabled
 	/// </summary>
 	public virtual void OnModUnloaded() { }
+
+
+	/// <summary>
+	/// Called once at the beginning of every frame, before game logic
+	/// </summary>
+	/// <param name="deltaTime">How much time passed since the previous update</param>
+	public virtual void PreUpdate(float deltaTime) { }
 
 	/// <summary>
 	/// Called once every frame
@@ -638,6 +695,15 @@ public abstract class GameMod
 	/// <param name="player">The player that picked up the item</param>
 	/// <param name="item">The IPickup item that was picked up</param>
 	public virtual void OnItemPickup(Player player, IPickup item) { }
+
+	/// <summary>
+	/// Called when the current scene is finished rendering.
+	/// The screen wipe is still rendered on top regardless.
+	/// 
+	/// The batcher is rendered and cleared automatically after running your logic, so you don't have to do it manually.
+	/// </summary>
+	/// <param name="batch">The batcher used to render this scene</param>
+	public virtual void AfterSceneRender(Batcher batch) { }
 
 	#endregion
 }

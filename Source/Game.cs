@@ -5,29 +5,75 @@ using System.Text;
 
 namespace Celeste64;
 
+#region Transition Struct
+/// <summary>
+/// Represents a game transition. Transitions are used to smoothly go from one game scene to the next.
+/// </summary>
 public struct Transition
 {
+	/// <summary>
+	/// Transition modes
+	/// </summary>
 	public enum Modes
 	{
+		/// <summary>
+		/// Replace the current scene
+		/// </summary>
 		Replace,
+		/// <summary>
+		/// Push a new scene to the stack
+		/// </summary>
 		Push,
+		/// <summary>
+		/// Remove the current scene from the stack
+		/// </summary>
 		Pop
 	}
 
+	/// <summary>
+	/// The mode of this transition - the action it will take upon being executed
+	/// </summary>
 	public Modes Mode;
+	/// <summary>
+	/// The scene this transition will go to next - nullable
+	/// </summary>
 	public Func<Scene>? Scene;
+	/// <summary>
+	/// The screen wipe used when entering the transition
+	/// </summary>
 	public ScreenWipe? ToBlack;
+	/// <summary>
+	/// The screen wipe used when exiting the transition
+	/// </summary>
 	public ScreenWipe? FromBlack;
 	public bool ToPause;
 	public bool FromPause;
+	/// <summary>
+	/// Whether to save player stats when doing the transition
+	/// </summary>
 	public bool Saving;
+	/// <summary>
+	/// Whether to stop the music when transitioning
+	/// </summary>
 	public bool StopMusic;
+	/// <summary>
+	/// Whether to perform an asset reload when transitioning
+	/// </summary>
 	public bool PerformAssetReload;
+	/// <summary>
+	/// Whether to reload all assets
+	/// </summary>
+	public bool ReloadAll;
+	/// <summary>
+	/// How long to hold on black when executing the transition (e.g. 1.0f -> one second)
+	/// </summary>
 	public float HoldOnBlackFor;
 }
+#endregion
 
 public class Game : Module
 {
+	#region Properties
 	private enum TransitionStep
 	{
 		None,
@@ -50,6 +96,9 @@ public class Game : Module
 	public static event Action OnResolutionChanged = () => { };
 
 	private static float _resolutionScale = 1.0f;
+	/// <summary>
+	/// The current render resolution multiplier of the game
+	/// </summary>
 	public static float ResolutionScale
 	{
 		get => _resolutionScale;
@@ -76,11 +125,21 @@ public class Game : Module
 	public static float RelativeScale => _resolutionScale;
 
 	private static Game? instance;
+	/// <summary>
+	/// The current instance of the game. Use this for any non-static methods.
+	/// </summary>
 	public static Game Instance => instance ?? throw new Exception("Game isn't running");
+	public static CommandParser? AppArgs;
 
 	private readonly Stack<Scene> scenes = new();
-	private Target target = new(Width, Height, [TextureFormat.Color, TextureFormat.Depth24Stencil8]);
-	private readonly Batcher batcher = new();
+	/// <summary>
+	/// The render target of this game instance
+	/// </summary>
+	public Target target { get; internal set; } = new(Width, Height, [TextureFormat.Color, TextureFormat.Depth24Stencil8]);
+	/// <summary>
+	/// The render batcher of this game instance
+	/// </summary>
+	public Batcher batcher { get; internal set; } = new();
 	private Transition transition;
 	private TransitionStep transitionStep = TransitionStep.None;
 	private readonly FMOD.Studio.EVENT_CALLBACK audioEventCallback;
@@ -95,11 +154,17 @@ public class Game : Module
 	public SoundHandle? AmbienceWav;
 	public SoundHandle? MusicWav;
 
+	/// <summary>
+	/// Returns the topmost (i.e. currently active) scene of this game instance.
+	/// </summary>
 	public Scene? Scene => scenes.TryPeek(out var scene) ? scene : null;
+	/// <summary>
+	/// Returns the World scene this game instance is running, or null if the active scene is not a World scene.
+	/// </summary>
 	public World? World => Scene as World;
+	#endregion
 
-	internal bool NeedsReload = false;
-
+	#region Constructor
 	public Game()
 	{
 		if (IsDynamicRes)
@@ -116,6 +181,26 @@ public class Game : Module
 		// If this isn't stored, the delegate will get GC'd and everything will crash :)
 		audioEventCallback = MusicTimelineCallback;
 		imGuiManager = new ImGuiManager();
+	}
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Gets the full version string of the instance
+	/// </summary>
+	public string GetFullVersionString()
+	{
+		return $"{VersionString}\n{LoaderVersion}";
+	}
+
+	/// <summary>
+	/// Sets the resolution scale of the game and saves it to settings.
+	/// </summary>
+	/// <param name="scale">The scale</param>
+	public void SetResolutionScale(int scale)
+	{
+		ResolutionScale = scale;
+		Settings.SetResolutionScale(scale);
 	}
 
 	public override void Startup()
@@ -152,13 +237,19 @@ public class Game : Module
 		instance = null;
 
 		Log.Info("Shutting down...");
-		WriteToLog();
 	}
 
 	public bool IsMidTransition => transitionStep != TransitionStep.None;
 
+	/// <summary>
+	/// Request a transition for this game instance.
+	/// 
+	/// Your request will be silently rejected if Game.IsMidTransition is already true.
+	/// </summary>
+	/// <param name="next">The transition to perform</param>
 	public void Goto(Transition next)
 	{
+		if (IsMidTransition) return;
 		Debug.Assert(
 			transitionStep == TransitionStep.None ||
 			transitionStep == TransitionStep.FadeIn);
@@ -170,6 +261,14 @@ public class Game : Module
 			Music.Stop();
 	}
 
+	/// <summary>
+	/// Set the scene of this instance directly.
+	/// 
+	/// DON'T USE unless you have a very good reason to. This clears the scene stack and replaces it
+	/// uncleanly with no regard for edge cases, meaning it may lead to crashes and loss of progress.
+	/// Game.Goto is strongly preferred over this method.
+	/// </summary>
+	/// <param name="next"></param>
 	public void UnsafelySetScene(Scene next)
 	{
 		scenes.Clear();
@@ -184,12 +283,54 @@ public class Game : Module
 		}
 
 		scenes.Clear();
-		Log.Error("== ERROR ==\n\n" + e.ToString());
-		WriteToLog();
+		LogHelper.Error("An Unhandled Exception occurred: ", e);
 		UnsafelySetScene(new GameErrorMessage(e));
-		return;
 	}
 
+	internal void ReloadAssets(bool reloadAll)
+	{
+		if (!scenes.TryPeek(out var scene))
+			return;
+
+		if (IsMidTransition)
+			return;
+
+		if (scene is World world)
+		{
+			Goto(new Transition()
+			{
+				Mode = Transition.Modes.Replace,
+				Scene = () => new World(world.Entry),
+				ToPause = true,
+				ToBlack = new AngledWipe(),
+				PerformAssetReload = true,
+				ReloadAll = reloadAll
+			});
+		}
+		else
+		{
+			Goto(new Transition()
+			{
+				Mode = Transition.Modes.Replace,
+				Scene = () => new Titlescreen(),
+				ToPause = true,
+				ToBlack = new AngledWipe(),
+				PerformAssetReload = true,
+				ReloadAll = reloadAll
+			});
+		}
+	}
+
+	private FMOD.RESULT MusicTimelineCallback(FMOD.Studio.EVENT_CALLBACK_TYPE type, IntPtr _event, IntPtr parameters)
+	{
+		// notify that an audio event happened (but handle it on the main thread)
+		if (transitionStep == TransitionStep.None)
+			audioBeatCounterEvent = true;
+		return FMOD.RESULT.OK;
+	}
+	#endregion
+
+	#region Update
 	public override void Update()
 	{
 		if (IsDynamicRes)
@@ -203,13 +344,16 @@ public class Game : Module
 			Width_old = Width;
 		}
 
-		imGuiManager.UpdateHandlers();
-
 		scenes.TryPeek(out var scene); // gets the top scene
 
 		// update top scene
 		try
 		{
+			if (!(scene is GameErrorMessage))
+			{
+				ModManager.Instance.PreUpdate(Time.Delta);
+			}
+
 			if (scene != null)
 			{
 				var pausing =
@@ -229,6 +373,8 @@ public class Game : Module
 		{
 			HandleError(e);
 		}
+
+		imGuiManager.UpdateHandlers();
 
 		// handle transitions
 		if (transitionStep == TransitionStep.FadeOut)
@@ -255,9 +401,6 @@ public class Game : Module
 		}
 		else if (transitionStep == TransitionStep.Perform)
 		{
-			Scene? newScene = transition.Scene != null ? transition.Scene() : null;
-			if (Settings.EnableAdditionalLogging && newScene != null) Log.Info("Switching scene: " + newScene.GetType());
-
 			Audio.StopBus(Sfx.bus_gameplay_world, false);
 
 			// exit last scene
@@ -281,27 +424,79 @@ public class Game : Module
 			{
 				Save.SaveToFile();
 				Settings.SaveToFile();
+				Controls.SaveToFile();
 				ModSettings.SaveToFile();
 			}
 
 			// reload assets if requested
 			if (transition.PerformAssetReload)
 			{
-				Assets.Load();
+				if (transition.ReloadAll)
+				{
+					Assets.Load();
+				}
+				else
+				{
+					List<GameMod> modsToReload = ModManager.Instance.Mods
+						.Where(mod => mod.NeedsReload)
+						.OrderBy(mod => mod.ModInfo.Id)
+						.ToList();
+
+					if (Settings.EnableAdditionalLogging)
+					{
+						StringBuilder reloadList = new();
+
+						reloadList.Append($"Reloading {modsToReload.Count} mods: ");
+						foreach (GameMod mod in modsToReload)
+						{
+							reloadList.Append($"\n- {mod.ModInfo.Id}");
+						}
+
+						Log.Info(reloadList);
+					}
+
+					while (modsToReload.Count > 0)
+					{
+						bool loadedModThisIteration = false;
+						for (int i = modsToReload.Count - 1; i >= 0; i--)
+						{
+							// Only Reload this mod when all of it's dependencies are already loaded
+							if (!modsToReload[i].GetDependencies().Any(mod => mod.NeedsReload))
+							{
+								ModLoader.ReloadChangedMod(modsToReload[i]);
+								loadedModThisIteration = true;
+								modsToReload.Remove(modsToReload[i]);
+							}
+						}
+
+						if (!loadedModThisIteration)
+						{
+							throw new Exception($"Could not reload {modsToReload.Count} mods due to dependencies not reloading properly.");
+						}
+					}
+
+					// Re-sort mods after loading.
+					ModManager.Instance.Mods = ModManager.Instance.Mods
+					.OrderBy(mod => mod.ModInfo.Id) // Alphabetical
+					.OrderBy(mod => !(mod is VanillaGameMod)) // Put the vanilla mod first
+					.ToList();
+
+					Language.Current.Use();
+				}
 			}
 
 			// perform transition
 			switch (transition.Mode)
 			{
 				case Transition.Modes.Replace:
-					Debug.Assert(newScene != null);
+					Debug.Assert(transition.Scene != null);
 					if (scenes.Count > 0)
 						scenes.Pop();
-					scenes.Push(newScene);
+					scenes.Push(transition.Scene());
 					break;
 				case Transition.Modes.Push:
-					Debug.Assert(newScene != null);
-					scenes.Push(newScene);
+					Debug.Assert(transition.Scene != null);
+					scenes.Push(transition.Scene());
 					audioBeatCounter = 0;
 					break;
 				case Transition.Modes.Pop:
@@ -312,6 +507,8 @@ public class Game : Module
 			// run a single update when transition happens so stuff gets established
 			if (scenes.TryPeek(out var nextScene))
 			{
+				if (Settings.EnableAdditionalLogging) Log.Info("Switching scene: " + nextScene.GetType());
+
 				try
 				{
 					nextScene.Entered();
@@ -381,8 +578,6 @@ public class Game : Module
 			// in case new music was played
 			Settings.SyncSettings();
 			transitionStep = TransitionStep.FadeIn;
-
-			WriteToLog();
 		}
 		else if (transitionStep == TransitionStep.FadeIn)
 		{
@@ -413,52 +608,22 @@ public class Game : Module
 		}
 
 
-		if (scene is not Celeste64.Startup)
+		if (scene is not Celeste64.Startup && Scene is not GameErrorMessage)
 		{
-			// toggle fullsrceen
-			if ((Input.Keyboard.Alt && Input.Keyboard.Pressed(Keys.Enter)) || Input.Keyboard.Pressed(Keys.F4))
+			// toggle fullscreen
+			if (Controls.FullScreen.ConsumePress())
 				Settings.ToggleFullscreen();
 
-			// reload state
-			if (Input.Keyboard.Ctrl && Input.Keyboard.Pressed(Keys.R) && !IsMidTransition)
+			if (Controls.ReloadAssets.ConsumePress() && !IsMidTransition)
 			{
-				ReloadAssets();
+				Log.Info($"--- User has initiated a{(Input.Keyboard.CtrlOrCommand ? " full" : string.Empty)} manual reload. ---");
+				ReloadAssets(Input.Keyboard.CtrlOrCommand); // F5 - Reload changed; Ctrl + F5 - Reload all
 			}
 		}
 	}
+	#endregion
 
-	internal void ReloadAssets()
-	{
-		if (!scenes.TryPeek(out var scene))
-			return;
-
-		if (IsMidTransition)
-			return;
-
-		if (scene is World world)
-		{
-			Goto(new Transition()
-			{
-				Mode = Transition.Modes.Replace,
-				Scene = () => new World(world.Entry),
-				ToPause = true,
-				ToBlack = new AngledWipe(),
-				PerformAssetReload = true
-			});
-		}
-		else
-		{
-			Goto(new Transition()
-			{
-				Mode = Transition.Modes.Replace,
-				Scene = () => new Titlescreen(),
-				ToPause = true,
-				ToBlack = new AngledWipe(),
-				PerformAssetReload = true
-			});
-		}
-	}
-
+	#region Render
 	public override void Render()
 	{
 		Graphics.Clear(Color.Black);
@@ -472,6 +637,8 @@ public class Game : Module
 				try
 				{
 					scene.Render(target);
+
+					ModManager.Instance.AfterSceneRender(batcher);
 				}
 				catch (Exception e)
 				{
@@ -497,66 +664,5 @@ public class Game : Module
 			}
 		}
 	}
-
-	// Fuji Custom
-	public static void WriteToLog()
-	{
-		if (!Settings.WriteLog)
-		{
-			return;
-		}
-
-		// construct a log message
-		const string LogFileName = "Log.txt";
-		StringBuilder log = new();
-		lock (Log.Logs)
-			log.AppendLine(Log.Logs.ToString());
-
-		// write to file
-		string path = LogFileName;
-		{
-			if (App.Running)
-			{
-				try
-				{
-					path = Path.Join(App.UserPath, LogFileName);
-				}
-				catch
-				{
-					path = LogFileName;
-				}
-			}
-
-			File.WriteAllText(path, log.ToString());
-		}
-	}
-
-	internal static void OpenLog()
-	{
-		const string LogFileName = "Log.txt";
-		string path = "";
-		if (App.Running)
-		{
-			try
-			{
-				path = Path.Join(App.UserPath, LogFileName);
-			}
-			catch
-			{
-				path = LogFileName;
-			}
-		}
-		if (File.Exists(path))
-		{
-			new Process { StartInfo = new ProcessStartInfo(path) { UseShellExecute = true } }.Start();
-		}
-	}
-
-	private FMOD.RESULT MusicTimelineCallback(FMOD.Studio.EVENT_CALLBACK_TYPE type, IntPtr _event, IntPtr parameters)
-	{
-		// notify that an audio event happened (but handle it on the main thread)
-		if (transitionStep == TransitionStep.None)
-			audioBeatCounterEvent = true;
-		return FMOD.RESULT.OK;
-	}
+	#endregion
 }

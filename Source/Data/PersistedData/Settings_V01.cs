@@ -44,6 +44,11 @@ public sealed class Settings_V01 : PersistedData
 	/// </summary>
 	public string Language { get; set; } = "english";
 
+	/// <summary>
+	/// Whether to use V-Sync
+	/// </summary>
+	public bool EnableVSync { get; set; } = true;
+
 
 	/// <summary>
 	/// Fuji Custom - Whether we should write to the log file or not.
@@ -59,6 +64,22 @@ public sealed class Settings_V01 : PersistedData
 	/// Fuji Custom - Whether The debug menu should be enabled
 	/// </summary>
 	public bool EnableDebugMenu { get; set; } = false;
+
+	/// <summary>
+	/// Fuji Custom - The Current Game Resolution Scale.
+	/// </summary>
+	public int ResolutionScale { get; set; } = 1;
+
+	/// <summary>
+	/// Fuji Custom - Whether the QuickStart feature is enabled
+	/// </summary>
+	public bool EnableQuickStart { get; set; } = true;
+
+	/// <summary>
+	/// Fuji Custom - Whether to enable automatic hot reload on file change
+	/// </summary>
+	public bool EnableAutoReload { get; set; } = true;
+
 
 	public override JsonTypeInfo GetTypeInfo()
 	{

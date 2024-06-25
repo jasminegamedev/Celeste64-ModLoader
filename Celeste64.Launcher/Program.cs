@@ -10,17 +10,30 @@ public class Program
 	// Copied from Celeste64 project
 	public static void Main(string[] args)
 	{
-		if (args.Contains("--console"))
+		CommandParser parsedArgs = new(args);
+
+		if (parsedArgs.Has("console"))
 		{
 			ConsoleHelper.CreateConsole();
 		}
-		Version loaderVersion = typeof(Program).Assembly.GetName().Version!;
-		Game.LoaderVersion = $"Fuji: v.{loaderVersion.Major}.{loaderVersion.Minor}.{loaderVersion.Build}";
-		Game.IsDynamicRes = args.Contains("--dynamic-res");
-		if (!string.IsNullOrEmpty(BuildProperties.ModVersion()))
+
+		if (!string.IsNullOrEmpty(BuildProperties.BuildVersion()))
 		{
-			Game.LoaderVersion += "-" + BuildProperties.ModVersion();
+			Game.LoaderVersion = $"Fuji: v.{BuildProperties.BuildVersion()}";
 		}
+		else
+		{
+			Version loaderVersion = typeof(Program).Assembly.GetName().Version!;
+			Game.LoaderVersion = $"Fuji: v.{loaderVersion.Major}.{loaderVersion.Minor}.{loaderVersion.Build}";
+		}
+
+		Game.IsDynamicRes = parsedArgs.Has("dynamic-res");
+
+		// Expose our parsed args to the game
+		Game.AppArgs = parsedArgs;
+
+		LogHelper.Initialize();
+
 		Log.Info($"Celeste 64 v.{Game.GameVersion.Major}.{Game.GameVersion.Minor}.{Game.GameVersion.Build}");
 		Log.Info(Game.LoaderVersion);
 

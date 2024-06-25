@@ -1,4 +1,5 @@
 using ImGuiNET;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Color = Foster.Framework.Color;
 using Material = Foster.Framework.Material;
@@ -30,7 +31,7 @@ internal class ImGuiRenderer
 		io.ConfigDockingAlwaysTabBar = true;
 		io.ConfigDockingTransparentPayload = true;
 
-		io.Fonts.AddFontDefault();
+		io.Fonts.AddFontFromFileTTF(Path.GetFullPath(Path.Join(Assets.ContentPath, Assets.FontsFolder, "RenogareTrue.ttf")), 11);
 		io.FontGlobalScale = 1.5f;
 
 		Input.OnTextEvent += chr => io.AddInputCharacter(chr);
@@ -108,7 +109,7 @@ internal class ImGuiRenderer
 					Matrix.CreateOrthographicOffCenter(0f, target!.Width, target.Height, 0f, -1.0f, 1.0f));
 		}
 
-		if (spriteMaterial == null)
+		if (spriteMaterial == null && Assets.Shaders.ContainsKey("Sprite"))
 		{
 			spriteMaterial = new Material(Assets.Shaders["Sprite"]);
 

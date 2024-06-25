@@ -13,6 +13,8 @@ public class ModInfoMenu : Menu
 	public Menu? depWarningMenu;
 	public Menu? safeDisableErrorMenu;
 	public ModOptionsMenu modOptionsMenu;
+	public ModControlsMenu modKeyboardBindingMenu;
+	public ModControlsMenu modControllerBindingMenu;
 
 	internal ModInfoMenu(Menu? rootMenu)
 	{
@@ -25,6 +27,8 @@ public class ModInfoMenu : Menu
 		strawberryImage = Assets.Subtextures["icon_strawberry"];
 
 		modOptionsMenu = new ModOptionsMenu(rootMenu);
+		modKeyboardBindingMenu = new ModControlsMenu(rootMenu);
+		modControllerBindingMenu = new ModControlsMenu(rootMenu);
 
 		InitItems();
 	}
@@ -39,11 +43,14 @@ public class ModInfoMenu : Menu
 				//If we are trying to disable the current mod, don't
 				if (Mod != null && Mod != ModManager.Instance.CurrentLevelMod)
 				{
-					ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled = !ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled;
+					var modSettings = ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id);
+					modSettings.Enabled = !modSettings.Enabled;
+					Mod.NeedsReload = true;
 
-					if (ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled)
+					if (modSettings.Enabled)
 					{
 						Mod.EnableDependencies(); // Also enable dependencies of the mod being enabled (if any).
+						Mod.SetNeedsReloadRecursive();
 					}
 					else
 					{
@@ -52,7 +59,7 @@ public class ModInfoMenu : Menu
 							safeDisableErrorMenu = new Menu { Title = Loc.Str("ModSafeDisableErrorMessage") };
 							safeDisableErrorMenu.Add(new Option("Exit", () =>
 							{
-								ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation can't be done.
+								modSettings.Enabled = true; // Override the toggle if the operation can't be done.
 
 								PopRootSubMenu();
 							}));
@@ -61,7 +68,6 @@ public class ModInfoMenu : Menu
 
 							return;
 						}
-
 
 						if (Mod.GetDependents().Count > 0)
 						{
@@ -75,7 +81,7 @@ public class ModInfoMenu : Menu
 							}));
 							depWarningMenu.Add(new Option("Exit", () =>
 							{
-								ModSettings.GetOrMakeModSettings(Mod.ModInfo.Id).Enabled = true; // Override the toggle if the operation was cancelled.
+								modSettings.Enabled = true; // Override the toggle if the operation was cancelled.
 
 								RootMenu?.PopSubMenu();
 							}));
@@ -83,8 +89,6 @@ public class ModInfoMenu : Menu
 							RootMenu?.PushSubMenu(depWarningMenu);
 						}
 					}
-
-					Game.Instance.NeedsReload = true;
 				}
 				else
 				{
@@ -109,6 +113,17 @@ public class ModInfoMenu : Menu
 		{
 			Add(new Submenu("ModOptions", RootMenu, modOptionsMenu));
 		}
+
+		if (modKeyboardBindingMenu.ShouldDisplay)
+		{
+			Add(new Submenu("KeyboardConfig", RootMenu, modKeyboardBindingMenu));
+		}
+
+		if (modControllerBindingMenu.ShouldDisplay)
+		{
+			Add(new Submenu("ControllerConfig", RootMenu, modControllerBindingMenu));
+		}
+
 		Add(new Option("Back", () =>
 		{
 			if (RootMenu != null)
@@ -122,6 +137,8 @@ public class ModInfoMenu : Menu
 	{
 		Mod = mod;
 		modOptionsMenu.SetMod(mod);
+		modKeyboardBindingMenu.AddItems(mod, false);
+		modControllerBindingMenu.AddItems(mod, true);
 
 		InitItems();
 	}
@@ -157,7 +174,7 @@ public class ModInfoMenu : Menu
 			batch.Image(stampImage, (stampPos + new Vec2(imgSizeMin, imgSizeMin) * imgScale * 0.05f) * Game.RelativeScale, stampImageSize * imgScale * Game.RelativeScale, stampImageSize * imgScale * 1.3f * Game.RelativeScale, 0, Color.White);
 			batch.Image(image, (pos + new Vec2(imgSizeMin, imgSizeMin) * imgScale * 0.05f) * Game.RelativeScale, imageSize * imgScale * Game.RelativeScale, imageSize * imgScale * Game.RelativeScale, 0, Color.White);
 
-			batch.PushMatrix(Matrix3x2.CreateScale(1.0f) * Matrix3x2.CreateTranslation(bounds.TopLeft + new Vec2(size.X / 6.8f, -size.Y / 20) * Game.RelativeScale));
+			batch.PushMatrix(new Vec2(Game.Width * 0.72f, (Game.Height * 0.4f) + (Size.Y / 2)), false);
 			base.RenderItems(batch);
 			batch.PopMatrix();
 		}

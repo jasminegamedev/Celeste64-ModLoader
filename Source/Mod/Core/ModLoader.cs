@@ -14,6 +14,8 @@ public static class ModLoader
 
 	internal static List<string> FailedToLoadMods = [];
 
+	internal static HashSet<ModInfo> loaded = [];
+
 	public static string[] ModFolderPaths
 	{
 		get
@@ -44,20 +46,36 @@ public static class ModLoader
 		}
 	}
 
-	internal static void RegisterAllMods()
+	internal static void CreateVanillaMod()
 	{
-		FailedToLoadMods.Clear();
 		ModManager.Instance.VanillaGameMod = new VanillaGameMod
 		{
-			// Mod Infos are required now, so make a dummy mod info for the valilla game too. This shouldn't really be used for anything.
+			// Mod Infos are required now, so make a dummy mod info for the vanilla game too. This shouldn't really be used for anything.
 			ModInfo = new ModInfo
 			{
 				Id = "Celeste64Vanilla",
 				Name = "Celeste 64: Fragments of the Mountain",
 				VersionString = "1.1.1",
 			},
-			Filesystem = new FolderModFilesystem(Assets.ContentPath)
+			Filesystem = new FolderModFilesystem(Assets.ContentPath),
+			Skins =
+			{
+				new SkinInfo
+				{
+					Name = "Madeline",
+					Model = "player"
+				}
+			}
 		};
+	}
+
+	internal static void RegisterAllMods()
+	{
+		FailedToLoadMods.Clear();
+		if (ModManager.Instance.VanillaGameMod is null)
+		{
+			CreateVanillaMod();
+		}
 
 		Log.Info($"Loading mods from: \n- {String.Join("\n- ", ModFolderPaths)}");
 
@@ -110,12 +128,15 @@ public static class ModLoader
 		ModManager.Instance.Unload();
 
 		// Load vanilla as a mod, to unify all asset loading code
-		ModManager.Instance.RegisterMod(ModManager.Instance.VanillaGameMod);
+		if (ModManager.Instance.VanillaGameMod is not null)
+		{
+			ModManager.Instance.RegisterMod(ModManager.Instance.VanillaGameMod);
+		}
 
-		// We use an slightly silly approach to load all dependencies first:
+		// We use a slightly silly approach to load all dependencies first:
 		// Load all mods which have their dependencies met and repeat until we're done.
 		bool loadedModInIteration = false;
-		HashSet<ModInfo> loaded = [];
+		loaded = [];
 
 		// Sort the mods by their ID alphabetically before loading.
 		// This helps us ensure some level of consistency/determinism to hopefully avoid quirks in behaviour.
@@ -128,44 +149,13 @@ public static class ModLoader
 			{
 				var (info, fs) = modInfos[i];
 
-				bool dependenciesSatisfied = true;
-				foreach (var (modID, versionString) in info.Dependencies)
-				{
-					var version = new Version(versionString);
-
-					if (loaded.FirstOrDefault(loadedInfo => loadedInfo.Id == modID) is { } dep &&
-						dep.Version.Major == version.Major &&
-						(dep.Version.Minor > version.Minor ||
-						 dep.Version.Minor == version.Minor && dep.Version.Build >= version.Build))
-					{
-						continue;
-					}
-
-					dependenciesSatisfied = false;
-					break;
-				}
-
-				if (!dependenciesSatisfied) continue;
-
 				try
 				{
-					var mod = LoadGameMod(info, fs);
-					mod.Filesystem?.AssociateWithMod(mod);
-					ModManager.Instance.RegisterMod(mod);
-
-					// Load hooks after the mod has been registered
-					foreach (var type in mod.GetType().Assembly.GetTypes())
-					{
-						FindAndRegisterHooks(type);
-					}
-					loaded.Add(info);
-					loadedModInIteration = true;
+					loadedModInIteration = Load(info, fs);
 				}
-				catch (Exception ex)
+				catch
 				{
-					FailedToLoadMods.Add(info.Id);
-					Log.Error($"Fuji Error: An error occurred while trying to load mod: {info.Id}");
-					Log.Error(ex.ToString());
+					continue;
 				}
 
 				modInfos.RemoveAt(i);
@@ -208,6 +198,101 @@ public static class ModLoader
 		}
 
 		Log.Info(modListString);
+	}
+
+	internal static bool Load(ModInfo info, IModFilesystem fs)
+	{
+		bool dependenciesSatisfied = true;
+		foreach (var (modID, versionString) in info.Dependencies)
+		{
+			var version = new Version(versionString);
+
+			if (loaded.FirstOrDefault(loadedInfo => loadedInfo.Id == modID) is { } dep &&
+				dep.Version.Major == version.Major &&
+				(dep.Version.Minor > version.Minor ||
+				 dep.Version.Minor == version.Minor && dep.Version.Build >= version.Build))
+			{
+				continue;
+			}
+
+			dependenciesSatisfied = false;
+			break;
+		}
+
+		if (!dependenciesSatisfied) throw new Exception();
+
+		try
+		{
+			var mod = LoadGameMod(info, fs);
+			mod.Filesystem?.AssociateWithMod(mod);
+
+			try
+			{
+				ModManager.Instance.RegisterMod(mod);
+
+				// Only Reload Hooks for mods not part of the current assembly.
+				if (mod.GetType().Assembly != Assembly.GetExecutingAssembly())
+				{
+					// Load hooks after the mod has been registered
+					foreach (var type in mod.GetType().Assembly.GetTypes())
+					{
+						FindAndRegisterHooks(info, type);
+					}
+				}
+			}
+			catch
+			{
+				// Perform cleanup
+				ModManager.Instance.DeregisterMod(mod);
+				HookManager.Instance.ClearHooksOfMod(info);
+				throw;
+			}
+
+			loaded.Add(info);
+			return true;
+		}
+		catch (Exception ex)
+		{
+			FailedToLoadMods.Add(info.Id);
+			LogHelper.Error($"Fuji Error: An error occurred while trying to load mod: {info.Id}", ex);
+
+			return false;
+		}
+	}
+
+	internal static void ReloadChangedMod(GameMod mod)
+	{
+		Log.Info($"Re-registering mod {mod.ModInfo.Id}");
+
+		// Re-register the changed mod to refresh its modules
+		ModManager.Instance.DeregisterMod(mod);
+		HookManager.Instance.ClearHooksOfMod(mod.ModInfo);
+
+		IModFilesystem newFs;
+		if (mod.Filesystem is ZipModFilesystem)
+		{
+			newFs = new ZipModFilesystem(mod.Filesystem.Root);
+		}
+		else if (mod.Filesystem is FolderModFilesystem)
+		{
+			newFs = new FolderModFilesystem(mod.Filesystem.Root);
+		}
+		else
+		{
+			throw new Exception("Can't determine type of filesystem");
+		}
+
+		Assets.Unload(mod);
+		Load(mod.ModInfo, newFs);
+
+		if (mod.Enabled)
+		{
+			GameMod reloadedMod = ModManager.Instance.Mods.First((modIterator) => { return modIterator.ModInfo.Id == mod.ModInfo.Id; });
+
+			Assets.LoadAssetsForMod(reloadedMod);
+		}
+
+		mod.NeedsReload = false;
 	}
 
 	private static ModInfo? LoadModInfo(string modFolder, IModFilesystem fs)
@@ -304,30 +389,45 @@ public static class ModLoader
 		return loadedMod;
 	}
 
-	private static void FindAndRegisterHooks(Type type)
+	private static void FindAndRegisterHooks(ModInfo modInfo, Type type)
 	{
-		// On. hooks
-		var onHookMethods = type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-			.Select(m => (m, m.GetCustomAttribute<InternalOnHookGenTargetAttribute>()))
-			.Where(t => t.Item2 != null)
-			.Cast<(MethodInfo, InternalOnHookGenTargetAttribute)>();
+		List<IDisposable> hooks = [];
 
-		foreach (var (info, attr) in onHookMethods)
+		try
 		{
-			Log.Info($"Registering On-hook for method '{attr.Target}' in type '{attr.Target.DeclaringType}' with hook method '{info}' in type '{info.DeclaringType}'");
-			HookManager.Instance.RegisterHook(new Hook(attr.Target, info));
+			// On. hooks
+			var onHookMethods = type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+				.Select(m => (m, m.GetCustomAttribute<InternalOnHookGenTargetAttribute>()))
+				.Where(t => t.Item2 != null)
+				.Cast<(MethodInfo, InternalOnHookGenTargetAttribute)>();
+
+			foreach (var (info, attr) in onHookMethods)
+			{
+				var onHook = new Hook(attr.Target, info);
+				hooks.Add(onHook);
+				HookManager.Instance.RegisterHook(onHook, modInfo);
+			}
+
+			// IL. hooks
+			var ilHookMethods = type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+				.Select(m => (m, m.GetCustomAttribute<InternalILHookGenTargetAttribute>()))
+				.Where(t => t.Item2 != null)
+				.Cast<(MethodInfo, InternalILHookGenTargetAttribute)>();
+
+			foreach (var (info, attr) in ilHookMethods)
+			{
+				var ilHook = new ILHook(attr.Target, info.CreateDelegate<ILContext.Manipulator>());
+				hooks.Add(ilHook);
+				HookManager.Instance.RegisterILHook(ilHook, modInfo);
+			}
 		}
-
-		// IL. hooks
-		var ilHookMethods = type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-			.Select(m => (m, m.GetCustomAttribute<InternalILHookGenTargetAttribute>()))
-			.Where(t => t.Item2 != null)
-			.Cast<(MethodInfo, InternalILHookGenTargetAttribute)>();
-
-		foreach (var (info, attr) in ilHookMethods)
+		catch
 		{
-			Log.Info($"Registering IL-hook for method '{attr.Target}' in type '{attr.Target.DeclaringType}' with hook method '{info}' in type '{info.DeclaringType}'");
-			HookManager.Instance.RegisterILHook(new ILHook(attr.Target, info.CreateDelegate<ILContext.Manipulator>()));
+			// Some hook failed. Need to dispose all previous ones
+			foreach (var hook in hooks)
+				hook.Dispose();
+
+			throw;
 		}
 	}
 }

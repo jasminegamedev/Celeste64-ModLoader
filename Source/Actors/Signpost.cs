@@ -3,6 +3,7 @@
 public class Signpost : NPC, IHaveModels
 {
 	public readonly string Conversation;
+	public Player? TalkingTo;
 
 	public Signpost(string conversation) : base(Assets.Models["sign"])
 	{
@@ -17,12 +18,13 @@ public class Signpost : NPC, IHaveModels
 
 	public override void Interact(Player player)
 	{
+		TalkingTo = player;
 		World.Add(new Cutscene(Talk));
 	}
 
 	public virtual CoEnumerator Talk(Cutscene cs)
 	{
-		yield return Co.Run(cs.Face(World.Get<Player>(), Position));
+		yield return Co.Run(cs.Face(TalkingTo, Position));
 		yield return Co.Run(cs.Say(Loc.Lines(Conversation)));
 	}
 }

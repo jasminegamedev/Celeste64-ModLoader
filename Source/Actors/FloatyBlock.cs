@@ -8,7 +8,7 @@ public sealed class FloatyBlock : Solid
 	public float FrictionThreshold = 50;
 	public float Frequency = 1.2f;
 	public float Halflife = 3.0f;
-	public bool HasPlayerRiderLocal;
+	public Player? PlayerRiderLocal;
 
 	public override void Added()
 	{
@@ -21,16 +21,16 @@ public sealed class FloatyBlock : Solid
 	{
 		base.Update();
 
-		if (!HasPlayerRiderLocal && HasPlayerRider())
+		if (PlayerRiderLocal is null && HasPlayerRider())
 		{
-			HasPlayerRiderLocal = true;
-			Velocity += World.Get<Player>()!.PreviousVelocity * .8f;
+			PlayerRiderLocal = GetPlayerRider();
+			Velocity += GetPlayerRider()!.PreviousVelocity * .8f;
 		}
-		else if (HasPlayerRiderLocal && !HasPlayerRider())
+		else if (PlayerRiderLocal is not null && !HasPlayerRider())
 		{
-			if (World.Get<Player>() is { } player)
+			if (PlayerRiderLocal is { } player)
 				Velocity -= player.Velocity * .8f;
-			HasPlayerRiderLocal = false;
+			PlayerRiderLocal = null;
 		}
 
 		// friction

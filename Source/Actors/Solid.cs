@@ -135,7 +135,20 @@ public class Solid : Actor, IHaveModels
 
 	public virtual bool HasPlayerRider()
 	{
-		return World.Get<Player>()?.RidingPlatformCheck(this) ?? false;
+		foreach (Player ply in World.All<Player>())
+		{
+			if (ply.RidingPlatformCheck(this)) return true;
+		}
+		return false;
+	}
+
+	public virtual Player? GetPlayerRider()
+	{
+		foreach (Player ply in World.All<Player>())
+		{
+			if (ply.RidingPlatformCheck(this)) return ply;
+		}
+		return null;
 	}
 
 	public virtual void MoveTo(Vec3 target)

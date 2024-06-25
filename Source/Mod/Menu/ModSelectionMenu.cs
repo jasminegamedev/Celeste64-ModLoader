@@ -47,8 +47,7 @@ public class ModSelectionMenu : Menu
 		}));
 		FailedToLoadModsMenu.Add(new Option("FujiOpenLogFile", () =>
 		{
-			Game.WriteToLog();
-			Game.OpenLog();
+			LogHelper.OpenLog();
 		}));
 	}
 

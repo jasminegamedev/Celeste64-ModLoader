@@ -24,7 +24,7 @@ public abstract class PersistedData
 		}
 		catch (Exception e)
 		{
-			Log.Error(e.ToString());
+			LogHelper.Error("Failed to load persisted data", e);
 			return null;
 		}
 	}

@@ -52,6 +52,11 @@ public sealed class Settings
 	public static string Language => Instance.Language;
 
 	/// <summary>
+	/// Whether V-Sync is enabled
+	/// </summary>
+	public static bool VSync => Instance.EnableVSync;
+
+	/// <summary>
 	/// Fuji Custom - Whether we should write to the log file or not.
 	/// </summary>
 	public static bool WriteLog => Instance.WriteLog;
@@ -65,6 +70,21 @@ public sealed class Settings
 	/// Fuji Custom - Whether The debug menu should be enabled
 	/// </summary>
 	public static bool EnableDebugMenu => Instance.EnableDebugMenu;
+
+	/// <summary>
+	/// Fuji Custom - The Current Game Resolution Scale.
+	/// </summary>
+	public static int ResolutionScale => Instance.ResolutionScale;
+
+	/// <summary>
+	/// Fuji Custom - Whether the QuickStart feature is enabled
+	/// </summary>
+	public static bool EnableQuickStart => Instance.EnableQuickStart;
+
+	/// <summary>
+	/// Fuji Custom - Whether auto hot reload is enabled
+	/// </summary>
+	public static bool EnableAutoReload => Instance.EnableAutoReload;
 
 	public static void ToggleFullscreen()
 	{
@@ -82,14 +102,31 @@ public sealed class Settings
 		Instance.EnableAdditionalLogging = !EnableAdditionalLogging;
 	}
 
+	public static void ToggleEnableAutoReload()
+	{
+		Instance.EnableAutoReload = !EnableAutoReload;
+	}
+
+
 	public static void ToggleEnableDebugMenu()
 	{
 		Instance.EnableDebugMenu = !Instance.EnableDebugMenu;
 	}
 
+	public static void ToggleQuickStart()
+	{
+		Instance.EnableQuickStart = !Instance.EnableQuickStart;
+	}
+
 	public static void ToggleZGuide()
 	{
 		Instance.ZGuide = !Instance.ZGuide;
+	}
+
+	public static void ToggleVSync()
+	{
+		Instance.EnableVSync = !Instance.EnableVSync;
+		App.VSync = Instance.EnableVSync;
 	}
 
 	public static void SetCameraInverted(InvertCameraOptions value)
@@ -119,8 +156,16 @@ public sealed class Settings
 		Instance.Language = language;
 	}
 
+	public static void SetResolutionScale(int scale)
+	{
+		Instance.ResolutionScale = scale;
+		SyncSettings();
+	}
+
 	public static void SyncSettings()
 	{
+		App.Fullscreen = Fullscreen;
+		Game.ResolutionScale = ResolutionScale;
 		App.Fullscreen = Instance.Fullscreen;
 		Audio.SetVCAVolume("vca:/music", Calc.Clamp(Instance.MusicVolume / 10.0f, 0, 1));
 		Audio.SetVCAVolume("vca:/sfx", Calc.Clamp(Instance.SfxVolume / 10.0f, 0, 1));
