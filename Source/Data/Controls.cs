@@ -93,11 +93,11 @@ public static class Controls
 	[DefaultBinding(Keys.N)]
 	[DefaultBinding(Buttons.RightShoulder)]
 	public static VirtualButton CreateFile { get; private set; } = new("CreateFile");
-  
-  
-	[DefaultBinding(Keys.R]
-	[DefaultBinding(Buttons.West
-  public static readonly VirtualButton RenameFile = new("RenameFile");
+
+
+	[DefaultBinding(Keys.R)]
+	[DefaultBinding(Buttons.West)]
+	public static VirtualButton RenameFile { get; private set; } = new("RenameFile");
 
 	[DefaultBinding(Keys.V)]
 	[DefaultBinding(Buttons.LeftShoulder)]
@@ -507,7 +507,6 @@ public static class Controls
 	internal static void ResetAllBindings(bool forController, GameMod? mod = null)
 	{
 		ControlsConfig_V01 config;
-		IEnumerable<ControlsConfigBinding> defaultBindings;
 		Type settingsType;
 		object? settingsObject;
 
