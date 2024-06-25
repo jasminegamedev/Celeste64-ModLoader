@@ -92,10 +92,10 @@ public class ControlsMenu : Menu
 		UI.Prompt(batch, Controls.Confirm, Loc.Str("Bind"), at, out width, 1.0f);
 		at.X -= width + 8 * Game.RelativeScale;
 
-		UI.Prompt(batch, Controls.CreateFile, Loc.Str("Clear"), at, out width, 1.0f);
+		UI.Prompt(batch, Controls.ClearBindings, Loc.Str("Clear"), at, out width, 1.0f);
 		at.X -= width + 8 * Game.RelativeScale;
 
-		UI.Prompt(batch, Controls.CopyFile, Loc.Str("Reset"), at, out width, 1.0f);
+		UI.Prompt(batch, Controls.ResetBindings, Loc.Str("Reset"), at, out width, 1.0f);
 		batch.PopMatrix();
 	}
 }

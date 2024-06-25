@@ -1,3 +1,5 @@
+using Celeste64.Mod;
+
 namespace Celeste64;
 
 public class Menu
@@ -49,23 +51,24 @@ public class Menu
 	/// <param name="button">Virtual button we are trying to bind to</param>
 	/// <param name="rootMenu">Root menu for the menu we are currently in</param>
 	/// <param name="isForController">True if this is a controller binding, false for keyboard</param>
-	public class InputBind(Loc.Localized locString, VirtualButton button, Menu? rootMenu, bool isForController) : Item
+	public class InputBind(Loc.Localized locString, VirtualButton button, Menu? rootMenu, bool isForController, GameMod? mod = null) : Item
 	{
 		public override Loc.Localized? LocString => locString;
 
 		public float DeadZone;
 		public bool RequiresBinding;
 		public bool IsForController => isForController;
+		public GameMod? Mod => mod;
 		public override bool Pressed()
 		{
 			Audio.Play(Sfx.ui_select);
-			rootMenu?.PushSubMenu(new BindControlMenu(rootMenu, button, locString, isForController, DeadZone));
+			rootMenu?.PushSubMenu(new BindControlMenu(rootMenu, button, locString, isForController, DeadZone, mod));
 			return true;
 		}
 
 		public virtual List<Subtexture> GetTextures()
 		{
-			return Controls.GetPrompts(button, isForController);
+			return Controls.GetPrompts(button, isForController, Mod?.ModSettingsData?.ModControlBindings);
 		}
 
 		public VirtualButton GetButton()
@@ -478,12 +481,12 @@ public class Menu
 				if (Controls.ResetBindings.ConsumePress())
 				{
 					// Reset current binding to it's default value
-					Controls.ResetBinding(bind.GetButton(), bind.IsForController);
+					Controls.ResetBinding(bind.GetButton(), bind.IsForController, bind.Mod);
 				}
 				else if (Controls.ClearBindings.ConsumePress())
 				{
 					// Clear current binding so there are no bindings (Or 1 binding if RequiredBinding flag is true, where it will keep just the last binding)
-					Controls.ClearBinding(bind.GetButton(), bind.IsForController, bind.RequiresBinding);
+					Controls.ClearBinding(bind.GetButton(), bind.IsForController, bind.RequiresBinding, bind.Mod?.ModSettingsData?.ModControlBindings);
 				}
 			}
 		}

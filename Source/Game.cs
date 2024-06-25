@@ -349,6 +349,11 @@ public class Game : Module
 		// update top scene
 		try
 		{
+			if (!(scene is GameErrorMessage))
+			{
+				ModManager.Instance.PreUpdate(Time.Delta);
+			}
+
 			if (scene != null)
 			{
 				var pausing =

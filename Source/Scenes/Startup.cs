@@ -48,7 +48,7 @@ public class Startup : Scene
 
 		// try to load controls, or overwrite with defaults if they don't exist
 		{
-			Controls.LoadControlsByFileName(Controls.DefaultFileName);
+			Controls.LoadControlsFromFile(Controls.DefaultFileName);
 		}
 	}
   
