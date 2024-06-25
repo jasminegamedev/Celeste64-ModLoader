@@ -154,8 +154,7 @@ public class Map
 
 			readExceptionMessage = e.Message;
 
-			Log.Error($"Failed to load map {name}, more details below.");
-			Log.Error(e.ToString());
+			LogHelper.Error($"Failed to load map {name}", e);
 		}
 
 		if (Data != null)
@@ -430,6 +429,11 @@ public class Map
 			bounds.Min -= it.Position;
 			bounds.Max -= it.Position;
 			it.LocalBounds = bounds;
+		}
+
+		if (it is Player)
+		{
+			world.MainPlayer = (Player)it;
 		}
 
 		world.Add(it);

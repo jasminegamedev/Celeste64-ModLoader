@@ -133,6 +133,14 @@ public sealed class ModManager
 		if (Settings.EnableAutoReload) Game.Instance.ReloadAssets(false);
 	}
 
+	internal void PreUpdate(float deltaTime)
+	{
+		foreach (var mod in EnabledMods)
+		{
+			mod.PreUpdate(deltaTime);
+		}
+	}
+
 	internal void Update(float deltaTime)
 	{
 		foreach (var mod in EnabledMods)

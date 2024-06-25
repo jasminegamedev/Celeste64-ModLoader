@@ -70,7 +70,7 @@ public abstract class GameMod
 	public Game? Game => Game.Instance;
 	public World? World => Game?.World;
 	public Map? Map => World?.Map;
-	public Player? Player => World?.Get<Player>();
+	public Player? Player => World?.MainPlayer;
 
 	// Common Metadata about this mod.
 	public bool Enabled => this is VanillaGameMod || ModSettingsData.Enabled;
@@ -160,8 +160,7 @@ public abstract class GameMod
 		}
 		catch (Exception e)
 		{
-			Log.Error($"Failed to save the settings of {ModInfo.Id}!");
-			Log.Error(e.Message);
+			LogHelper.Error($"Failed to save the settings of {ModInfo.Id}!", e);
 			return false;
 		}
 	}
@@ -215,12 +214,13 @@ public abstract class GameMod
 
 		try
 		{
+			Controls.LoadModConfig(this);
+
 			return LoadSettingsForType("Settings.", SettingsType, Settings);
 		}
 		catch (Exception e)
 		{
-			Log.Error($"Failed to save the settings of {ModInfo.Id}!");
-			Log.Error(e.Message);
+			LogHelper.Error($"Failed to save the settings of {ModInfo.Id}!", e);
 			return false;
 		}
 	}
@@ -588,6 +588,13 @@ public abstract class GameMod
 	/// Called when a mod is unloaded, or when it becomes disabled
 	/// </summary>
 	public virtual void OnModUnloaded() { }
+
+
+	/// <summary>
+	/// Called once at the beginning of every frame, before game logic
+	/// </summary>
+	/// <param name="deltaTime">How much time passed since the previous update</param>
+	public virtual void PreUpdate(float deltaTime) { }
 
 	/// <summary>
 	/// Called once every frame

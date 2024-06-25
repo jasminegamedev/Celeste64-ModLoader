@@ -13,6 +13,8 @@ public class ModInfoMenu : Menu
 	public Menu? depWarningMenu;
 	public Menu? safeDisableErrorMenu;
 	public ModOptionsMenu modOptionsMenu;
+	public ModControlsMenu modKeyboardBindingMenu;
+	public ModControlsMenu modControllerBindingMenu;
 
 	internal ModInfoMenu(Menu? rootMenu)
 	{
@@ -25,6 +27,8 @@ public class ModInfoMenu : Menu
 		strawberryImage = Assets.Subtextures["icon_strawberry"];
 
 		modOptionsMenu = new ModOptionsMenu(rootMenu);
+		modKeyboardBindingMenu = new ModControlsMenu(rootMenu);
+		modControllerBindingMenu = new ModControlsMenu(rootMenu);
 
 		InitItems();
 	}
@@ -109,6 +113,17 @@ public class ModInfoMenu : Menu
 		{
 			Add(new Submenu("ModOptions", RootMenu, modOptionsMenu));
 		}
+
+		if (modKeyboardBindingMenu.ShouldDisplay)
+		{
+			Add(new Submenu("KeyboardConfig", RootMenu, modKeyboardBindingMenu));
+		}
+
+		if (modControllerBindingMenu.ShouldDisplay)
+		{
+			Add(new Submenu("ControllerConfig", RootMenu, modControllerBindingMenu));
+		}
+
 		Add(new Option("Back", () =>
 		{
 			if (RootMenu != null)
@@ -122,6 +137,8 @@ public class ModInfoMenu : Menu
 	{
 		Mod = mod;
 		modOptionsMenu.SetMod(mod);
+		modKeyboardBindingMenu.AddItems(mod, false);
+		modControllerBindingMenu.AddItems(mod, true);
 
 		InitItems();
 	}
@@ -157,7 +174,7 @@ public class ModInfoMenu : Menu
 			batch.Image(stampImage, (stampPos + new Vec2(imgSizeMin, imgSizeMin) * imgScale * 0.05f) * Game.RelativeScale, stampImageSize * imgScale * Game.RelativeScale, stampImageSize * imgScale * 1.3f * Game.RelativeScale, 0, Color.White);
 			batch.Image(image, (pos + new Vec2(imgSizeMin, imgSizeMin) * imgScale * 0.05f) * Game.RelativeScale, imageSize * imgScale * Game.RelativeScale, imageSize * imgScale * Game.RelativeScale, 0, Color.White);
 
-			batch.PushMatrix(Matrix3x2.CreateScale(1.0f) * Matrix3x2.CreateTranslation(bounds.TopLeft + new Vec2(size.X / 6.8f, -size.Y / 20) * Game.RelativeScale));
+			batch.PushMatrix(new Vec2(Game.Width * 0.72f, (Game.Height * 0.4f) + (Size.Y / 2)), false);
 			base.RenderItems(batch);
 			batch.PopMatrix();
 		}

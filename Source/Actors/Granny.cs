@@ -3,6 +3,7 @@
 public class Granny : NPC
 {
 	public virtual string TALK_FLAG => "GRANNY";
+	public Player? TalkingTo;
 
 	public Granny() : base(Assets.Models["granny"])
 	{
@@ -14,13 +15,14 @@ public class Granny : NPC
 
 	public override void Interact(Player player)
 	{
+		TalkingTo = player;
 		World.Add(new Cutscene(Conversation));
 	}
 
 	public virtual CoEnumerator Conversation(Cutscene cs)
 	{
-		yield return Co.Run(cs.MoveToDistance(World.Get<Player>(), Position.XY(), 16));
-		yield return Co.Run(cs.FaceEachOther(World.Get<Player>(), this));
+		yield return Co.Run(cs.MoveToDistance(TalkingTo, Position.XY(), 16));
+		yield return Co.Run(cs.FaceEachOther(TalkingTo, this));
 
 		int index = Save.CurrentRecord.GetFlag(TALK_FLAG) + 1;
 		yield return Co.Run(cs.Say(Loc.Lines($"Granny{index}")));

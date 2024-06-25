@@ -254,8 +254,7 @@ public static class ModLoader
 		catch (Exception ex)
 		{
 			FailedToLoadMods.Add(info.Id);
-			Log.Error($"Fuji Error: An error occurred while trying to load mod: {info.Id}");
-			Log.Error(ex.ToString());
+			LogHelper.Error($"Fuji Error: An error occurred while trying to load mod: {info.Id}", ex);
 
 			return false;
 		}

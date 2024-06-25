@@ -1,3 +1,5 @@
+using Celeste64.Mod;
+
 namespace Celeste64;
 
 public class BindControlMenu : Menu
@@ -7,15 +9,17 @@ public class BindControlMenu : Menu
 	private const float waitBeforeClosingTime = 5;
 	private VirtualButton button;
 	private bool isForController;
+	private GameMod? mod;
 	private float deadZone;
 
-	public BindControlMenu(Menu? rootMenu, VirtualButton button, string buttonName, bool isForController, float deadZone = 0)
+	public BindControlMenu(Menu? rootMenu, VirtualButton button, string buttonName, bool isForController, float deadZone = 0, GameMod? mod = null)
 	{
 		RootMenu = rootMenu;
 
 		this.button = button;
 		this.deadZone = deadZone;
 		this.isForController = isForController;
+		this.mod = mod;
 		Title = string.Format(Loc.Str("PressToBind"), buttonName);
 		TitleScale = 1;
 
@@ -30,7 +34,7 @@ public class BindControlMenu : Menu
 			Keys? pressed = Input.Keyboard.FirstPressed();
 			if (pressed != null && pressed != Keys.Unknown && pressed != Keys.Application && pressed != Keys.ScrollLock) // We don't have icons for these currently, so don't allow them
 			{
-				Controls.AddBinding(button, (Keys)pressed);
+				Controls.AddBinding(button, (Keys)pressed, mod?.ModSettingsData?.ModControlBindings);
 				RootMenu?.PopSubMenu();
 				return;
 			}
@@ -40,7 +44,7 @@ public class BindControlMenu : Menu
 			{
 				if (Input.Mouse.Pressed((MouseButtons)button))
 				{
-					Controls.AddBinding(this.button, (MouseButtons)button);
+					Controls.AddBinding(this.button, (MouseButtons)button, mod?.ModSettingsData?.ModControlBindings);
 					RootMenu?.PopSubMenu();
 					return;
 				}
@@ -56,7 +60,7 @@ public class BindControlMenu : Menu
 				{
 					if (controller.Pressed((Buttons)button))
 					{
-						Controls.AddBinding(this.button, (Buttons)button);
+						Controls.AddBinding(this.button, (Buttons)button, mod?.ModSettingsData?.ModControlBindings);
 						RootMenu?.PopSubMenu();
 						return;
 					}
@@ -66,7 +70,7 @@ public class BindControlMenu : Menu
 				{
 					if (Math.Abs(controller.Axis((Axes)axis)) > 0.5f)
 					{
-						Controls.AddBinding(this.button, (Axes)axis, controller.Axis((Axes)axis) < -0.5f, deadZone);
+						Controls.AddBinding(this.button, (Axes)axis, controller.Axis((Axes)axis) < -0.5f, deadZone, mod?.ModSettingsData?.ModControlBindings);
 						RootMenu?.PopSubMenu();
 						return;
 					}
