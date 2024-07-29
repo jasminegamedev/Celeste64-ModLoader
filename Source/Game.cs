@@ -176,6 +176,7 @@ public class Game : Module
 	public SoundHandle? AmbienceWav;
 	public SoundHandle? MusicWav;
 
+	private Task? SaveTask;
 	private SavingState _SaveSt = SavingState.Ready;
 	/// <summary>
 	/// The current saving state of the game.
@@ -228,29 +229,34 @@ public class Game : Module
 	/// </summary>
 	public static void RequestSave()
 	{
+		/* An additional save task is already queued. No need to save more */
+		if (Instance.SavingState == SavingState.SaveQueued) return;
+
 		/* Ready -> Saving -> SaveQueued */
 		Instance.SavingState = Instance.SavingState != SavingState.Saving
 		? SavingState.Saving
 		: SavingState.SaveQueued;
 
-		/* An additional save task is already queued. No need to save more */
-		if (Instance.SavingState == SavingState.SaveQueued) return;
-
 		Task.Run(() =>
 		{
-			Save.SaveToFile();
-			Settings.SaveToFile();
-			Controls.SaveToFile();
-			ModSettings.SaveToFile();
-
 			if (Instance.SavingState == SavingState.SaveQueued)
 			{
-				Thread.Sleep(500);
+				if (Instance.SaveTask is not null && !Instance.SaveTask.IsCompleted) Instance.SaveTask.Wait();
 				Instance.SavingState = SavingState.Ready;
 				RequestSave();
 			}
 			else
 			{
+				Instance.SaveTask = Task.Run(() =>
+				{
+					Save.SaveToFile();
+					Settings.SaveToFile();
+					Controls.SaveToFile();
+					ModSettings.SaveToFile();
+				});
+
+				Instance.SaveTask.Wait();
+
 				Instance.SavingState = SavingState.Ready;
 			}
 		});
