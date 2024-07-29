@@ -222,7 +222,10 @@ public class Game : Module
 	#endregion
 
 	#region Methods
-	public static void PerformSave()
+	/// <summary>
+	/// Request a full save of all persistence files.
+	/// </summary>
+	public static void RequestSave()
 	{
 		/* Ready -> Saving -> SaveQueued */
 		Instance.SavingState = Instance.SavingState != SavingState.Saving
@@ -488,7 +491,7 @@ public class Game : Module
 			// perform game save between transitions
 			if (transition.Saving)
 			{
-				PerformSave();
+				RequestSave();
 			}
 
 			// reload assets if requested
