@@ -545,6 +545,9 @@ public class World : Scene
 
 		if (paused == false)
 		{
+			/* Player data and settings might've changed, so let's save */
+			Game.RequestSave();
+
 			if (ModManager.Instance.NeedsReload)
 			{
 				Game.Instance.ReloadAssets(false);

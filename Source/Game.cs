@@ -244,8 +244,9 @@ public class Game : Module
 
 			if (Instance.SavingState == SavingState.SaveQueued)
 			{
-				Instance.SavingState = SavingState.Saving;
-				PerformSave();
+				Thread.Sleep(500);
+				Instance.SavingState = SavingState.Ready;
+				RequestSave();
 			}
 			else
 			{
