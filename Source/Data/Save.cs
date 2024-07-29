@@ -134,6 +134,9 @@ public sealed class Save
 
 	internal static void LoadSaveByFileName(string fileName)
 	{
+		/* Loading while a save task is occuring would be terrible */
+		if (Game.Instance.SavingState != SavingState.Ready) return;
+
 		if (fileName == string.Empty) fileName = DefaultFileName;
 		var saveFile = Path.Join(App.UserPath, fileName);
 
