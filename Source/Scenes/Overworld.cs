@@ -180,9 +180,6 @@ public class Overworld : Scene
 	private readonly Material material = new(Assets.Shaders["Sprite"]);
 	private Subtexture strawberryImage = Assets.Subtextures["icon_strawberry"];
 	private readonly Menu restartConfirmMenu = new();
-
-	private float HeldRoutine = 0;
-	private float HeldInterval = 0.085f;
 	#endregion
 
 	#region Overworld Constructor
