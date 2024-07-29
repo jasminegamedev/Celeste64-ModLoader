@@ -734,7 +734,7 @@ public class Game : Module
 				int Pad = 4;
 
 				batcher.PushMatrix(Matrix3x2.CreateScale(0.75f) * Matrix3x2.CreateTranslation(target.Bounds.BottomRight + new Vec2(-Pad, -Pad)));
-				UI.Text(batcher, Loc.Str("FujiSaving"), target.Bounds.TopLeft + new Vec2(-ToastSize.X * RelativeScale, -ToastSize.Y * RelativeScale), Vec2.Zero, Time.BetweenInterval(0.25f) ? Color.White : Color.Gray);
+				UI.Text(batcher, Loc.Str("FujiSaving"), target.Bounds.TopLeft + new Vec2(-ToastSize.X, -ToastSize.Y), Vec2.Zero, Time.BetweenInterval(0.25f) ? Color.White : Color.Gray);
 				batcher.Render(target);
 				batcher.Clear();
 			}
