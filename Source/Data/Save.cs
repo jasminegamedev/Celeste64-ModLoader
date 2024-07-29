@@ -1,5 +1,4 @@
 using Celeste64.Mod;
-using System.Threading.Tasks;
 
 namespace Celeste64;
 

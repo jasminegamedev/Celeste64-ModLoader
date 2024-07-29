@@ -2,6 +2,7 @@
 using Celeste64.Mod.Patches;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 
 namespace Celeste64;
 
