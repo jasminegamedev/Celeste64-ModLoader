@@ -156,6 +156,13 @@ public static class Controls
 		AddMissingBindings(Instance, typeof(Controls));
 
 		LoadBindings(Instance, typeof(Controls));
+
+		// Set up repeat intervals for menu controls
+		foreach (VirtualAxis axis in new VirtualAxis[] { Menu.Horizontal, Menu.Vertical })
+		{
+			axis.Positive.RepeatInterval = 0.15f;
+			axis.Negative.RepeatInterval = 0.15f;
+		}
 	}
 
 	/// <summary>

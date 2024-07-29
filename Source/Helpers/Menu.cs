@@ -437,14 +437,18 @@ public class Menu
 
 	protected virtual void HandleInput()
 	{
+		VirtualStick MControl = Controls.Menu;
+		VirtualAxis MControlH = MControl.Horizontal;
+		VirtualAxis MControlV = MControl.Vertical;
+
 		if (items.Count > 0)
 		{
 			var was = Index;
 			var step = 0;
 
-			if (Controls.Menu.Vertical.Positive.Pressed)
+			if (MControlV.Positive.Pressed || MControlV.Positive.Repeated)
 				step = 1;
-			if (Controls.Menu.Vertical.Negative.Pressed)
+			if (MControlV.Negative.Pressed || MControlV.Negative.Repeated)
 				step = -1;
 
 			Index += step;
@@ -468,9 +472,9 @@ public class Menu
 			if (was != Index)
 				Audio.Play(step < 0 ? UpSound : DownSound);
 
-			if (Controls.Menu.Horizontal.Negative.Pressed)
+			if (MControlH.Negative.Pressed || MControlH.Negative.Repeated)
 				items[Index].Slide(-1);
-			if (Controls.Menu.Horizontal.Positive.Pressed)
+			if (MControlH.Positive.Pressed || MControlH.Positive.Repeated)
 				items[Index].Slide(1);
 
 			if (Controls.Confirm.Pressed && items[Index].Pressed())

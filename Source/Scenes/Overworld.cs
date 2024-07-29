@@ -180,6 +180,9 @@ public class Overworld : Scene
 	private readonly Material material = new(Assets.Shaders["Sprite"]);
 	private Subtexture strawberryImage = Assets.Subtextures["icon_strawberry"];
 	private readonly Menu restartConfirmMenu = new();
+
+	private float HeldRoutine = 0;
+	private float HeldInterval = 0.085f;
 	#endregion
 
 	#region Overworld Constructor
@@ -291,6 +294,12 @@ public class Overworld : Scene
 
 		if (state == States.Selecting && !Paused)
 		{
+			/* Held repeat */
+			if (Controls.Menu.Horizontal.Negative.Repeated || Controls.Menu.Horizontal.Positive.Repeated)
+			{
+				if (Controls.Menu.Horizontal.Negative.Repeated) { index--; } else { index++; };
+			}
+
 			// Currently, the QOL feature that lets you skip to the first/last item no longer exists :(
 			// Todo: reimplement it. (Home/End keys? Bumpers on controller?)
 			var was = index;
