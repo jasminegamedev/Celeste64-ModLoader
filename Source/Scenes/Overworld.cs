@@ -294,10 +294,8 @@ public class Overworld : Scene
 		if (state == States.Selecting && !Paused)
 		{
 			/* Held repeat */
-			if (Controls.Menu.Horizontal.Negative.Repeated || Controls.Menu.Horizontal.Positive.Repeated)
-			{
-				if (Controls.Menu.Horizontal.Negative.Repeated) { index--; } else { index++; };
-			}
+   			if (Controls.Menu.Horizontal.Negative.Repeated) index--;
+	  		if (Controls.Menu.Horizontal.Positive.Repeated) index++;
 
 			var was = index;
 			if (Controls.Menu.Horizontal.Negative.Pressed)
