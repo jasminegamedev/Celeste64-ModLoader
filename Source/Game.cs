@@ -71,6 +71,27 @@ public struct Transition
 }
 #endregion
 
+#region Saving State Enum
+/// <summary>
+/// Represents the current saving state of the game.
+/// </summary>
+public enum SavingState
+{
+	/// <summary>
+	/// The game is ready to save.
+	/// </summary>
+	Ready,
+	/// <summary>
+	/// The game is currently saving.
+	/// </summary>
+	Saving,
+	/// <summary>
+	/// The game is currently saving and an additional save is queued (will re-save after the current task)
+	/// </summary>
+	SaveQueued
+}
+#endregion
+
 public class Game : Module
 {
 	#region Properties

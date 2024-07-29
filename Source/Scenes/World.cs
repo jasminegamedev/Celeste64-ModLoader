@@ -17,6 +17,9 @@ public class World : Scene
 	public EntryInfo Entry = new();
 	public readonly GridPartition<Solid> SolidGrid = new(200, 100);
 	public float GeneralTimer = 0;
+	public float RealDelta = 0;
+	public float TimeScale = 1;
+
 	public float DeathPlane = -100;
 
 	public readonly List<Actor> Actors = [];
@@ -405,6 +408,9 @@ public class World : Scene
 		{
 			return;
 		} // don't pour salt in wounds
+
+		RealDelta = Time.Delta;
+		Time.Delta *= TimeScale;
 
 		try
 		{
