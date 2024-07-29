@@ -297,8 +297,6 @@ public class Overworld : Scene
 				if (Controls.Menu.Horizontal.Negative.Repeated) { index--; } else { index++; };
 			}
 
-			// Currently, the QOL feature that lets you skip to the first/last item no longer exists :(
-			// Todo: reimplement it. (Home/End keys? Bumpers on controller?)
 			var was = index;
 			if (Controls.Menu.Horizontal.Negative.Pressed)
 			{
