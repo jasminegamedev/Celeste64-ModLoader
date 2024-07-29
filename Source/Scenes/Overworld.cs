@@ -180,6 +180,8 @@ public class Overworld : Scene
 	private readonly Material material = new(Assets.Shaders["Sprite"]);
 	private Subtexture strawberryImage = Assets.Subtextures["icon_strawberry"];
 	private readonly Menu restartConfirmMenu = new();
+
+	private bool WasBigSlide = false;
 	#endregion
 
 	#region Overworld Constructor
@@ -300,11 +302,15 @@ public class Overworld : Scene
 			var was = index;
 			if (Controls.Menu.Horizontal.Negative.Pressed)
 			{
+				if (Controls.Confirm.Down) { index = 0; WasBigSlide = true; return; }
+
 				Controls.Menu.ConsumePress();
 				index--;
 			}
 			if (Controls.Menu.Horizontal.Positive.Pressed)
 			{
+				if (Controls.Confirm.Down) { index = entries.Count - 1; WasBigSlide = true; return; }
+
 				Controls.Menu.ConsumePress();
 				index++;
 			}
@@ -323,8 +329,9 @@ public class Overworld : Scene
 			if (was != index)
 				Audio.Play(Sfx.ui_move);
 
-			if (Controls.Confirm.ConsumePress())
+			if (Controls.Confirm.Released && !Paused)
 			{
+				if (WasBigSlide) { WasBigSlide = false; return; }
 				state = States.Selected;
 				entries[index].Menu.Index = 0;
 				Audio.Play(Sfx.main_menu_postcard_flip);
