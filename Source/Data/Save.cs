@@ -1,4 +1,5 @@
 using Celeste64.Mod;
+using System.Threading.Tasks;
 
 namespace Celeste64;
 
@@ -112,7 +113,7 @@ public sealed class Save
 			};
 	}
 
-	public static void SaveToFile()
+	internal static void SaveToFile()
 	{
 		var savePath = Path.Join(App.UserPath, Instance.FileName);
 		var tempPath = Path.Join(App.UserPath, Instance.FileName + ".backup");

@@ -72,24 +72,26 @@ public static class LogHelper
 		const string LogFileName = "Log.txt";
 		StringBuilder log = new();
 		lock (Logs)
+		{
 			log.AppendLine(Logs.ToString());
 
-		// write to file
-		string path = LogFileName;
-		{
-			if (App.Running)
+			// write to file
+			string path = LogFileName;
 			{
-				try
+				if (App.Running)
 				{
-					path = Path.Join(App.UserPath, LogFileName);
+					try
+					{
+						path = Path.Join(App.UserPath, LogFileName);
+					}
+					catch
+					{
+						path = LogFileName;
+					}
 				}
-				catch
-				{
-					path = LogFileName;
-				}
-			}
 
-			File.WriteAllText(path, log.ToString());
+				File.WriteAllText(path, log.ToString());
+			}
 		}
 	}
 
