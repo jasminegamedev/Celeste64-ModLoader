@@ -187,9 +187,8 @@ public class Game : Module
 		internal set
 		{
 			_SaveSt = value;
-			if (!Settings.EnableAdditionalLogging) return;
 
-			LogHelper.Info($"Saving state changed to {_SaveSt}");
+			LogHelper.Verbose($"Saving state changed to {_SaveSt}");
 		}
 	}
 
@@ -581,7 +580,7 @@ public class Game : Module
 			// run a single update when transition happens so stuff gets established
 			if (scenes.TryPeek(out var nextScene))
 			{
-				if (Settings.EnableAdditionalLogging) Log.Info("Switching scene: " + nextScene.GetType());
+				LogHelper.Verbose("Switching scene: " + nextScene.GetType());
 
 				try
 				{

@@ -296,7 +296,7 @@ public class World : Scene
 		}
 		else
 		{
-			if (Settings.EnableAdditionalLogging) Log.Info($"Respawned in {stopwatch.ElapsedMilliseconds}ms");
+			LogHelper.Verbose($"Respawned in {stopwatch.ElapsedMilliseconds}ms");
 		}
 	}
 	#endregion

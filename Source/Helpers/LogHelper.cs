@@ -56,6 +56,16 @@ public static class LogHelper
 		WriteToLog();
 	}
 
+	public static void Verbose(ReadOnlySpan<char> text)
+	{
+		if (!Settings.EnableAdditionalLogging) return;
+
+		string outtext = $"[Info] [{AsmName}] {text}";
+		Append(outtext);
+		Console.Out.WriteLine(outtext);
+		WriteToLog();
+	}
+
 	public static void Error(ReadOnlySpan<char> text, Exception ex)
 	{
 		Error($"{text}\n {ex}");
