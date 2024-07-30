@@ -65,7 +65,7 @@ public class World : Scene
 	/// <summary>
 	/// The timescale of the world, where a value of 1 represents 100% and 0.1 represents 10%
 	/// </summary>
-	public float TimeScale = 0.05f;
+	public float TimeScale = 1;
 
 	/// <summary>
 	/// Altitude at which the player will automatically die
