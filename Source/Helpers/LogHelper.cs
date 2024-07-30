@@ -11,6 +11,14 @@ namespace Celeste64;
 /// </summary>
 public static class LogHelper
 {
+	public enum LogLevel
+	{
+		Info,
+		Warn,
+		Error,
+		Verbose
+	}
+
 	public static readonly StringBuilder Logs = new StringBuilder();
 	/*
 	 A simple Assembly.GetCallingAssembly() is not good enough for our needs here. 
@@ -19,7 +27,23 @@ public static class LogHelper
 	 Even then, this gets the wrong assembly name sometimes :(
 	 todo: figure out a 100% reliable way to get this
 	*/
-	public static string? AsmName => new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.Assembly.GetName().Name;
+	/* Decommissioned due to instability */
+	/* public static string? AsmName => new StackTrace().GetFrame(5)?.GetMethod()?.DeclaringType?.Assembly.GetName().Name; */
+
+	public static string GetLogLine(LogLevel lev, ReadOnlySpan<char> text)
+	{
+		return $"[{lev}] {text}";
+	}
+
+	public static void PushLogLine(LogLevel lev, ReadOnlySpan<char> text, ConsoleColor color = ConsoleColor.White)
+	{
+		string outtext = GetLogLine(lev, text);
+		Append(outtext);
+		Console.ForegroundColor = color;
+		Console.Out.WriteLine(outtext);
+		Console.ResetColor();
+		WriteToLog();
+	}
 
 	public static void Initialize()
 	{
@@ -30,40 +54,24 @@ public static class LogHelper
 
 	public static void Info(ReadOnlySpan<char> text)
 	{
-		string outtext = $"[Info] [{AsmName}] {text}";
-		Append(outtext);
-		Console.Out.WriteLine(outtext);
-		WriteToLog();
+		PushLogLine(LogLevel.Info, text);
 	}
 
 	public static void Warn(ReadOnlySpan<char> text)
 	{
-		string outtext = $"[Warning] [{AsmName}] {text}";
-		Append(outtext);
-		Console.ForegroundColor = ConsoleColor.Yellow;
-		Console.Out.WriteLine(outtext);
-		Console.ResetColor();
-		WriteToLog();
+		PushLogLine(LogLevel.Warn, text, ConsoleColor.Yellow);
 	}
 
 	public static void Error(ReadOnlySpan<char> text)
 	{
-		string outtext = $"[Error] [{AsmName}] {text}";
-		Append(outtext);
-		Console.ForegroundColor = ConsoleColor.Red;
-		Console.Out.WriteLine(outtext);
-		Console.ResetColor();
-		WriteToLog();
+		PushLogLine(LogLevel.Error, text, ConsoleColor.Red);
 	}
 
 	public static void Verbose(ReadOnlySpan<char> text)
 	{
 		if (!Settings.EnableAdditionalLogging) return;
 
-		string outtext = $"[Info] [{AsmName}] {text}";
-		Append(outtext);
-		Console.Out.WriteLine(outtext);
-		WriteToLog();
+		PushLogLine(LogLevel.Verbose, text, ConsoleColor.Cyan);
 	}
 
 	public static void Error(ReadOnlySpan<char> text, Exception ex)
