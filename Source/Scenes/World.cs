@@ -94,6 +94,7 @@ public class World : Scene
 	// Pause Menu, only drawn when actually paused
 	private Menu pauseMenu = new();
 	private AudioHandle pauseSnapshot;
+	private float PauseSaveDebounce = 0;
 
 	// Panic menu
 	private Menu badMapWarningMenu = new();
@@ -647,8 +648,15 @@ public class World : Scene
 
 		if (paused == false)
 		{
-			/* Player data and settings might've changed, so let's save */
-			Game.RequestSave();
+			/* 
+				Player data and settings might've changed, so let's save
+				To prevent spam let's add a delay - 5 seconds should be alright
+			*/
+			if ((RealTimer - PauseSaveDebounce) > 5.0f)
+			{
+				Game.RequestSave();
+				PauseSaveDebounce = RealTimer;
+			}
 
 			if (ModManager.Instance.NeedsReload)
 			{
