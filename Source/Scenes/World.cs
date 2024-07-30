@@ -16,7 +16,9 @@ public class World : Scene
 	public bool Paused = false;
 	public EntryInfo Entry = new();
 	public readonly GridPartition<Solid> SolidGrid = new(200, 100);
+
 	public float GeneralTimer = 0;
+	public float RealTimer = 0;
 	public float RealDelta = 0;
 	public float TimeScale = 1;
 
@@ -409,6 +411,7 @@ public class World : Scene
 			return;
 		} // don't pour salt in wounds
 
+		/* Update timers */
 		RealDelta = Time.Delta;
 		Time.Delta *= TimeScale;
 
@@ -505,6 +508,7 @@ public class World : Scene
 				}
 
 				GeneralTimer += Time.Delta;
+				RealTimer += RealDelta;
 
 				// add / remove actors
 				ResolveChanges();
