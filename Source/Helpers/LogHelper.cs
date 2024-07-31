@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Reflection;
-using System.Text;
 namespace Celeste64;
 
 /// <summary>
@@ -18,8 +16,31 @@ public static class LogHelper
 		Error,
 		Verbose
 	}
+	
+	private const string LogFileName = "Log.txt";
 
-	public static readonly StringBuilder Logs = new StringBuilder();
+	private static string? _logPath;
+	/// <summary>
+	/// Provides the current Log.txt path, or null if none is available yet.
+	/// </summary>
+	public static string? LogPath
+	{
+		get
+		{
+			if (_logPath == null)
+			{
+				if (App.UserPath == string.Empty)
+					return null;
+				_logPath = Path.Combine(App.UserPath, LogFileName);
+			}
+
+			return _logPath;
+		}
+	}
+
+	// This should never be accessed directly
+	private static readonly LoggerWriter Logs = new(true);
+	
 	/*
 	 A simple Assembly.GetCallingAssembly() is not good enough for our needs here. 
 	 We need to travel up the stack to get the actual assembly name.
@@ -30,19 +51,18 @@ public static class LogHelper
 	/* Decommissioned due to instability */
 	/* public static string? AsmName => new StackTrace().GetFrame(5)?.GetMethod()?.DeclaringType?.Assembly.GetName().Name; */
 
-	public static string GetLogLine(LogLevel lev, ReadOnlySpan<char> text)
+	private static ReadOnlySpan<char> GetLogLine(LogLevel lev, ReadOnlySpan<char> text)
 	{
 		return $"[{lev}] {text}";
 	}
 
 	public static void PushLogLine(LogLevel lev, ReadOnlySpan<char> text, ConsoleColor color = ConsoleColor.White)
 	{
-		string outtext = GetLogLine(lev, text);
-		Append(outtext);
+		ReadOnlySpan<char> outtext = GetLogLine(lev, text);
+		Logs.Append(outtext);
 		Console.ForegroundColor = color;
 		Console.Out.WriteLine(outtext);
 		Console.ResetColor();
-		WriteToLog();
 	}
 
 	public static void Initialize()
@@ -79,67 +99,62 @@ public static class LogHelper
 		Error($"{text}\n {ex}");
 	}
 
-	public static void WriteToLog()
-	{
-		if (!Settings.WriteLog)
-		{
-			return;
-		}
-
-		// construct a log message
-		const string LogFileName = "Log.txt";
-		StringBuilder log = new();
-		lock (Logs)
-		{
-			log.AppendLine(Logs.ToString());
-
-			// write to file
-			string path = LogFileName;
-			{
-				if (App.Running)
-				{
-					try
-					{
-						path = Path.Join(App.UserPath, LogFileName);
-					}
-					catch
-					{
-						path = LogFileName;
-					}
-				}
-
-				File.WriteAllText(path, log.ToString());
-			}
-		}
-	}
-
 	public static void OpenLog()
 	{
-		const string LogFileName = "Log.txt";
-		string path = "";
-		if (App.Running)
-		{
-			try
-			{
-				path = Path.Join(App.UserPath, LogFileName);
-			}
-			catch
-			{
-				path = LogFileName;
-			}
-		}
+		string? path = LogPath;
 		if (File.Exists(path))
 		{
 			new Process { StartInfo = new ProcessStartInfo(path) { UseShellExecute = true } }.Start();
 		}
 	}
 
-	public static void Append(ReadOnlySpan<char> message)
+	/// <summary>
+	/// TextWritter wrapper to facilitate and guarantee tread safety.
+	/// </summary>
+	private class LoggerWriter
 	{
-		lock (Logs)
+		private TextWriter? textWriter;
+
+		// Why is this so complicated? Turns out we want to be able to log before we know where to do it
+		// as such we initially buffer to a memory stream, and once the path is available we have to switch
+		// to the file stream and flush all data.
+		// This is also not asynchronous in any way since it will occur once ever, as such the cost is amortized
+		private TextWriter? TextWriter
 		{
-			Logs.Append(message);
-			Logs.Append('\n');
+			get
+			{
+				if (LogPath != null && textWriter == null)
+				{
+					StreamWriter streamWriter = new StreamWriter(LogPath, false);
+					bufferStreamWriter.BaseStream.Position = 0; // Make sure the `CopyTo` reads from the beginning
+					bufferStreamWriter.BaseStream.CopyTo(streamWriter.BaseStream);
+					textWriter = TextWriter.Synchronized(streamWriter);
+				}
+
+				return textWriter;
+			}
+		}
+		private readonly bool autoFlush;
+		private readonly StreamWriter bufferStreamWriter;
+
+		private TextWriter CurrentBuffer => TextWriter ?? bufferStreamWriter;
+		
+		public LoggerWriter(bool flushAutomatically)
+		{
+			bufferStreamWriter = new StreamWriter(new MemoryStream());
+			autoFlush = flushAutomatically;
+		}
+
+		public void Append(ReadOnlySpan<char> message)
+		{
+			CurrentBuffer.WriteLine(message);
+			if (autoFlush)
+				Flush();
+		}
+
+		public async void Flush()
+		{
+			await Task.Run(CurrentBuffer.Flush);
 		}
 	}
 }
