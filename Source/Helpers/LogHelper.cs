@@ -16,7 +16,7 @@ public static class LogHelper
 		Error,
 		Verbose
 	}
-	
+
 	private const string LogFileName = "Log.txt";
 
 	private static string? _logPath;
@@ -40,7 +40,7 @@ public static class LogHelper
 
 	// This should never be accessed directly
 	private static readonly LoggerWriter Logs = new(true);
-	
+
 	/*
 	 A simple Assembly.GetCallingAssembly() is not good enough for our needs here. 
 	 We need to travel up the stack to get the actual assembly name.
@@ -109,7 +109,7 @@ public static class LogHelper
 	}
 
 	/// <summary>
-	/// TextWritter wrapper to facilitate and guarantee tread safety.
+	/// TextWriter wrapper to facilitate and guarantee thread safety.
 	/// </summary>
 	private class LoggerWriter
 	{
@@ -138,7 +138,7 @@ public static class LogHelper
 		private readonly StreamWriter bufferStreamWriter;
 
 		private TextWriter CurrentBuffer => TextWriter ?? bufferStreamWriter;
-		
+
 		public LoggerWriter(bool flushAutomatically)
 		{
 			bufferStreamWriter = new StreamWriter(new MemoryStream());
