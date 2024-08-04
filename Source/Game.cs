@@ -2,6 +2,7 @@
 using Celeste64.Mod.Patches;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 
 namespace Celeste64;
 
@@ -68,6 +69,27 @@ public struct Transition
 	/// How long to hold on black when executing the transition (e.g. 1.0f -> one second)
 	/// </summary>
 	public float HoldOnBlackFor;
+}
+#endregion
+
+#region Saving State Enum
+/// <summary>
+/// Represents the current saving state of the game.
+/// </summary>
+public enum SavingState
+{
+	/// <summary>
+	/// The game is ready to save.
+	/// </summary>
+	Ready,
+	/// <summary>
+	/// The game is currently saving.
+	/// </summary>
+	Saving,
+	/// <summary>
+	/// The game is currently saving and an additional save is queued (will re-save after the current task)
+	/// </summary>
+	SaveQueued
 }
 #endregion
 
@@ -154,6 +176,22 @@ public class Game : Module
 	public SoundHandle? AmbienceWav;
 	public SoundHandle? MusicWav;
 
+	private Task? SaveTask;
+	private SavingState _SaveSt = SavingState.Ready;
+	/// <summary>
+	/// The current saving state of the game.
+	/// </summary>
+	public SavingState SavingState
+	{
+		get => _SaveSt;
+		internal set
+		{
+			_SaveSt = value;
+
+			LogHelper.Verbose($"Saving state changed to {_SaveSt}");
+		}
+	}
+
 	/// <summary>
 	/// Returns the topmost (i.e. currently active) scene of this game instance.
 	/// </summary>
@@ -185,6 +223,44 @@ public class Game : Module
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Request a full save of all persistence files.
+	/// </summary>
+	public static void RequestSave()
+	{
+		/* An additional save task is already queued. No need to save more */
+		if (Instance.SavingState == SavingState.SaveQueued) return;
+
+		/* Ready -> Saving -> SaveQueued */
+		Instance.SavingState = Instance.SavingState != SavingState.Saving
+		? SavingState.Saving
+		: SavingState.SaveQueued;
+
+		Task.Run(() =>
+		{
+			if (Instance.SavingState == SavingState.SaveQueued)
+			{
+				if (Instance.SaveTask is not null && !Instance.SaveTask.IsCompleted) Instance.SaveTask.Wait();
+				Instance.SavingState = SavingState.Ready;
+				RequestSave();
+			}
+			else
+			{
+				Instance.SaveTask = Task.Run(() =>
+				{
+					Save.SaveToFile();
+					Settings.SaveToFile();
+					Controls.SaveToFile();
+					ModSettings.SaveToFile();
+				});
+
+				Instance.SaveTask.Wait();
+
+				Instance.SavingState = SavingState.Ready;
+			}
+		});
+	}
+
 	/// <summary>
 	/// Gets the full version string of the instance
 	/// </summary>
@@ -422,10 +498,7 @@ public class Game : Module
 			// perform game save between transitions
 			if (transition.Saving)
 			{
-				Save.SaveToFile();
-				Settings.SaveToFile();
-				Controls.SaveToFile();
-				ModSettings.SaveToFile();
+				RequestSave();
 			}
 
 			// reload assets if requested
@@ -507,7 +580,7 @@ public class Game : Module
 			// run a single update when transition happens so stuff gets established
 			if (scenes.TryPeek(out var nextScene))
 			{
-				if (Settings.EnableAdditionalLogging) Log.Info("Switching scene: " + nextScene.GetType());
+				LogHelper.Verbose("Switching scene: " + nextScene.GetType());
 
 				try
 				{
@@ -649,6 +722,18 @@ public class Game : Module
 			if (transitionStep != TransitionStep.None && transition.ToBlack != null)
 			{
 				transition.ToBlack.Render(batcher, new Rect(0, 0, target.Width, target.Height));
+				batcher.Render(target);
+				batcher.Clear();
+			}
+
+			// Draw saving toast if currently saving
+			if (SavingState != SavingState.Ready)
+			{
+				Vec2 ToastSize = Language.Current.SpriteFont.SizeOf(Loc.Str("FujiSaving"));
+				int Pad = 4;
+
+				batcher.PushMatrix(Matrix3x2.CreateScale(0.75f) * Matrix3x2.CreateTranslation(target.Bounds.BottomRight + new Vec2(-Pad, -Pad)));
+				UI.Text(batcher, Loc.Str("FujiSaving"), target.Bounds.TopLeft + new Vec2(-ToastSize.X, -ToastSize.Y), Vec2.Zero, Time.BetweenInterval(0.25f) ? Color.White : Color.Gray);
 				batcher.Render(target);
 				batcher.Clear();
 			}

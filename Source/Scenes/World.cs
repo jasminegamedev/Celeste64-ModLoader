@@ -7,18 +7,74 @@ namespace Celeste64;
 public class World : Scene
 {
 	#region Properties
-	public enum EntryReasons { Entered, Returned, Respawned }
+	/// <summary>
+	/// Entry reasons of a World instance
+	/// </summary>
+	public enum EntryReasons
+	{
+		/// <summary>
+		/// The player likely entered this world from the overworld screen
+		/// </summary>
+		Entered,
+		/// <summary>
+		/// The player is returning here from another world
+		/// </summary>
+		Returned,
+		/// <summary>
+		/// The player respawned here after death
+		/// </summary>
+		Respawned
+	}
 	public readonly record struct EntryInfo(string Map, string CheckPoint, bool Submap, EntryReasons Reason);
 
+	/// <summary>
+	/// The current camera of this world
+	/// </summary>
 	public Camera Camera = new();
+	/// <summary>
+	/// RNG manager of the world
+	/// </summary>
 	public Rng Rng = new(0);
+	/// <summary>
+	/// Represents how much longer the current hit stun will last in seconds
+	/// </summary>
 	public float HitStun = 0;
+	/// <summary>
+	/// Whether the game is currently paused
+	/// </summary>
 	public bool Paused = false;
+	/// <summary>
+	/// The entry reason of this world
+	/// </summary>
 	public EntryInfo Entry = new();
 	public readonly GridPartition<Solid> SolidGrid = new(200, 100);
+
+	/// <summary>
+	/// Total amount of time spent in this world so far. Affected by <see cref="World.TimeScale">timescale</see>.
+	/// For a realtime alternative see <see cref="World.RealTimer">RealTimer</see>
+	/// </summary>
 	public float GeneralTimer = 0;
+	/// <summary>
+	/// The total amount of time spent in this world so far, unaffected by timescale.
+	/// </summary>
+	public float RealTimer = 0;
+	/// <summary>
+	/// The current delta time unaffected by timescale. For a timescale-friendly alternative see <see cref="Time.Delta">Time.Delta</see>
+	/// </summary>
+	public float RealDelta = 0;
+	/// <summary>
+	/// The timescale of the world, where a value of 1 represents 100% and 0.1 represents 10%
+	/// </summary>
+	public float TimeScale = 1;
+
+	/// <summary>
+	/// Altitude at which the player will automatically die
+	/// </summary>
 	public float DeathPlane = -100;
 
+	/// <summary>
+	/// List of actors currently in this world
+	/// </summary>
 	public readonly List<Actor> Actors = [];
 	private readonly List<Actor> adding = [];
 	private readonly List<Actor> destroying = [];
@@ -38,6 +94,7 @@ public class World : Scene
 	// Pause Menu, only drawn when actually paused
 	private Menu pauseMenu = new();
 	private AudioHandle pauseSnapshot;
+	private float PauseSaveDebounce = 0;
 
 	// Panic menu
 	private Menu badMapWarningMenu = new();
@@ -67,7 +124,13 @@ public class World : Scene
 	private int debugUpdateCount;
 	public static bool DebugDraw { get; private set; } = false;
 
+	/// <summary>
+	/// The original data of this world's map, read-only
+	/// </summary>
 	public Map? Map { get; private set; }
+	/// <summary>
+	/// Current active player of this world instance
+	/// </summary>
 	public Player? MainPlayer;
 	#endregion
 
@@ -234,11 +297,14 @@ public class World : Scene
 		}
 		else
 		{
-			if (Settings.EnableAdditionalLogging) Log.Info($"Respawned in {stopwatch.ElapsedMilliseconds}ms");
+			LogHelper.Verbose($"Respawned in {stopwatch.ElapsedMilliseconds}ms");
 		}
 	}
 	#endregion
 
+	/// <summary>
+	/// Ran when the world is being disposed (e.g. player is leaving to the overworld screen)
+	/// </summary>
 	public override void Disposed()
 	{
 		SetPaused(false);
@@ -255,6 +321,9 @@ public class World : Scene
 		ModManager.Instance.CurrentLevelMod = null;
 	}
 
+	/// <summary>
+	/// Ran when the world is entered
+	/// </summary>
 	public override void Entered()
 	{
 		if (MainPlayer is { } player)
@@ -264,6 +333,11 @@ public class World : Scene
 	}
 
 	#region Public Actor Methods
+	/// <summary>
+	/// Request an instance of an actor type from this world's recycling pool
+	/// </summary>
+	/// <typeparam name="T">The type of the entity to search for</typeparam>
+	/// <returns>Instance of Actor where the type is T, pulled from the recycling pool or constructed if there is none</returns>
 	public T Request<T>() where T : Actor, IRecycle, new()
 	{
 		if (recycled.TryGetValue(typeof(T), out var list) && list.Count > 0)
@@ -276,6 +350,12 @@ public class World : Scene
 		}
 	}
 
+	/// <summary>
+	/// Add an instance of an actor to this world
+	/// </summary>
+	/// <typeparam name="T">Type of the actor to add</typeparam>
+	/// <param name="instance">The instance to be added</param>
+	/// <returns>The newly added actor where the type is T</returns>
 	public T Add<T>(T instance) where T : Actor
 	{
 		adding.Add(instance);
@@ -286,6 +366,11 @@ public class World : Scene
 		return instance;
 	}
 
+	/// <summary>
+	/// Get an instance of an actor of the specified type from the world
+	/// </summary>
+	/// <typeparam name="T">The type to search for</typeparam>
+	/// <returns>The first instance found of an actor where the type is T, or null if none exist</returns>
 	public T? Get<T>() where T : class
 	{
 		var list = GetTypesOf<T>();
@@ -294,6 +379,12 @@ public class World : Scene
 		return null;
 	}
 
+	/// <summary>
+	/// Get an instance of an actor of the specified type from the world using a predicate function
+	/// </summary>
+	/// <typeparam name="T">The type to search for</typeparam>
+	/// <param name="predicate">Predicate function that takes an actor of type T and returns whether it matches</param>
+	/// <returns>The first instance found of an actor where the type is T and the predicate matches, or null if none exist</returns>
 	public T? Get<T>(Func<T, bool> predicate) where T : class
 	{
 		var list = GetTypesOf<T>();
@@ -303,17 +394,27 @@ public class World : Scene
 		return null;
 	}
 
+	/// <summary>
+	/// Get all actors of a given type in this world
+	/// </summary>
+	/// <typeparam name="T">Type to search for</typeparam>
+	/// <returns>List of actors matching the type</returns>
 	public List<Actor> All<T>()
 	{
 		return GetTypesOf<T>();
 	}
 
+	/// <summary>
+	/// Gracefully destroy a given actor and remove it from the world
+	/// </summary>
+	/// <param name="actor">The actor instance to destroy</param>
 	public void Destroy(Actor actor)
 	{
 		Debug.Assert(actor.World == this);
 		actor.Destroying = true;
 		destroying.Add(actor);
 	}
+	#endregion
 
 	private List<Actor> GetTypesOf<T>()
 	{
@@ -328,7 +429,6 @@ public class World : Scene
 		}
 		return list;
 	}
-	#endregion
 
 	#region Update Loop
 	private void ResolveChanges()
@@ -405,6 +505,10 @@ public class World : Scene
 		{
 			return;
 		} // don't pour salt in wounds
+
+		/* Update timers */
+		RealDelta = Time.Delta;
+		Time.Delta *= TimeScale;
 
 		try
 		{
@@ -499,6 +603,7 @@ public class World : Scene
 				}
 
 				GeneralTimer += Time.Delta;
+				RealTimer += RealDelta;
 
 				// add / remove actors
 				ResolveChanges();
@@ -530,6 +635,10 @@ public class World : Scene
 	#endregion
 
 	#region Gameplay Util Methods
+	/// <summary>
+	/// Set the paused state of this world and run all accompanying procedures
+	/// </summary>
+	/// <param name="paused">Should the world be paused?</param>
 	public void SetPaused(bool paused)
 	{
 		if (paused == false && Panicked)
@@ -539,6 +648,16 @@ public class World : Scene
 
 		if (paused == false)
 		{
+			/* 
+				Player data and settings might've changed, so let's save
+				To prevent spam let's add a delay - 5 seconds should be alright
+			*/
+			if ((RealTimer - PauseSaveDebounce) > 5.0f)
+			{
+				Game.RequestSave();
+				PauseSaveDebounce = RealTimer;
+			}
+
 			if (ModManager.Instance.NeedsReload)
 			{
 				Game.Instance.ReloadAssets(false);
@@ -575,6 +694,16 @@ public class World : Scene
 		}
 	}
 
+	/// <summary>
+	/// Run a solid raycast in this world
+	/// </summary>
+	/// <param name="point">Position from which to fire the ray</param>
+	/// <param name="direction">Direction in which the ray should go</param>
+	/// <param name="distance">Maximum distance of the ray from the starting point</param>
+	/// <param name="hit">Returns data relating to this raycast hit</param>
+	/// <param name="ignoreBackfaces">Ignore backfaces of objects? default true</param>
+	/// <param name="ignoreTransparent">Ignore transparent objects? default false</param>
+	/// <returns>Whether the ray hit any object</returns>
 	public bool SolidRayCast(in Vec3 point, in Vec3 direction, float distance, out RayHit hit, bool ignoreBackfaces = true, bool ignoreTransparent = false)
 	{
 		hit = default;

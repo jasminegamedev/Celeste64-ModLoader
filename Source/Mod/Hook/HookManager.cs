@@ -28,7 +28,7 @@ public sealed class HookManager
 			Log.Warning($"Mod '{mod.Id}' tried to register a null On-hook");
 			return;
 		}
-			
+
 		RegisterHook(hook, mod);
 	}
 	public void RegisterILHook(ILHook ilHook)
@@ -47,15 +47,14 @@ public sealed class HookManager
 			Log.Warning($"Mod '{mod.Id}' tried to register a null IL-hook");
 			return;
 		}
-		
+
 		RegisterILHook(ilHook, mod);
 	}
-	
+
 	public void RegisterHook(Hook hook, ModInfo mod)
 	{
-		if (Settings.EnableAdditionalLogging)
-			Log.Info($"Registering On-hook for method '{hook.Source}' in type '{hook.Source.DeclaringType}' with hook method '{hook.Target}' in type '{hook.Target.DeclaringType}' for mod '{mod.Id}'");
-		
+		LogHelper.Verbose($"Registering On-hook for method '{hook.Source}' in type '{hook.Source.DeclaringType}' with hook method '{hook.Target}' in type '{hook.Target.DeclaringType}' for mod '{mod.Id}'");
+
 		if (!hooksByMod.TryGetValue(mod.Id, out var hooks))
 		{
 			hooks = [];
@@ -65,9 +64,8 @@ public sealed class HookManager
 	}
 	public void RegisterILHook(ILHook ilHook, ModInfo mod)
 	{
-		if (Settings.EnableAdditionalLogging)
-			Log.Info($"Registering IL-hook for method '{ilHook.Method}' in type '{ilHook.Method.DeclaringType}' with hook method '{ilHook.Manipulator.Method}' in type '{ilHook.Manipulator.Method.DeclaringType}' for mod '{mod.Id}'");
-			
+		LogHelper.Verbose($"Registering IL-hook for method '{ilHook.Method}' in type '{ilHook.Method.DeclaringType}' with hook method '{ilHook.Manipulator.Method}' in type '{ilHook.Manipulator.Method.DeclaringType}' for mod '{mod.Id}'");
+
 		if (!ilHooksByMod.TryGetValue(mod.Id, out var ilHooks))
 		{
 			ilHooks = [];
@@ -92,7 +90,7 @@ public sealed class HookManager
 			Log.Warning($"Mod '{mod.Id}' tried to deregister a null On-hook");
 			return;
 		}
-		
+
 		DeregisterHook(hook, mod);
 	}
 	public void DeregisterILHook(ILHook ilHook)
@@ -111,10 +109,10 @@ public sealed class HookManager
 			Log.Warning($"Mod '{mod.Id}' tried to deregister a null IL-hook");
 			return;
 		}
-		
+
 		DeregisterILHook(ilHook, mod);
 	}
-	
+
 	public void DeregisterHook(Hook hook, ModInfo mod)
 	{
 		hook.Dispose();
@@ -127,7 +125,7 @@ public sealed class HookManager
 		if (ilHooksByMod.TryGetValue(mod.Id, out var ilHooks))
 			ilHooks.Remove(ilHook);
 	}
-	
+
 	internal void ClearHooksOfMod(ModInfo mod)
 	{
 		if (hooksByMod.Remove(mod.Id, out var hooks))
@@ -137,7 +135,7 @@ public sealed class HookManager
 				hook.Dispose();
 			}
 		}
-		
+
 		if (ilHooksByMod.Remove(mod.Id, out var ilHooks))
 		{
 			foreach (var ilHook in ilHooks)

@@ -56,7 +56,6 @@
 		"OptionsToggleOff": "OFF",
 		"OptionsYes": "Yes",
 		"OptionsNo": "No",
-
 		"KeyboardConfig": "Keyboard Config",
 		"KeyboardConfig.desc": "Rebind Keyboard/Mouse Controls",
 		"ControllerConfig": "Controller Config",
@@ -86,11 +85,10 @@
 		"MenuDown": "Menu Down",
 		"MenuUp": "Menu Up",
 		"MenuRight": "Menu Right",
-		"MenuLeft": "Menu Left",	
+		"MenuLeft": "Menu Left",
 		"DebugMenu": "Debug Menu",
 		"FullScreen": "Full Screen",
 		"ReloadAssets": "Reload Assets",
-
 		"Skin": "Skin",
 		"Skin.desc": "Choose a Skin to Wear",
 		"SaveCreateFile": "Create new file?",
@@ -117,6 +115,7 @@
 		"FujiLoaderStatusNormal": "Loading assets: {0} ({1} of {2})",
 		"FujiOpenUserPath": "Open Game Folder",
 		"FujiOpenUserPath.desc": "Open the user folder for Fuji",
+		"FujiSaving": "Saving...",
 		"FailedToLoadMods": "Failed to load {0} mods. Check Mods Menu for details.",
 		"ModEnabled": "Enabled",
 		"ModOptions": "Mod Options",
