@@ -107,10 +107,11 @@ public class Game : Module
 
 	public const string GamePath = "Celeste64";
 	// ModloaderCustom
-	public const string GameTitle = "Celeste 64: Fragments of the Mountain + Fuji Mod Loader";
+	public const string GameTitle = "Pika Game 64";
 	public static readonly Version GameVersion = typeof(Game).Assembly.GetName().Version!;
 	public static readonly string VersionString = $"Celeste 64: v.{GameVersion.Major}.{GameVersion.Minor}.{GameVersion.Build}";
 	public static string LoaderVersion { get; set; } = "";
+	public static readonly string PikaVersion = $"Pika Game 64: v.1.0.0";
 
 	public const int DefaultWidth = 640;
 	public const int DefaultHeight = 360;

@@ -15,6 +15,8 @@ public class Startup : Scene
 	private string lastLoadedModName = string.Empty;
 	private int delay = 5;
 	private Stopwatch timer;
+	
+	public string Name = "TitleMusic";
 
 	public Startup()
 	{

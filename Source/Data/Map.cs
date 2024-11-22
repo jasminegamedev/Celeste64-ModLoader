@@ -83,6 +83,7 @@ public class Map
 		["Badeline"] = new((map, entity) => new Badeline()),
 		["Theo"] = new((map, entity) => new Theo()),
 		["SignPost"] = new((map, entity) => new Signpost(entity.GetStringProperty("dialog", string.Empty))),
+		["TestNPC"] = new((map, entity) => new TestNPC(entity.GetStringProperty("dialog", string.Empty))),
 		["StaticProp"] = new((map, entity) =>
 		{
 			if (Assets.Models.TryGetValueFromFullPath(entity.GetStringProperty("model", string.Empty), out var model))

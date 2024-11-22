@@ -56,6 +56,12 @@
     angle(integer) : "Sign Rotation"
 ]
 
+@PointClass model({ "path": "Models/theo.glb", "scale": 12 }) = TestNPC : "Hope this works" 
+[
+    dialog(string) : "Dialog Entry"
+    angle(integer) : "Sign Rotation"
+]
+
 @PointClass size(-8 -8 -8, 8 8 8) = Node : "Moving entity path node"
 [
     targetname(string) : "Target Name"

@@ -7,11 +7,15 @@ public class Titlescreen : Scene
 	private float easing = 0;
 	private float inputDelay = 5.0f;
 	private Vec2 wobble;
+	
+	//i wish it didn't take 3 days to figure out title screen music but at least i got to put the gbc version of National Park somewhere
+	private SoundHandle? TitleMusic;
+
 
 	public Titlescreen()
 	{
 		model = new SkinnedModel(Assets.Models["logo"]);
-		Music = "event:/music/mus_title";
+		TitleMusic = Audio.PlayMusic("title1");
 	}
 
 	public override void Update()
@@ -22,17 +26,27 @@ public class Titlescreen : Scene
 		if (Controls.Confirm.Pressed && !Game.Instance.IsMidTransition)
 		{
 			Audio.Play(Sfx.main_menu_first_input);
+			
+			if (TitleMusic.HasValue)
+			{
+					//oh my god Jazzrabbit you are amazing
+					TitleMusic.Value.Stop();
+			}
 			Game.Instance.Goto(new Transition()
 			{
 				Mode = Transition.Modes.Replace,
 				Scene = () => new Overworld(false),
 				ToBlack = new AngledWipe(),
-				ToPause = true
+				ToPause = true,
 			});
 		}
 
 		if (Input.Keyboard.CtrlOrCommand && !Game.Instance.IsMidTransition && Settings.EnableQuickStart)
 		{
+			if (TitleMusic.HasValue)
+			{
+					TitleMusic.Value.Stop();
+			}
 			var entry = new Overworld.Entry(Assets.Levels[0], null);
 			entry.Level.Enter();
 		}
@@ -108,8 +122,9 @@ public class Titlescreen : Scene
 				at.X -= width + 8 * Game.RelativeScale;
 
 				UI.Prompt(batch, Controls.Confirm, Loc.Str("Confirm"), at, out _, 1.0f);
-				UI.Text(batch, Game.VersionString, bounds.BottomLeft + new Vec2(4, -4) * Game.RelativeScale, new Vec2(0, 1), Color.CornflowerBlue * 0.75f);
-				UI.Text(batch, Game.LoaderVersion, bounds.BottomLeft + new Vec2(4, -24) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
+				UI.Text(batch, Game.VersionString, bounds.BottomLeft + new Vec2(4, -24) * Game.RelativeScale, new Vec2(0, 1), Color.CornflowerBlue * 0.75f);
+				UI.Text(batch, Game.LoaderVersion, bounds.BottomLeft + new Vec2(4, -44) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
+				UI.Text(batch, Game.PikaVersion, bounds.BottomLeft + new Vec2(4, -4) * Game.RelativeScale, new Vec2(0, 1), new Color(0xf9e828) * 0.75f);
 			}
 
 			if (easing < 1)

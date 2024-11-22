@@ -14,9 +14,16 @@ public class Overworld : Scene
 	public const int ModIconLeftMargin = 16;
 	public const int ModIconSpacing = 52;
 	public const int ModIconVertAdjust = 20;
+	
+	//holy fuck why doesn't putting music on this scene work just like how it did on the title screen this sucks
+	private SoundHandle? OverMusic;
 	#endregion
 
 	#region Level Entry
+	
+	//alright fuck the music this sucks. leaving this line of code here as a rememberance of this moment
+	//OverMusic = Audio.PlayMusic("title2");
+	
 	public class Entry
 	{
 		public readonly LevelInfo Level;
@@ -187,7 +194,6 @@ public class Overworld : Scene
 	#region Overworld Constructor
 	public Overworld(bool startOnLastSelected)
 	{
-		Music = "event:/music/mus_title";
 
 		var cardWidth = DefaultCardWidth / 6.0f;
 		var cardHeight = DefaultCardHeight / 6.0f;
@@ -361,12 +367,12 @@ public class Overworld : Scene
 					};
 					var modMenu = new ModSelectionMenu(pauseMenu)
 					{
-						Title = Loc.Str("PauseModsMenu")
+					//	Title = Loc.Str("PauseModsMenu")
 					};
 
 					pauseMenu.Add(new Menu.Submenu("PauseOptions", pauseMenu, optionsMenu));
 					pauseMenu.Add(new Menu.Submenu("PauseSaves", pauseMenu, savesMenu));
-					pauseMenu.Add(new Menu.Submenu("PauseModsMenu", pauseMenu, modMenu));
+					//pauseMenu.Add(new Menu.Submenu("PauseModsMenu", pauseMenu, modMenu));
 					pauseMenu.Add(new Menu.Option("Exit", () =>
 					{
 						if (ModManager.Instance.NeedsReload)
@@ -624,8 +630,9 @@ public class Overworld : Scene
 		//  -> Display if no level is selected.
 		if (Paused ? (pauseMenu is { IsInMainMenu: true }) : (state == States.Selecting))
 		{
-			UI.Text(batch, Game.VersionString, bounds.BottomLeft + new Vec2(4, -4) * Game.RelativeScale, new Vec2(0, 1), Color.CornflowerBlue * 0.75f);
-			UI.Text(batch, Game.LoaderVersion, bounds.BottomLeft + new Vec2(4, -24) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
+			UI.Text(batch, Game.VersionString, bounds.BottomLeft + new Vec2(4, -24) * Game.RelativeScale, new Vec2(0, 1), Color.CornflowerBlue * 0.75f);
+			UI.Text(batch, Game.LoaderVersion, bounds.BottomLeft + new Vec2(4, -44) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
+			UI.Text(batch, Game.PikaVersion, bounds.BottomLeft + new Vec2(4, -4) * Game.RelativeScale, new Vec2(0, 1), new Color(0xf9e828) * 0.75f);
 
 			if (ModLoader.FailedToLoadMods.Any())
 			{

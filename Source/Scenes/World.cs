@@ -201,7 +201,7 @@ public class World : Scene
 
 			var modMenu = new ModSelectionMenu(pauseMenu)
 			{
-				Title = Loc.Str("PauseModsMenu")
+		//		Title = Loc.Str("PauseModsMenu")
 			};
 
 			pauseMenu.Title = Loc.Str("PauseTitle");
@@ -225,7 +225,7 @@ public class World : Scene
 				);
 			}
 			pauseMenu.Add(new Menu.Submenu("PauseOptions", pauseMenu, optionsMenu));
-			pauseMenu.Add(new Menu.Submenu("PauseModsMenu", pauseMenu, modMenu));
+			//pauseMenu.Add(new Menu.Submenu("PauseModsMenu", pauseMenu, modMenu));
 			pauseMenu.Add(new Menu.Option("PauseSaveQuit", () => Game.Instance.Goto(new Transition()
 			{
 				Mode = Transition.Modes.Replace,
@@ -292,6 +292,7 @@ public class World : Scene
 
 		if (Entry.Reason == EntryReasons.Entered)
 		{
+			Game.Instance.MusicWav?.Stop();
 			Log.Info($"Strawb Count: {adding.Where(x => x is Strawberry).Count()}");
 			Log.Info($"Loaded Map '{ModManager.Instance.CurrentLevelMod?.ModInfo.Id}:{Entry.Map}' in {stopwatch.ElapsedMilliseconds}ms");
 		}
@@ -1105,17 +1106,19 @@ public class World : Scene
 				// show version number when paused / in ending area
 				if ((IsInEndingArea || Paused) && pauseMenu.IsInMainMenu)
 				{
-					UI.Text(batch, Game.VersionString, bounds.BottomLeft + new Vec2(4, -4) * Game.RelativeScale, new Vec2(0, 1), Color.CornflowerBlue * 0.75f);
-					UI.Text(batch, Game.LoaderVersion, bounds.BottomLeft + new Vec2(4, -24) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
+					UI.Text(batch, Game.VersionString, bounds.BottomLeft + new Vec2(4, -24) * Game.RelativeScale, new Vec2(0, 1), Color.CornflowerBlue * 0.75f);
+					UI.Text(batch, Game.LoaderVersion, bounds.BottomLeft + new Vec2(4, -44) * Game.RelativeScale, new Vec2(0, 1), new Color(12326399) * 0.75f);
+					UI.Text(batch, Game.PikaVersion, bounds.BottomLeft + new Vec2(4, -4) * Game.RelativeScale, new Vec2(0, 1), new Color(0xf9e828) * 0.75f);
 				}
 			}
 
 			// overlay
+			//i dont rlly know how the overlay works but the color looks weird without the original one (probly caus im used to it) so i had to change this code to bring back the old one
 			{
 				var scroll = -new Vec2(1.25f, 0.9f) * (float)(Time.Duration.TotalSeconds) * 0.05f;
 
 				batch.PushBlend(BlendMode.Add);
-				batch.Image(Assets.Textures["overworld/overlay"],
+				batch.Image(Assets.Textures["overworld/overlay_old"],
 					bounds.TopLeft, bounds.TopRight, bounds.BottomRight, bounds.BottomLeft,
 					scroll + new Vec2(0, 0), scroll + new Vec2(1, 0), scroll + new Vec2(1, 1), scroll + new Vec2(0, 1),
 					Color.White * 0.10f);

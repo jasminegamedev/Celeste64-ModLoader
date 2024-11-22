@@ -187,7 +187,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	}
 
 	// These are no longer used. This gets populated from SkinInfo.
-	public static readonly Color CNormal = 0xdb2c00;
+	public static readonly Color CNormal = 0xf7d737;
 	public static readonly Color CNoDash = 0x6ec0ff;
 	public static readonly Color CTwoDashes = 0xfa91ff;
 	public static readonly Color CRefillFlash = Color.White;
@@ -269,7 +269,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	public float CoyoteZ;
 
 	public bool DrawModel = true;
-	public bool DrawHair = true;
+	public bool DrawHair = false;
 	public bool DrawOrbs = false;
 	public float DrawOrbsEase = 0;
 
@@ -323,7 +323,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	public Player()
 	{
 		ResetDefaultValues();
-		PointShadowAlpha = 1.0f;
+		PointShadowAlpha = 10.0f;
 		LocalBounds = new BoundingBox(new Vec3(0, 0, 10), 10);
 		UpdateOffScreen = true;
 		Skin = Save.GetSkin();
@@ -2016,7 +2016,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 
 		yield return 1.2f;
 
-		if (World.Entry.Submap)
+	/*	if (World.Entry.Submap)
 		{
 			Save.CurrentRecord.CompletedSubMaps.Add(World.Entry.Map);
 			Game.Instance.Goto(new Transition()
@@ -2028,7 +2028,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 				Saving = true
 			});
 		}
-		else
+		else */
 		{
 			StateMachine.State = States.Normal;
 		}
@@ -2209,7 +2209,8 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 
 	public virtual void StRespawnEnter()
 	{
-		DrawModel = DrawHair = false;
+		DrawModel = false;
+		DrawHair = false;
 		DrawOrbs = true;
 		DrawOrbsEase = 1;
 		PointShadowAlpha = 0;
@@ -2225,8 +2226,9 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 
 	public virtual void StRespawnExit()
 	{
-		PointShadowAlpha = 1;
-		DrawModel = DrawHair = true;
+		PointShadowAlpha = 10;
+		DrawModel = true;
+		DrawHair = false;
 		DrawOrbs = false;
 	}
 
@@ -2388,7 +2390,7 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	{
 		Audio.Play(Sfx.sfx_bubble_out, Position);
 		SfxBubble?.Stop();
-		PointShadowAlpha = 1;
+		PointShadowAlpha = 10;
 	}
 
 	#endregion
@@ -2413,24 +2415,24 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 		}
 	}
 
-	public virtual CoEnumerator StCassetteRoutine()
+	private CoEnumerator StCassetteRoutine()
 	{
 		yield return 1.0f;
 
 		if (cassette != null)
-		{
-			if (World.Entry.Submap)
-			{
-				Game.Instance.Goto(new Transition()
-				{
-					Mode = Transition.Modes.Pop,
-					ToPause = true,
-					ToBlack = new SpotlightWipe(),
-					StopMusic = true
-				});
-			}
+		 {
+			//if (World.Entry.Submap)
+			//{
+			//	Game.Instance.Goto(new Transition()
+			//	{
+			//		Mode = Transition.Modes.Pop,
+			//		ToPause = true,
+			//		ToBlack = new SpotlightWipe(),
+			//		StopMusic = true
+			//	});
+			//} 
 			//Saves and quits game if you collect a cassette with an empty map property when you're not in a submap
-			else if (!Assets.Maps.ContainsKey(cassette.Map))
+			if (!Assets.Maps.ContainsKey(cassette.Map))
 			{
 				Game.Instance.Goto(new Transition()
 				{
@@ -2473,9 +2475,10 @@ public class Player : Actor, IHaveModels, IHaveSprites, IRidePlatforms, ICastPoi
 	{
 		cassette?.SetCooldown();
 		cassette = null;
-		DrawModel = DrawHair = true;
+		DrawModel = true;
+		DrawHair = false;
 		CameraOverride = null;
-		PointShadowAlpha = 1;
+		PointShadowAlpha = 10;
 	}
 
 	#endregion

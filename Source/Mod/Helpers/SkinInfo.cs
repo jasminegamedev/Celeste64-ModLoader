@@ -15,7 +15,7 @@ public class SkinInfo
 	public virtual string CollectableId { get; set; } = "";
 
 	[JsonConverter(typeof(DecimalOrHexConverter))]
-	public virtual int HairNormal { get; set; } = 0xdb2c00;
+	public virtual int HairNormal { get; set; } = 0xe28112;
 	[JsonConverter(typeof(DecimalOrHexConverter))]
 	public virtual int HairNoDash { get; set; } = 0x6ec0ff;
 	[JsonConverter(typeof(DecimalOrHexConverter))]

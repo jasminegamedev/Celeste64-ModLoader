@@ -31,7 +31,7 @@ public class Snow : Actor, IHaveSprites
 			return;
 
 		var area = 100;
-		var subtex = Assets.Subtextures["circle"];
+		var subtex = Assets.Subtextures["raindrop"];
 		var time = World.GeneralTimer;
 
 		// welcome to the land of unoptimized snow :)
